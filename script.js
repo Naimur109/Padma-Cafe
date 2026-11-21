@@ -35,7 +35,7 @@ const MENU = [
     id: "dudh_cha",
     name: "দুধ চা",
     price: 30,
-    image: "https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=900"
+    image: "https://i.ibb.co/bRNDZZ3K/file-000000005ccc820889393bb309440d71.png"
   },
   {
     id: "pora_roti_10",
@@ -53,19 +53,19 @@ const MENU = [
     id: "chotpoti",
     name: "চটপটি",
     price: 40,
-    image: "https://images.unsplash.com/photo-1601050690117-94f5f6fa8bd7?w=900"
+    image: "https://i.ibb.co/q3XbrDhz/file-0000000004648211b58070faa54dd03d.png"
   },
   {
     id: "chotpoti_egg",
     name: "চটপটি (ডিম)",
     price: 60,
-    image: "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=900"
+    image: "https://i.ibb.co/V01TCgLQ/file-000000003354820899f2e4c773b57782.png"
   },
   {
     id: "fuchka",
     name: "ফুচকা",
     price: 50,
-    image: "https://images.unsplash.com/photo-1601050690597-df0568f70950?w=900"
+    image: "https://i.ibb.co/5h7kHJ6n/file-0000000017748208bf7b9981383311f1.png"
   }
 ];
 
