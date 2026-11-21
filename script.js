@@ -29,7 +29,7 @@ const MENU = [
     id: "malai_cha",
     name: "মালাই চা",
     price: 40,
-    image: "https://www.google.com/imgres?q=name%3A%20%22%E0%A6%AE%E0%A6%BE%E0%A6%B2%E0%A6%BE%E0%A6%87%20%E0%A6%9A%E0%A6%BE%22%2C&imgurl=https%3A%2F%2Fi.ytimg.com%2Fvi%2F8p4N7WP2aI0%2Fmaxresdefault.jpg&imgrefurl=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3D8p4N7WP2aI0&docid=XfrbrUW1gHpCmM&tbnid=SRk32PY_hcIMPM&vet=12ahUKEwj7qt27zpmYAxWTkuEIHTnECZkQnPAOegUItQQQAA..i&w=1280&h=720&hcb=2&ved=2ahUKEwj7qt27zpmYAxWTkuEIHTnECZkQnPAOegUItQQQAA"
+    image: "https://i.ibb.co/BHybhVxX/images.jpg"
   },
   {
     id: "dudh_cha",
