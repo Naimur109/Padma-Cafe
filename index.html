@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="bn">
 <head>
@@ -11,12 +12,14 @@
   <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@25.3.1/build/css/intlTelInput.css">
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@25.3.1/build/js/intlTelInput.min.js"></script>
   <script defer src="script.js"></script>
 </head>
 
 <body>
-
 <header class="header">
   <a class="brand" href="#home">
     <img src="https://i.ibb.co/4nW7J6d0/IMG-20261121-WA0000.jpg" alt="Padma Cafe logo">
@@ -29,13 +32,14 @@
   </nav>
 
   <div class="head-actions">
-    <button id="accountBtn" class="outline">লগইন / রেজিস্টার</button>
+    <button id="customerLoginBtn" class="outline">কাস্টমার লগইন</button>
+    <button id="adminLoginBtn" class="outline">অ্যাডমিন লগইন</button>
+    <button id="accountBtn" class="outline hidden">আমার অ্যাকাউন্ট</button>
     <button id="cartBtn" class="gold-btn">কার্ট <span id="cartCount">0</span></button>
   </div>
 </header>
 
 <main id="home">
-
   <section class="hero">
     <div class="hero-content">
       <p class="eyebrow">WELCOME TO PADMA CAFE</p>
@@ -51,10 +55,8 @@
       <h2>আমাদের <em>মেনু</em></h2>
       <p>আপনার পছন্দের খাবার বেছে নিন</p>
     </div>
-
     <div id="menuGrid" class="menu-grid"></div>
   </section>
-
 </main>
 
 <footer>
@@ -70,45 +72,43 @@
   <div class="modal-card">
     <button class="x" data-close="cartModal">×</button>
     <h2>আপনার কার্ট</h2>
-
     <div id="cartLines"></div>
-
     <div class="total-line">
       <b>সর্বমোট</b>
       <b id="cartTotal">৳০</b>
     </div>
-
     <button id="checkoutBtn" class="gold-btn wide">অর্ডার করুন</button>
   </div>
 </div>
 
-<!-- LOGIN / REGISTER MODAL -->
+<!-- AUTH MODAL -->
 <div id="authModal" class="modal">
   <div class="modal-card">
     <button class="x" data-close="authModal">×</button>
 
-    <h2 id="authTitle">লগইন</h2>
+    <p class="eyebrow" id="authRoleLabel">CUSTOMER ACCOUNT</p>
+    <h2 id="authTitle">কাস্টমার লগইন</h2>
 
     <form id="authForm">
-
       <label>
         ইমেইল
         <input id="authEmail" type="email" required autocomplete="email">
       </label>
 
       <label id="nameWrap" class="hidden">
-        নাম
+        আপনার নাম
         <input id="authName" autocomplete="name">
       </label>
 
       <label id="phoneWrap" class="hidden">
         মোবাইল নম্বর
-        <input id="authPhone" type="tel">
+        <input id="authPhone" type="tel" autocomplete="tel">
+        <small class="field-hint">দেশের পতাকা ও কান্ট্রি কোড নির্বাচন করুন।</small>
       </label>
 
       <label id="addressWrap" class="hidden">
         ঠিকানা
-        <textarea id="authAddress" rows="2"></textarea>
+        <textarea id="authAddress" rows="2" autocomplete="street-address"></textarea>
       </label>
 
       <label>
@@ -116,16 +116,19 @@
         <input id="authPassword" type="password" minlength="6" required autocomplete="current-password">
       </label>
 
-      <button class="gold-btn wide" type="submit">চালিয়ে যান</button>
-
+      <button id="authSubmitBtn" class="gold-btn wide" type="submit">
+        লগইন করুন
+      </button>
     </form>
 
-    <p class="switch-auth">
+    <p id="switchAuthWrap" class="switch-auth">
       <span id="authSwitchText">নতুন কাস্টমার?</span>
-      <button id="authSwitch">রেজিস্টার করুন</button>
+      <button id="authSwitch" type="button">রেজিস্টার করুন</button>
     </p>
 
-    <p class="hint">অ্যাডমিনও এই লগইন ফর্ম ব্যবহার করবেন।</p>
+    <p id="authHint" class="hint">
+      কাস্টমার অ্যাকাউন্ট দিয়ে অর্ডার করুন ও অর্ডারের অবস্থা দেখুন।
+    </p>
   </div>
 </div>
 
@@ -139,7 +142,6 @@
         <p class="eyebrow">PADMA CAFE</p>
         <h2 id="dashTitle">ড্যাশবোর্ড</h2>
       </div>
-
       <button id="logoutBtn" class="outline dark">লগআউট</button>
     </div>
 
@@ -154,7 +156,6 @@
 
     <p class="eyebrow">ORDER UPDATE</p>
     <h2>আপনার অর্ডারে পরিবর্তন</h2>
-
     <p id="approvalMessage"></p>
 
     <div id="approvalItems"></div>
@@ -178,9 +179,7 @@
 <div id="receiptModal" class="modal">
   <div class="modal-card">
     <button class="x" data-close="receiptModal">×</button>
-
     <div id="receiptContent"></div>
-
     <button id="printReceipt" class="gold-btn wide">
       রসিদ প্রিন্ট করুন
     </button>
