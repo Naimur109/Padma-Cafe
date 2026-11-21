@@ -1,460 +1,255 @@
 
--- ==========================================
--- PADMA CAFE DATABASE SETUP
--- Run in Supabase SQL Editor
--- ==========================================
+-- =====================================================
+-- PADMA CAFE - SAFE DATABASE UPDATE
+-- Existing customer/order data will be preserved.
+-- =====================================================
 
-create extension if not exists pgcrypto;
+-- 1. MENU PRICE TABLE
+-- Server-side price verification.
 
--- ==========================================
--- CUSTOMER PROFILES
--- ==========================================
-
-create table if not exists public.profiles (
-  id uuid primary key references auth.users(id) on delete cascade,
-  full_name text not null default '',
-  phone text not null default '',
-  address text not null default '',
-  role text not null default 'customer'
-    check (role in ('customer','admin')),
-  created_at timestamptz not null default now()
+CREATE TABLE IF NOT EXISTS public.menu_prices (
+    item_id text PRIMARY KEY,
+    item_name text NOT NULL,
+    unit_price numeric(12,2) NOT NULL CHECK (unit_price >= 0),
+    active boolean NOT NULL DEFAULT true,
+    updated_at timestamptz NOT NULL DEFAULT now()
 );
 
--- ==========================================
--- ORDERS
--- ==========================================
+INSERT INTO public.menu_prices
+(item_id, item_name, unit_price)
+VALUES
+('malai_cha', 'মালাই চা', 40),
+('dudh_cha', 'দুধ চা', 30),
+('pora_roti_10', 'পোড়া রুটি (৳১০)', 10),
+('pora_roti_15', 'পোড়া রুটি (৳১৫)', 15),
+('chotpoti', 'চটপটি', 40),
+('chotpoti_egg', 'চটপটি (ডিম)', 60),
+('fuchka', 'ফুচকা', 50)
+ON CONFLICT (item_id)
+DO UPDATE SET
+    item_name = EXCLUDED.item_name,
+    unit_price = EXCLUDED.unit_price,
+    active = true,
+    updated_at = now();
 
-create table if not exists public.orders (
-  id uuid primary key default gen_random_uuid(),
-  customer_id uuid not null references auth.users(id) on delete cascade,
+ALTER TABLE public.menu_prices ENABLE ROW LEVEL SECURITY;
 
-  customer_name text not null default '',
-  customer_phone text not null default '',
-  customer_address text not null default '',
+DROP POLICY IF EXISTS "Public can read active menu prices"
+ON public.menu_prices;
 
-  total_amount numeric(12,2) not null default 0
-    check (total_amount >= 0),
+CREATE POLICY "Public can read active menu prices"
+ON public.menu_prices
+FOR SELECT
+TO anon, authenticated
+USING (active = true);
 
-  status text not null default 'pending'
-    check (status in (
-      'pending',
-      'confirmed',
-      'cancelled',
-      'preparing',
-      'completed'
-    )),
+GRANT SELECT ON public.menu_prices TO anon, authenticated;
 
-  approval_status text not null default 'not_required'
-    check (approval_status in (
-      'not_required',
-      'awaiting_customer',
-      'accepted',
-      'rejected'
-    )),
 
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
+-- 2. VALIDATE ORDER ITEM PRICE
+-- Customers cannot submit fake item prices.
 
--- ==========================================
--- ORDER ITEMS
--- ==========================================
+CREATE OR REPLACE FUNCTION public.validate_padma_order_item()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    v_price numeric(12,2);
+    v_name text;
+BEGIN
+    IF NOT public.is_admin() THEN
+        SELECT unit_price, item_name
+        INTO v_price, v_name
+        FROM public.menu_prices
+        WHERE item_id = NEW.item_id
+          AND active = true;
 
-create table if not exists public.order_items (
-  id uuid primary key default gen_random_uuid(),
+        IF NOT FOUND THEN
+            RAISE EXCEPTION 'এই খাবারটি বর্তমানে পাওয়া যাচ্ছে না';
+        END IF;
 
-  order_id uuid not null
-    references public.orders(id) on delete cascade,
+        NEW.unit_price := v_price;
+        NEW.item_name := v_name;
+        NEW.line_total := v_price * NEW.quantity;
+        NEW.item_status := 'active';
+    ELSE
+        NEW.line_total := NEW.unit_price * NEW.quantity;
+    END IF;
 
-  item_id text not null,
-  item_name text not null,
-
-  unit_price numeric(12,2) not null
-    check (unit_price >= 0),
-
-  quantity integer not null
-    check (quantity > 0),
-
-  line_total numeric(12,2) not null
-    check (line_total >= 0),
-
-  item_status text not null default 'active'
-    check (item_status in ('active','unavailable')),
-
-  created_at timestamptz not null default now()
-);
-
--- ==========================================
--- AUTO CREATE CUSTOMER PROFILE
--- ==========================================
-
-create or replace function public.handle_new_user()
-returns trigger
-language plpgsql
-security definer
-set search_path = public
-as $$
-begin
-
-  insert into public.profiles (
-    id,
-    full_name,
-    phone,
-    address
-  )
-  values (
-    new.id,
-    coalesce(new.raw_user_meta_data->>'full_name',''),
-    coalesce(new.raw_user_meta_data->>'phone',''),
-    coalesce(new.raw_user_meta_data->>'address','')
-  )
-  on conflict (id) do nothing;
-
-  return new;
-
-end;
+    RETURN NEW;
+END;
 $$;
 
-drop trigger if exists on_auth_user_created on auth.users;
+DROP TRIGGER IF EXISTS validate_padma_order_item_trigger
+ON public.order_items;
 
-create trigger on_auth_user_created
-after insert on auth.users
-for each row
-execute procedure public.handle_new_user();
+CREATE TRIGGER validate_padma_order_item_trigger
+BEFORE INSERT ON public.order_items
+FOR EACH ROW
+EXECUTE FUNCTION public.validate_padma_order_item();
 
--- ==========================================
--- ADMIN CHECK
--- ==========================================
 
-create or replace function public.is_admin()
-returns boolean
-language sql
-stable
-security definer
-set search_path = public
-as $$
-  select exists (
-    select 1
-    from public.profiles
-    where id = auth.uid()
-      and role = 'admin'
-  );
+-- 3. AUTOMATICALLY RECALCULATE ORDER TOTAL
+-- Only active items are included.
+
+CREATE OR REPLACE FUNCTION public.recalculate_padma_order_total()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    v_order_id uuid;
+    v_total numeric(12,2);
+BEGIN
+    v_order_id := COALESCE(NEW.order_id, OLD.order_id);
+
+    SELECT COALESCE(SUM(line_total), 0)
+    INTO v_total
+    FROM public.order_items
+    WHERE order_id = v_order_id
+      AND item_status = 'active';
+
+    UPDATE public.orders
+    SET total_amount = v_total,
+        updated_at = now()
+    WHERE id = v_order_id;
+
+    RETURN COALESCE(NEW, OLD);
+END;
 $$;
 
--- ==========================================
--- ENABLE ROW LEVEL SECURITY
--- ==========================================
+DROP TRIGGER IF EXISTS recalculate_padma_order_total_trigger
+ON public.order_items;
 
-alter table public.profiles enable row level security;
-alter table public.orders enable row level security;
-alter table public.order_items enable row level security;
+CREATE TRIGGER recalculate_padma_order_total_trigger
+AFTER INSERT OR UPDATE OR DELETE
+ON public.order_items
+FOR EACH ROW
+EXECUTE FUNCTION public.recalculate_padma_order_total();
 
--- ==========================================
--- PROFILE POLICIES
--- ==========================================
 
-drop policy if exists
-"profile read self or admin"
-on public.profiles;
+-- 4. PREVENT CUSTOMER FROM SETTING ORDER TOTAL
+-- The final total will be calculated from verified items.
 
-create policy "profile read self or admin"
-on public.profiles
-for select
-to authenticated
-using (
-  id = auth.uid()
-  or public.is_admin()
-);
+CREATE OR REPLACE FUNCTION public.protect_padma_order_total()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF TG_OP = 'INSERT' THEN
+        IF NOT public.is_admin() THEN
+            NEW.total_amount := 0;
+            NEW.status := 'pending';
+            NEW.approval_status := 'not_required';
+        END IF;
+    END IF;
 
-drop policy if exists
-"profile update self"
-on public.profiles;
-
-create policy "profile update self"
-on public.profiles
-for update
-to authenticated
-using (
-  id = auth.uid()
-)
-with check (
-  id = auth.uid()
-  and role = 'customer'
-);
-
--- ==========================================
--- ORDER POLICIES
--- ==========================================
-
-drop policy if exists
-"orders read own or admin"
-on public.orders;
-
-create policy "orders read own or admin"
-on public.orders
-for select
-to authenticated
-using (
-  customer_id = auth.uid()
-  or public.is_admin()
-);
-
-drop policy if exists
-"orders create own"
-on public.orders;
-
-create policy "orders create own"
-on public.orders
-for insert
-to authenticated
-with check (
-  customer_id = auth.uid()
-);
-
-drop policy if exists
-"orders admin update"
-on public.orders;
-
-create policy "orders admin update"
-on public.orders
-for update
-to authenticated
-using (
-  public.is_admin()
-)
-with check (
-  public.is_admin()
-);
-
--- ==========================================
--- ORDER ITEM POLICIES
--- ==========================================
-
-drop policy if exists
-"items read own or admin"
-on public.order_items;
-
-create policy "items read own or admin"
-on public.order_items
-for select
-to authenticated
-using (
-  exists (
-    select 1
-    from public.orders o
-    where o.id = order_id
-      and (
-        o.customer_id = auth.uid()
-        or public.is_admin()
-      )
-  )
-);
-
-drop policy if exists
-"items insert own order"
-on public.order_items;
-
-create policy "items insert own order"
-on public.order_items
-for insert
-to authenticated
-with check (
-  exists (
-    select 1
-    from public.orders o
-    where o.id = order_id
-      and o.customer_id = auth.uid()
-  )
-);
-
-drop policy if exists
-"items admin update"
-on public.order_items;
-
-create policy "items admin update"
-on public.order_items
-for update
-to authenticated
-using (
-  public.is_admin()
-)
-with check (
-  public.is_admin()
-);
-
--- ==========================================
--- ADMIN MARK ITEM UNAVAILABLE
--- ==========================================
-
-create or replace function
-public.admin_mark_item_unavailable(
-  p_item_id uuid
-)
-returns jsonb
-language plpgsql
-security definer
-set search_path = public
-as $$
-declare
-  v_order uuid;
-  v_total numeric;
-begin
-
-  if not public.is_admin() then
-    raise exception 'শুধু অ্যাডমিন এই কাজ করতে পারবেন';
-  end if;
-
-  select order_id
-  into v_order
-  from public.order_items
-  where id = p_item_id
-  for update;
-
-  if v_order is null then
-    raise exception 'আইটেম পাওয়া যায়নি';
-  end if;
-
-  update public.order_items
-  set item_status = 'unavailable'
-  where id = p_item_id;
-
-  select coalesce(sum(line_total),0)
-  into v_total
-  from public.order_items
-  where order_id = v_order
-    and item_status = 'active';
-
-  update public.orders
-  set
-    total_amount = v_total,
-    approval_status = 'awaiting_customer',
-    status = 'pending',
-    updated_at = now()
-  where id = v_order;
-
-  return jsonb_build_object(
-    'order_id', v_order,
-    'new_total', v_total
-  );
-
-end;
+    RETURN NEW;
+END;
 $$;
 
--- ==========================================
--- CUSTOMER APPROVES REMAINING ITEMS
--- ==========================================
+DROP TRIGGER IF EXISTS protect_padma_order_total_trigger
+ON public.orders;
 
-create or replace function
-public.customer_approve_remaining_order(
-  p_order_id uuid
-)
-returns void
-language plpgsql
-security definer
-set search_path = public
-as $$
-begin
+CREATE TRIGGER protect_padma_order_total_trigger
+BEFORE INSERT ON public.orders
+FOR EACH ROW
+EXECUTE FUNCTION public.protect_padma_order_total();
 
-  update public.orders
-  set
-    approval_status = 'accepted',
-    updated_at = now()
-  where id = p_order_id
-    and customer_id = auth.uid()
-    and approval_status = 'awaiting_customer'
-    and status = 'pending';
 
-  if not found then
-    raise exception 'এই অর্ডারের অনুমতি দেওয়া যাচ্ছে না';
-  end if;
+-- 5. ENSURE CUSTOMER CANNOT CHANGE ORDER ITEMS
+-- Admin item updates remain allowed.
 
-end;
+DROP POLICY IF EXISTS "items insert own order"
+ON public.order_items;
+
+CREATE POLICY "items insert own order"
+ON public.order_items
+FOR INSERT
+TO authenticated
+WITH CHECK (
+    EXISTS (
+        SELECT 1
+        FROM public.orders o
+        WHERE o.id = order_id
+          AND o.customer_id = auth.uid()
+          AND o.status = 'pending'
+          AND o.approval_status = 'not_required'
+    )
+);
+
+-- Customers cannot update or delete order items.
+-- Existing admin update policy is preserved.
+
+
+-- 6. PROTECT CUSTOMER PROFILE ROLE
+-- A customer cannot promote their own account to admin.
+
+CREATE OR REPLACE FUNCTION public.protect_padma_profile_role()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF NEW.role IS DISTINCT FROM OLD.role
+       AND current_user <> 'postgres'
+       AND current_user <> 'service_role' THEN
+        RAISE EXCEPTION 'Profile role cannot be changed from the website';
+    END IF;
+
+    RETURN NEW;
+END;
 $$;
 
--- ==========================================
--- CUSTOMER CANCELS WHOLE ORDER
--- ==========================================
+DROP TRIGGER IF EXISTS protect_padma_profile_role_trigger
+ON public.profiles;
 
-create or replace function
-public.customer_cancel_changed_order(
-  p_order_id uuid
-)
-returns void
-language plpgsql
-security definer
-set search_path = public
-as $$
-begin
+CREATE TRIGGER protect_padma_profile_role_trigger
+BEFORE UPDATE ON public.profiles
+FOR EACH ROW
+EXECUTE FUNCTION public.protect_padma_profile_role();
 
-  update public.orders
-  set
-    approval_status = 'rejected',
-    status = 'cancelled',
-    updated_at = now()
-  where id = p_order_id
-    and customer_id = auth.uid()
-    and approval_status = 'awaiting_customer'
-    and status = 'pending';
 
-  if not found then
-    raise exception 'এই অর্ডার বাতিল করা যাচ্ছে না';
-  end if;
+-- 7. SALES REPORT INDEX
 
-end;
+CREATE INDEX IF NOT EXISTS idx_padma_orders_status_created
+ON public.orders (status, created_at);
+
+CREATE INDEX IF NOT EXISTS idx_padma_order_items_order
+ON public.order_items (order_id, item_status);
+
+
+-- 8. ENSURE REALTIME TABLES ARE ENABLED
+
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_publication_tables
+        WHERE pubname = 'supabase_realtime'
+          AND schemaname = 'public'
+          AND tablename = 'orders'
+    ) THEN
+        ALTER PUBLICATION supabase_realtime
+        ADD TABLE public.orders;
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_publication_tables
+        WHERE pubname = 'supabase_realtime'
+          AND schemaname = 'public'
+          AND tablename = 'order_items'
+    ) THEN
+        ALTER PUBLICATION supabase_realtime
+        ADD TABLE public.order_items;
+    END IF;
+END;
 $$;
 
--- ==========================================
--- FUNCTION PERMISSIONS
--- ==========================================
 
-grant execute on function
-public.admin_mark_item_unavailable(uuid)
-to authenticated;
-
-grant execute on function
-public.customer_approve_remaining_order(uuid)
-to authenticated;
-
-grant execute on function
-public.customer_cancel_changed_order(uuid)
-to authenticated;
-
--- ==========================================
--- ENABLE REALTIME
--- ==========================================
-
-do $$
-begin
-
-  if not exists (
-    select 1
-    from pg_publication_tables
-    where pubname = 'supabase_realtime'
-      and schemaname = 'public'
-      and tablename = 'orders'
-  ) then
-
-    alter publication supabase_realtime
-    add table public.orders;
-
-  end if;
-
-  if not exists (
-    select 1
-    from pg_publication_tables
-    where pubname = 'supabase_realtime'
-      and schemaname = 'public'
-      and tablename = 'order_items'
-  ) then
-
-    alter publication supabase_realtime
-    add table public.order_items;
-
-  end if;
-
-end;
-$$;
-
--- ==========================================
--- SETUP COMPLETE
--- ==========================================
+-- =====================================================
+-- UPDATE COMPLETE
+-- =====================================================
