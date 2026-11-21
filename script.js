@@ -29,7 +29,7 @@ const MENU = [
     id: "malai_cha",
     name: "মালাই চা",
     price: 40,
-    image: "https://images.unsplash.com/photo-1571934811356-5cc061b6821f?w=900"
+    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSVKqKpzPQEmyUztz4MEFQIQWJfMUNxyDU5R2-UcvVmZA&s=10"
   },
   {
     id: "dudh_cha",
