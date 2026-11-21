@@ -41,13 +41,13 @@ const MENU = [
     id: "pora_roti_10",
     name: "পোড়া রুটি (৳১০)",
     price: 10,
-    image: "https://images.unsplash.com/photo-1601050690597-df0568f70950?w=900"
+    image: "https://i.ibb.co/Df9P5mS3/file-000000000830820897010f7871918eb4.png"
   },
   {
     id: "pora_roti_15",
     name: "পোড়া রুটি (৳১৫)",
     price: 15,
-    image: "https://images.unsplash.com/photo-1601050690117-94f5f6fa8bd7?w=900"
+    image: "https://i.ibb.co/99X1SkxX/file-000000008dbc8208b998a942475980d9.png"
   },
   {
     id: "chotpoti",
