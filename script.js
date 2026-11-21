@@ -4,8 +4,8 @@
 // কখনো Service Role Key ব্যবহার করবে না
 // ==========================================
 
-const SUPABASE_URL = "YOUR_SUPABASE_PROJECT_URL";
-const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
+const SUPABASE_URL = "https://qeoxoujxdptjjwgxhvbb.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_mjf3B4SkF1kOXwhVxy_veA_oTHLPNLU";
 
 const db = window.supabase.createClient(
   SUPABASE_URL,
