@@ -163,7 +163,7 @@ const MENU = [
     name: "হট কফি",
     category: "পদ্মা স্পেশাল",
     price: 50,
-    image: "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=640&q=80"
+    image: "https://i.ibb.co/8LXCtYvL/2-CA2-CB11-2-A5-C-4381-BA5-F-75545-BC1-A432.png"
   },
   {
     id: "malai_cha",
@@ -198,7 +198,7 @@ const MENU = [
     name: "মালাই চা + পোড়া রুটি",
     category: "পদ্মা স্পেশাল",
     price: 50,
-    image: "https://images.unsplash.com/photo-1544787219-7f47ccb76574?auto=format&fit=crop&w=640&q=80"
+    image: "https://i.ibb.co/5gVjYxnd/2-F219-EBE-0-E4-F-4-A8-E-AD8-D-93-F03-EC9-FF7-B.png"
   },
   {
     id: "chotpoti",
@@ -226,14 +226,14 @@ const MENU = [
     name: "দই ফুচকা",
     category: "পদ্মা স্পেশাল",
     price: 90,
-    image: "https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=640&q=80"
+    image: "https://i.ibb.co/jvk38nz1/1389-A25-D-894-C-4-A34-8-EE5-F309-F4234-A0-B.png"
   },
   {
     id: "doi_chira",
     name: "দই চিড়া",
     category: "পদ্মা স্পেশাল",
     price: 80,
-    image: "https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&w=640&q=80"
+    image: "https://i.ibb.co/WN4FLbWy/D91-BB4-A4-D5-CC-468-E-8420-A78-D02702-D04.png"
   },
 
   // BURGER — 2
@@ -242,14 +242,14 @@ const MENU = [
     name: "চিকেন টিক্কা বার্গার",
     category: "বার্গার",
     price: 80,
-    image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=640&q=80"
+    image: "https://i.ibb.co/W4DqWBZ6/EE2-B31-AA-4-DF9-44-BD-ADD8-5573-CB16-F6-CC.png"
   },
   {
     id: "beef_burger",
     name: "বিফ বার্গার",
     category: "বার্গার",
     price: 130,
-    image: "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=640&q=80"
+    image: "https://i.ibb.co/FkHC1P73/4-FCDE463-3752-4-D94-AF80-38949321-EB08.png"
   },
 
   // STARTER — 5
@@ -258,14 +258,14 @@ const MENU = [
     name: "কলিজা সিঙ্গারা",
     category: "স্টাটার",
     price: 25,
-    image: "https://images.unsplash.com/photo-1601050690117-94f5f6fa8bd7?auto=format&fit=crop&w=640&q=80"
+    image: "https://i.ibb.co/n81jGdmZ/624327-CB-CAF9-4595-ADC8-29-AED104761-F.png"
   },
   {
     id: "french_fries",
     name: "ফ্রেন্স ফ্রাই",
     category: "স্টাটার",
     price: 50,
-    image: "https://images.unsplash.com/photo-1576107232684-1279f390859f?auto=format&fit=crop&w=640&q=80"
+    image: "https://i.ibb.co/qYwytJ2H/0-FC2562-A-E630-4056-8679-94-C3244-F4693.png"
   },
   {
     id: "chicken_spring_roll",
@@ -279,14 +279,14 @@ const MENU = [
     name: "চিকেন মমস",
     category: "স্টাটার",
     price: 100,
-    image: "https://images.unsplash.com/photo-1625220194771-7ebdea0b70b9?auto=format&fit=crop&w=640&q=80"
+    image: "https://i.ibb.co/d47K3SHR/7458-C286-F52-D-4091-800-B-00-F5-F50-B38-A2.png"
   },
   {
     id: "chicken_fry_3pcs",
     name: "চিকেন ফ্রাই (৩ পিস)",
     category: "স্টাটার",
     price: 120,
-    image: "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?auto=format&fit=crop&w=640&q=80"
+    image: "https://i.ibb.co/twkB2HdJ/5-F87576-A-63-DE-4-B7-B-939-A-77-FBA368-D63-B.png"
   },
 
   // SHAKES — 6
@@ -295,42 +295,42 @@ const MENU = [
     name: "কোল্ড কফি",
     category: "শেক",
     price: 80,
-    image: "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?auto=format&fit=crop&w=640&q=80"
+    image: "https://i.ibb.co/9HMwr8JZ/8-D88-E5-DA-53-BD-486-A-9-F4-E-57-E1-CE6029-FD.png"
   },
   {
     id: "chocolate_shake",
     name: "চকলেট শেক",
     category: "শেক",
     price: 90,
-    image: "https://images.unsplash.com/photo-1572490122747-3968b75cc699?auto=format&fit=crop&w=640&q=80"
+    image: "https://i.ibb.co/DHL1JrGq/7-AB0-CD26-2-A65-4-A62-8626-F57-EEEF367-BC.png"
   },
   {
     id: "vanilla_shake",
     name: "ভ্যানিলা শেক",
     category: "শেক",
     price: 99,
-    image: "https://images.unsplash.com/photo-1579954115545-a95591f28bfc?auto=format&fit=crop&w=640&q=80"
+    image: "https://i.ibb.co/Q3sRqntj/DFE6-D029-F56-E-43-AD-8021-7793-C5-DD9-FBB.png"
   },
   {
     id: "oreo_shake",
     name: "অরিও শেক",
     category: "শেক",
     price: 110,
-    image: "https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=640&q=80"
+    image: "https://i.ibb.co/CsvJJYxk/3418542-C-F907-4-F9-E-8-C5-E-33-C948-D56-DBC.png"
   },
   {
     id: "kitkat_shake",
     name: "কিটক্যাট শেক",
     category: "শেক",
     price: 110,
-    image: "https://images.unsplash.com/photo-1553787499-6f9133860278?auto=format&fit=crop&w=640&q=80"
+    image: "https://i.ibb.co/5XXwtkkd/96-EE5-C94-0335-4697-B189-AD25573-A1452.png"
   },
   {
     id: "butterscotch_shake",
     name: "বাটারস্কচ শেক (Padma Special)",
     category: "শেক",
     price: 110,
-    image: "https://images.unsplash.com/photo-1541658016709-82535e94bc69?auto=format&fit=crop&w=640&q=80"
+    image: "https://i.ibb.co/Q7C1KMrG/6-DBE446-F-C5-F0-40-CD-988-D-399-DD37-CFCC8.png"
   },
 
   // SOFT DRINKS — 2
@@ -339,14 +339,14 @@ const MENU = [
     name: "পানি",
     category: "সফট ড্রিঙ্কস",
     price: 20,
-    image: "https://images.unsplash.com/photo-1548839140-29a749e1cf4d?auto=format&fit=crop&w=640&q=80"
+    image: "https://i.ibb.co/1hGL88J/78-BAED40-1575-4-DC9-AC0-A-0-DE09893-FC46.png"
   },
   {
     id: "mojo",
     name: "মজো",
     category: "সফট ড্রিঙ্কস",
     price: 20,
-    image: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=640&q=80"
+    image: "https://i.ibb.co/tPcx817T/D763-AE66-BB05-4-D47-87-C0-BB6-AC2-C1-E0-AA.png"
   },
 
   // COMBO PACKAGE — 2
@@ -355,14 +355,14 @@ const MENU = [
     name: "হাঁস+খিচুড়ি (রেগুলার)",
     category: "কম্বো প্যাকেজ",
     price: 230,
-    image: COMBO_REGULAR_IMAGE_URL
+    image: "https://i.ibb.co/zhwSK12Z/7543-F983-42-F6-4-A40-AC24-7905-E953-E10-B.png"
   },
   {
     id: "combo_hash_khichuri_special",
     name: "হাঁস+খিচুড়ি (স্পেশাল)",
     category: "কম্বো প্যাকেজ",
     price: 270,
-    image: COMBO_SPECIAL_IMAGE_URL
+    image: "https://i.ibb.co/prf7qKPk/34-C78-C43-2008-4279-BD93-FAD7-C5300544.png"
   }
 ];
 
