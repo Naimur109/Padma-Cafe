@@ -182,10 +182,6 @@ img {
   background: rgba(214, 173, 85, 0.12);
 }
 
-.outline.dark {
-  color: var(--gold-light);
-}
-
 .danger-btn {
   background: rgba(217, 83, 79, 0.12);
   color: #ff8984;
@@ -614,6 +610,14 @@ img {
   background: #171717;
 }
 
+.otp-input {
+  text-align: center;
+  font-size: 24px !important;
+  font-weight: 700;
+  letter-spacing: 8px;
+  color: var(--gold-light) !important;
+}
+
 .field-hint,
 .hint {
   font-size: 12px;
@@ -845,7 +849,7 @@ img {
   background: rgba(80, 150, 220, 0.15);
 }
 
-/* DELIVERY TRACKING PANEL */
+/* DELIVERY TRACKING PANEL (ONE-WAY PROGRESS BASED ON DELIVERY TIME) */
 
 .delivery-tracking {
   position: relative;
@@ -923,11 +927,23 @@ img {
   pointer-events: none;
 }
 
+.delivery-progress-fill {
+  position: absolute;
+  left: 0;
+  top: 75px;
+  height: 5px;
+  width: 0%;
+  background: linear-gradient(90deg, #9b742d, #f1d58b);
+  box-shadow: 0 0 10px rgba(241, 213, 139, 0.5);
+  transition: width 0.8s linear;
+  z-index: 2;
+}
+
 .delivery-start,
 .delivery-end {
   position: absolute;
   top: 13px;
-  z-index: 2;
+  z-index: 3;
   color: var(--gold-light);
   font-size: 12px;
   text-align: center;
@@ -956,7 +972,8 @@ img {
   font-size: 34px;
   color: var(--gold-light);
   filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.5));
-  animation: padmaBikeRide 5s ease-in-out infinite alternate;
+  transition: left 0.85s linear;
+  animation: padmaBikeEngine 0.8s ease-in-out infinite;
   will-change: left, transform;
 }
 
@@ -965,45 +982,12 @@ img {
   transform: scaleX(-1);
 }
 
-@keyframes padmaBikeRide {
-  0% {
-    left: 8%;
-    transform: translateY(0) rotate(-2deg);
+@keyframes padmaBikeEngine {
+  0%, 100% {
+    transform: translateY(0) rotate(-1deg);
   }
-
-  25% {
-    transform: translateY(-3px) rotate(1deg);
-  }
-
   50% {
-    transform: translateY(1px) rotate(-1deg);
-  }
-
-  75% {
-    transform: translateY(-3px) rotate(1deg);
-  }
-
-  100% {
-    left: 76%;
-    transform: translateY(0) rotate(-2deg);
-  }
-}
-
-.delivery-tracking.delivered .delivery-bike {
-  animation: padmaBikeFinish 1.2s ease-in forwards;
-}
-
-@keyframes padmaBikeFinish {
-  0% {
-    left: 76%;
-    opacity: 1;
-    transform: scale(1);
-  }
-
-  100% {
-    left: 110%;
-    opacity: 0;
-    transform: scale(0.8);
+    transform: translateY(-2px) rotate(1deg);
   }
 }
 
@@ -1424,6 +1408,10 @@ input:focus-visible {
     top: 70px;
   }
 
+  .delivery-progress-fill {
+    top: 69px;
+  }
+
   .delivery-bike {
     top: 46px;
     font-size: 29px;
@@ -1467,8 +1455,7 @@ input:focus-visible {
 /* REDUCED MOTION SUPPORT */
 
 @media (prefers-reduced-motion: reduce) {
-  .delivery-bike,
-  .delivery-tracking.delivered .delivery-bike {
+  .delivery-bike {
     animation: none !important;
   }
 
