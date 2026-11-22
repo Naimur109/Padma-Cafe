@@ -9,10 +9,11 @@ begin;
 drop function if exists public.place_customer_order(jsonb);
 
 -- ---------------------------------------------------------
--- 1. ADD NEW ORDER & PROFILE COLUMNS & CONSTRAINTS
+-- 1. ADD NEW ORDER & PROFILE COLUMNS, STORE SETTINGS & POLICIES
 -- ---------------------------------------------------------
 
 alter table public.orders
+  add column if not exists customer_email text default '',
   add column if not exists sale_type text not null default 'online',
   add column if not exists preparation_minutes integer,
   add column if not exists preparation_started_at timestamptz,
@@ -23,7 +24,8 @@ alter table public.orders
   add column if not exists completed_at timestamptz;
 
 alter table public.profiles
-  add column if not exists avatar_url text default '';
+  add column if not exists avatar_url text default '',
+  add column if not exists email text default '';
 
 create table if not exists public.store_settings (
   id integer primary key default 1,
@@ -34,6 +36,34 @@ create table if not exists public.store_settings (
 insert into public.store_settings (id, is_online)
 values (1, true)
 on conflict (id) do nothing;
+
+alter table public.store_settings enable row level security;
+
+drop policy if exists "Anyone can read store settings" on public.store_settings;
+create policy "Anyone can read store settings"
+on public.store_settings
+for select
+using (true);
+
+drop policy if exists "Admins can update store settings" on public.store_settings;
+create policy "Admins can update store settings"
+on public.store_settings
+for all
+using (public.is_admin())
+with check (public.is_admin());
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'store_settings'
+  ) then
+    alter publication supabase_realtime add table public.store_settings;
+  end if;
+end $$;
 
 alter table public.orders
   drop constraint if exists orders_status_check;
@@ -68,7 +98,7 @@ create or replace function public.place_customer_order(
 returns uuid
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, auth
 as $$
 declare
   v_order_id uuid;
@@ -111,6 +141,7 @@ declare
   ]'::jsonb;
 
   v_user_name text;
+  v_user_email text;
   v_phone text;
   v_address text;
 begin
@@ -123,7 +154,7 @@ begin
   end if;
 
   if exists (select 1 from public.store_settings where id = 1 and is_online = false) then
-    raise exception 'ক্যাফে বর্তমানে অফলাইন রয়েছে';
+    raise exception 'ক্যাফে/রেস্টুরেন্ট এখন বন্ধ আছে';
   end if;
 
   if jsonb_typeof(p_items) <> 'array'
@@ -132,16 +163,19 @@ begin
   end if;
 
   select
-    coalesce(full_name, ''),
-    coalesce(phone, ''),
-    coalesce(address, '')
-  into v_user_name, v_phone, v_address
-  from public.profiles
-  where id = auth.uid();
+    coalesce(p.full_name, ''),
+    coalesce(nullif(p.email, ''), u.email, ''),
+    coalesce(p.phone, ''),
+    coalesce(p.address, '')
+  into v_user_name, v_user_email, v_phone, v_address
+  from public.profiles p
+  left join auth.users u on u.id = p.id
+  where p.id = auth.uid();
 
   insert into public.orders (
     customer_id,
     customer_name,
+    customer_email,
     customer_phone,
     customer_address,
     total_amount,
@@ -152,6 +186,7 @@ begin
   values (
     auth.uid(),
     v_user_name,
+    v_user_email,
     v_phone,
     v_address,
     0,
@@ -419,6 +454,7 @@ begin
   insert into public.orders (
     customer_id,
     customer_name,
+    customer_email,
     customer_phone,
     customer_address,
     total_amount,
@@ -430,6 +466,7 @@ begin
   values (
     auth.uid(),
     'অফলাইন বিক্রি',
+    '',
     '',
     '',
     0,
