@@ -148,11 +148,13 @@ function showError(error) {
 // ------------------------------------------------------
 // MENU
 // - Original 7 i.ibb.co image URLs preserved unchanged
+// - Chicken Spring Roll image updated to a reliable photo URL
 // - Combo Package has ONLY the two requested packages with changeable image URLs
 // ------------------------------------------------------
 
 const COMBO_REGULAR_IMAGE_URL = "https://images.unsplash.com/photo-1589302168068-964664d93dc0?auto=format&fit=crop&w=640&q=80";
 const COMBO_SPECIAL_IMAGE_URL = "https://images.unsplash.com/photo-1633945274405-b6c8069047b0?auto=format&fit=crop&w=640&q=80";
+const SPRING_ROLL_IMAGE_URL = "https://images.unsplash.com/photo-1606525437679-037474a119ae?auto=format&fit=crop&w=640&q=80";
 
 const MENU = [
   // PADMA SPECIAL — 11
@@ -270,7 +272,7 @@ const MENU = [
     name: "চিকেন স্প্রিং রোল",
     category: "স্টাটার",
     price: 80,
-    image: "https://images.unsplash.com/photo-1548507200-e587247c2d06?auto=format&fit=crop&w=640&q=80"
+    image: SPRING_ROLL_IMAGE_URL
   },
   {
     id: "chicken_momos",
@@ -388,6 +390,7 @@ let authRole = "customer";
 let pendingOtpEmail = "";
 let phoneInput = null;
 let liveChannel = null;
+let storeChannel = null;
 let currentReceipt = null;
 let audioCtx = null;
 let reportDate = dhakaDate(new Date());
@@ -396,6 +399,7 @@ let offlineCart = {};
 let orderTimerInterval = null;
 let storeOnline = true;
 let draftPhotoDataUrl = "";
+let profileCacheById = {};
 
 // ------------------------------------------------------
 // MODAL & DRAWER CLOSE EVENTS
@@ -414,7 +418,7 @@ document.querySelectorAll(".modal").forEach(modal => {
 });
 
 function openProfileSlide() {
-  if (!user || !profile || profile.role === "admin") return;
+  if (!user || !profile) return;
 
   draftPhotoDataUrl = "";
   const currentAvatar = profile.avatar_url || "https://i.ibb.co/4nW7J6d0/IMG-20261121-WA0000.jpg";
@@ -498,27 +502,73 @@ async function fetchStoreStatus() {
   applyStoreStatusUI();
 }
 
+function subscribeStoreStatus() {
+  if (storeChannel) {
+    db.removeChannel(storeChannel);
+    storeChannel = null;
+  }
+
+  storeChannel = db
+    .channel("padma-store-status")
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "store_settings"
+      },
+      payload => {
+        const row = payload.new;
+        if (row && typeof row.is_online === "boolean") {
+          storeOnline = row.is_online;
+          localStorage.setItem("padma_store_online", String(storeOnline));
+          applyStoreStatusUI();
+        }
+      }
+    )
+    .subscribe();
+}
+
 async function setStoreOnlineStatus(nextOnline) {
   if (!ensureAdmin()) return;
 
+  const previousState = storeOnline;
   storeOnline = Boolean(nextOnline);
   localStorage.setItem("padma_store_online", String(storeOnline));
   applyStoreStatusUI();
 
   try {
-    await db
+    const { data, error } = await db
       .from("store_settings")
-      .upsert({ id: 1, is_online: storeOnline, updated_at: new Date().toISOString() });
-  } catch (_) {}
+      .upsert({
+        id: 1,
+        is_online: storeOnline,
+        updated_at: new Date().toISOString()
+      })
+      .select("is_online")
+      .single();
 
-  toast(storeOnline ? "স্টোর অনলাইন করা হয়েছে।" : "স্টোর অফলাইন করা হয়েছে।");
+    if (error) throw error;
+    if (data && typeof data.is_online === "boolean") {
+      storeOnline = data.is_online;
+      localStorage.setItem("padma_store_online", String(storeOnline));
+      applyStoreStatusUI();
+    }
+
+    toast(storeOnline ? "স্টোর অনলাইন করা হয়েছে।" : "স্টোর অফলাইন করা হয়েছে।");
+  } catch (err) {
+    storeOnline = previousState;
+    localStorage.setItem("padma_store_online", String(storeOnline));
+    applyStoreStatusUI();
+    showError(err);
+  }
 }
 
 $("storeOnlineBtn")?.addEventListener("click", () => setStoreOnlineStatus(true));
 $("storeOfflineBtn")?.addEventListener("click", () => setStoreOnlineStatus(false));
 
 // ------------------------------------------------------
-// HEADER BUTTONS & CUSTOMER PROFILE SLIDE
+// HEADER BUTTONS & PROFILE SLIDE
 // ------------------------------------------------------
 
 function updateHeaderAuthButtons() {
@@ -541,6 +591,7 @@ function updateHeaderAuthButtons() {
   if (profile.role === "admin") {
     custLabel.textContent = "কাস্টমার লগইন";
     custAvatar.classList.add("hidden");
+    custAvatar.src = "";
     adminBtn.textContent = profile.full_name || user.email || "অ্যাডমিন";
     allOrdersBtn.classList.remove("hidden");
   } else {
@@ -558,6 +609,7 @@ function updateHeaderAuthButtons() {
   applyStoreStatusUI();
 }
 
+// Name button opens Profile Side Slide (never Dashboard)
 $("customerLoginBtn").onclick = () => {
   if (user && profile && profile.role !== "admin") {
     openProfileSlide();
@@ -569,13 +621,14 @@ $("customerLoginBtn").onclick = () => {
 
 $("adminLoginBtn").onclick = () => {
   if (user && profile && profile.role === "admin") {
-    openDashboard();
+    openProfileSlide();
     return;
   }
   authRole = "admin";
   openAuth("login");
 };
 
+// "সকল অর্ডার" button opens Dashboard
 $("allOrdersBtn").onclick = async () => {
   if (!user) {
     authRole = "customer";
@@ -631,7 +684,6 @@ $("profileSlideForm")?.addEventListener("submit", async event => {
       .eq("id", user.id);
 
     if (error) {
-      // Fallback if avatar_url column is not yet added in DB
       await db.auth.updateUser({
         data: { full_name: newName, avatar_url: finalAvatar }
       });
@@ -656,6 +708,7 @@ $("slideLogoutBtn")?.addEventListener("click", async () => {
   user = null;
   profile = null;
   closeProfileSlide();
+  hide("dashboardModal");
   updateHeaderAuthButtons();
   toast("লগআউট সম্পন্ন হয়েছে।");
 });
@@ -766,12 +819,6 @@ $("menuGrid")?.addEventListener("click", event => {
 // ------------------------------------------------------
 
 function addCart(id) {
-  const isAdminLoggedIn = Boolean(user && profile && profile.role === "admin");
-  if (!storeOnline && !isAdminLoggedIn) {
-    toast("ক্যাফে বর্তমানে অফলাইন রয়েছে। এই মুহূর্তে অর্ডার নেওয়া হচ্ছে না।");
-    return;
-  }
-
   const item = MENU.find(product => product.id === id);
   if (!item) return;
 
@@ -1011,7 +1058,8 @@ $("authForm").onsubmit = async event => {
           data: {
             full_name: name,
             phone,
-            address
+            address,
+            email
           }
         }
       });
@@ -1205,10 +1253,41 @@ async function loadProfile() {
   profile = {
     ...data,
     full_name: data.full_name || user.user_metadata?.full_name || "",
-    avatar_url: data.avatar_url || user.user_metadata?.avatar_url || ""
+    avatar_url: data.avatar_url || user.user_metadata?.avatar_url || "",
+    email: data.email || user.email || ""
   };
 
+  if (profile.id) {
+    profileCacheById[profile.id] = profile;
+  }
+
   updateHeaderAuthButtons();
+}
+
+async function resolveCustomerEmail(order) {
+  const direct = order.customer_email || order.email || "";
+  if (direct) return direct;
+
+  if (!order.customer_id) return "—";
+
+  if (profileCacheById[order.customer_id]?.email) {
+    return profileCacheById[order.customer_id].email;
+  }
+
+  try {
+    const { data } = await db
+      .from("profiles")
+      .select("id, email, full_name")
+      .eq("id", order.customer_id)
+      .maybeSingle();
+
+    if (data) {
+      profileCacheById[order.customer_id] = data;
+      if (data.email) return data.email;
+    }
+  } catch (_) {}
+
+  return "—";
 }
 
 async function ensureCustomer() {
@@ -1272,7 +1351,7 @@ $("checkoutBtn").onclick = async () => {
         id: saleId,
         created_at: new Date().toISOString(),
         customer_name: "অফলাইন বিক্রি",
-        customer_email: profile.email || user.email || "",
+        customer_email: "",
         customer_phone: "",
         customer_address: "",
         status: "completed",
@@ -1305,7 +1384,7 @@ $("checkoutBtn").onclick = async () => {
   }
 
   if (!storeOnline) {
-    toast("ক্যাফে বর্তমানে অফলাইন রয়েছে। এই মুহূর্তে অর্ডার নেওয়া হচ্ছে না।");
+    toast("ক্যাফে/রেস্টুরেন্ট এখন বন্ধ আছে। এই মুহূর্তে অর্ডার নেওয়া যাচ্ছে না।");
     return;
   }
 
@@ -1675,7 +1754,7 @@ async function renderCustomer() {
 }
 
 // ------------------------------------------------------
-// ADMIN DASHBOARD (FRESH DAILY SUMMARY AFTER 12:00 AM + FULL HISTORY/MONTHLY)
+// ADMIN DASHBOARD (6-STEP FRESH DAILY SUMMARY AFTER 12:00 AM + 3 CONTROLS)
 // ------------------------------------------------------
 
 async function renderAdmin() {
@@ -1684,34 +1763,52 @@ async function renderAdmin() {
 
   const todayStr = dhakaDate(new Date());
   const dayRange = dhakaDayRange(todayStr);
+  const startMs = new Date(dayRange.start).getTime();
+  const endMs = new Date(dayRange.end).getTime();
 
   const { data, error } = await db
     .from("orders")
     .select("*")
-    .neq("sale_type", "offline")
     .order("created_at", { ascending: false })
-    .limit(200);
+    .limit(300);
 
   if (error) throw error;
 
-  const allOnlineOrders = data || [];
-  const todayOnlineOrders = allOnlineOrders.filter(o => {
+  const allOrders = data || [];
+  const todayOrders = allOrders.filter(o => {
     const t = new Date(o.created_at).getTime();
-    return t >= new Date(dayRange.start).getTime() && t < new Date(dayRange.end).getTime();
+    return t >= startMs && t < endMs;
   });
 
-  const todayCompletedAmount = todayOnlineOrders
+  const todayOnlineOrders = todayOrders.filter(o => o.sale_type !== "offline");
+  const todayOfflineOrders = todayOrders.filter(o => o.sale_type === "offline");
+
+  const todayPendingCount = todayOnlineOrders.filter(
+    o => o.status === "pending"
+  ).length;
+
+  const todayCompletedOnlineSale = todayOnlineOrders
     .filter(o => o.status === "completed")
     .reduce((sum, o) => sum + Number(o.total_amount || 0), 0);
 
-  const todayPendingCount = todayOnlineOrders
-    .filter(o => o.status === "pending").length;
+  const todayCompletedOfflineSale = todayOfflineOrders
+    .filter(o => o.status === "completed")
+    .reduce((sum, o) => sum + Number(o.total_amount || 0), 0);
+
+  const todayCancelledCount = todayOrders.filter(
+    o => o.status === "cancelled"
+  ).length;
 
   container.innerHTML = `
     <div class="dashboard-panel">
       <h3>অ্যাডমিন কন্ট্রোল</h3>
 
       <div class="order-actions">
+        <button id="openNewOnlineSale" class="gold-btn" type="button">
+          <i class="fa-solid fa-cart-plus"></i>
+          নতুন অনলাইন বিক্রি
+        </button>
+
         <button id="openOfflineSale" class="gold-btn" type="button">
           <i class="fa-solid fa-cash-register"></i>
           নতুন অফলাইন বিক্রি
@@ -1731,13 +1828,30 @@ async function renderAdmin() {
           <span>আজকের অনলাইন অর্ডার</span>
           <strong>${numberBN(todayOnlineOrders.length)}</strong>
         </div>
+
+        <div class="stat-card">
+          <span>আজকের অফলাইন অর্ডার</span>
+          <strong>${numberBN(todayOfflineOrders.length)}</strong>
+        </div>
+
         <div class="stat-card">
           <span>আজকের অপেক্ষমাণ</span>
           <strong>${numberBN(todayPendingCount)}</strong>
         </div>
+
         <div class="stat-card">
           <span>আজকের সম্পন্ন অনলাইন বিক্রি</span>
-          <strong>${money(todayCompletedAmount)}</strong>
+          <strong>${money(todayCompletedOnlineSale)}</strong>
+        </div>
+
+        <div class="stat-card">
+          <span>আজকের অফলাইন সম্পূর্ণ বিক্রি</span>
+          <strong>${money(todayCompletedOfflineSale)}</strong>
+        </div>
+
+        <div class="stat-card">
+          <span>আজকের বাতিল অর্ডার</span>
+          <strong>${numberBN(todayCancelledCount)}</strong>
         </div>
       </div>
       <p class="field-hint">পুরনো সব হিসাব সংরক্ষিত আছে—মান্থলি সেল ও হিস্টোরি দেখতে "বিক্রির রিপোর্ট ও মান্থলি সেল" বাটনে ক্লিক করুন।</p>
@@ -1748,6 +1862,12 @@ async function renderAdmin() {
     </div>
   `;
 
+  $("openNewOnlineSale").onclick = () => {
+    hide("dashboardModal");
+    $("menuSection")?.scrollIntoView({ behavior: "smooth" });
+    toast("মেনু থেকে খাবার নির্বাচন করে অর্ডার তালিকায় যোগ করুন।");
+  };
+
   $("openOfflineSale").onclick = openOfflineSale;
   $("openSalesReport").onclick = openSalesReport;
 
@@ -1755,7 +1875,7 @@ async function renderAdmin() {
 
   for (const order of todayOnlineOrders) {
     const items = await fetchItems(order.id);
-    const emailDisplay = order.customer_email || order.email || "—";
+    const emailDisplay = await resolveCustomerEmail(order);
 
     output += `
       <article class="order-card">
@@ -2180,6 +2300,7 @@ async function getOrderForReceipt(orderId) {
     throw new Error("এই রসিদ দেখার অনুমতি আপনার নেই।");
   }
 
+  order.customer_email = await resolveCustomerEmail(order);
   const items = await fetchItems(orderId);
   return { order, items };
 }
@@ -2378,7 +2499,7 @@ $("printReceiptBtn").onclick = () => {
 };
 
 // ------------------------------------------------------
-// OFFLINE SALE
+// OFFLINE SALE (AUTO-ADDS TO TODAY'S OFFLINE ORDERS & COMPLETED OFFLINE SALE)
 // ------------------------------------------------------
 
 function openOfflineSale() {
@@ -2589,7 +2710,11 @@ async function saveOfflineSale() {
     hide("offlineSaleModal");
     show("receiptModal");
 
-    toast("অফলাইন বিক্রি সংরক্ষণ হয়েছে।");
+    toast("অফলাইন বিক্রি সংরক্ষণ হয়েছে এবং আজকের অফলাইন সামারিতে যুক্ত হয়েছে।");
+
+    if ($("dashboardModal")?.classList.contains("show")) {
+      await renderAdmin();
+    }
   } catch (error) {
     showError(error);
   } finally {
@@ -3043,6 +3168,7 @@ window.addEventListener("scroll", () => {
   initializePhoneInput();
   updateConnectionStatus();
   await fetchStoreStatus();
+  subscribeStoreStatus();
   updateHeaderAuthButtons();
   startOrderTimerTicker();
 
