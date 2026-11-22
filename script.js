@@ -147,6 +147,7 @@ function showError(error) {
 
 // ------------------------------------------------------
 // MENU — 26 ITEMS
+// Original 7 i.ibb.co image URLs preserved unchanged; remaining 19 items added.
 // ------------------------------------------------------
 
 const MENU = [
@@ -155,7 +156,8 @@ const MENU = [
     id: "hot_coffee",
     name: "হট কফি",
     category: "পদ্মা স্পেশাল",
-    price: 50
+    price: 50,
+    image: "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=640&q=80"
   },
   {
     id: "malai_cha",
@@ -189,7 +191,8 @@ const MENU = [
     id: "malai_cha_roti",
     name: "মালাই চা + পোড়া রুটি",
     category: "পদ্মা স্পেশাল",
-    price: 50
+    price: 50,
+    image: "https://images.unsplash.com/photo-1544787219-7f47ccb76574?auto=format&fit=crop&w=640&q=80"
   },
   {
     id: "chotpoti",
@@ -216,13 +219,15 @@ const MENU = [
     id: "doi_fuchka",
     name: "দই ফুচকা",
     category: "পদ্মা স্পেশাল",
-    price: 90
+    price: 90,
+    image: "https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=640&q=80"
   },
   {
     id: "doi_chira",
     name: "দই চিড়া",
     category: "পদ্মা স্পেশাল",
-    price: 80
+    price: 80,
+    image: "https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&w=640&q=80"
   },
 
   // BURGER — 2
@@ -230,13 +235,15 @@ const MENU = [
     id: "chicken_tikka_burger",
     name: "চিকেন টিক্কা বার্গার",
     category: "বার্গার",
-    price: 80
+    price: 80,
+    image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=640&q=80"
   },
   {
     id: "beef_burger",
     name: "বিফ বার্গার",
     category: "বার্গার",
-    price: 130
+    price: 130,
+    image: "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=640&q=80"
   },
 
   // STARTER — 5
@@ -244,31 +251,36 @@ const MENU = [
     id: "kolija_singara",
     name: "কলিজা সিঙ্গারা",
     category: "স্টাটার",
-    price: 25
+    price: 25,
+    image: "https://images.unsplash.com/photo-1601050690117-94f5f6fa8bd7?auto=format&fit=crop&w=640&q=80"
   },
   {
     id: "french_fries",
     name: "ফ্রেন্স ফ্রাই",
     category: "স্টাটার",
-    price: 50
+    price: 50,
+    image: "https://images.unsplash.com/photo-1576107232684-1279f390859f?auto=format&fit=crop&w=640&q=80"
   },
   {
     id: "chicken_spring_roll",
     name: "চিকেন স্প্রিং রোল",
     category: "স্টাটার",
-    price: 80
+    price: 80,
+    image: "https://images.unsplash.com/photo-1548507200-e587247c2d06?auto=format&fit=crop&w=640&q=80"
   },
   {
     id: "chicken_momos",
     name: "চিকেন মমস",
     category: "স্টাটার",
-    price: 100
+    price: 100,
+    image: "https://images.unsplash.com/photo-1625220194771-7ebdea0b70b9?auto=format&fit=crop&w=640&q=80"
   },
   {
     id: "chicken_fry_3pcs",
     name: "চিকেন ফ্রাই (৩ পিস)",
     category: "স্টাটার",
-    price: 120
+    price: 120,
+    image: "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?auto=format&fit=crop&w=640&q=80"
   },
 
   // SHAKES — 6
@@ -276,37 +288,43 @@ const MENU = [
     id: "cold_coffee",
     name: "কোল্ড কফি",
     category: "শেক",
-    price: 80
+    price: 80,
+    image: "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?auto=format&fit=crop&w=640&q=80"
   },
   {
     id: "chocolate_shake",
     name: "চকলেট শেক",
     category: "শেক",
-    price: 90
+    price: 90,
+    image: "https://images.unsplash.com/photo-1572490122747-3968b75cc699?auto=format&fit=crop&w=640&q=80"
   },
   {
     id: "vanilla_shake",
     name: "ভ্যানিলা শেক",
     category: "শেক",
-    price: 99
+    price: 99,
+    image: "https://images.unsplash.com/photo-1579954115545-a95591f28bfc?auto=format&fit=crop&w=640&q=80"
   },
   {
     id: "oreo_shake",
     name: "অরিও শেক",
     category: "শেক",
-    price: 110
+    price: 110,
+    image: "https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=640&q=80"
   },
   {
     id: "kitkat_shake",
     name: "কিটক্যাট শেক",
     category: "শেক",
-    price: 110
+    price: 110,
+    image: "https://images.unsplash.com/photo-1553787499-6f9133860278?auto=format&fit=crop&w=640&q=80"
   },
   {
     id: "butterscotch_shake",
     name: "বাটারস্কচ শেক (Padma Special)",
     category: "শেক",
-    price: 110
+    price: 110,
+    image: "https://images.unsplash.com/photo-1541658016709-82535e94bc69?auto=format&fit=crop&w=640&q=80"
   },
 
   // SOFT DRINKS — 2
@@ -314,13 +332,15 @@ const MENU = [
     id: "water",
     name: "পানি",
     category: "সফট ড্রিঙ্কস",
-    price: 20
+    price: 20,
+    image: "https://images.unsplash.com/photo-1548839140-29a749e1cf4d?auto=format&fit=crop&w=640&q=80"
   },
   {
     id: "mojo",
     name: "মজো",
     category: "সফট ড্রিঙ্কস",
-    price: 20
+    price: 20,
+    image: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=640&q=80"
   }
 ];
 
@@ -344,6 +364,7 @@ let profile = null;
 let cart = {};
 let authMode = "login";
 let authRole = "customer";
+let pendingOtpEmail = "";
 let phoneInput = null;
 let liveChannel = null;
 let currentReceipt = null;
@@ -613,7 +634,7 @@ function initializePhoneInput() {
 }
 
 // ------------------------------------------------------
-// AUTHENTICATION
+// AUTHENTICATION & 6-DIGIT OTP VERIFICATION
 // ------------------------------------------------------
 
 $("customerLoginBtn").onclick = () => {
@@ -625,11 +646,6 @@ $("adminLoginBtn").onclick = () => {
   authRole = "admin";
   openAuth("login");
 };
-
-$("heroLoginBtn")?.addEventListener("click", () => {
-  authRole = "customer";
-  openAuth("login");
-});
 
 $("accountBtn").onclick = () => {
   if (user) {
@@ -674,7 +690,7 @@ function openAuth(mode) {
 
   $("authHint").textContent = isAdmin
     ? "শুধু অনুমোদিত অ্যাডমিন অ্যাকাউন্ট দিয়ে প্রবেশ করা যাবে।"
-    : "আপনার অ্যাকাউন্ট দিয়ে অর্ডার করুন ও অর্ডারের অবস্থা দেখুন।";
+    : "রেজিস্ট্রেশনের পর ইমেইলে পাঠানো ৬ সংখ্যার কোড দিয়ে ভেরিফাই করুন।";
 
   $("authPassword").autocomplete =
     isSignup ? "new-password" : "current-password";
@@ -687,6 +703,14 @@ function openAuth(mode) {
 $("authSwitch").onclick = () => {
   openAuth(authMode === "signup" ? "login" : "signup");
 };
+
+function openOtpModal(email) {
+  pendingOtpEmail = email;
+  $("otpEmailDisplay").textContent = email;
+  $("otpCodeInput").value = "";
+  show("otpVerifyModal");
+  setTimeout(() => $("otpCodeInput")?.focus(), 100);
+}
 
 $("authForm").onsubmit = async event => {
   event.preventDefault();
@@ -755,7 +779,8 @@ $("authForm").onsubmit = async event => {
         await openDashboard();
         toast("রেজিস্ট্রেশন সফল হয়েছে।");
       } else {
-        toast("রেজিস্ট্রেশন হয়েছে। ইমেইল ইনবক্সে ভেরিফিকেশন লিংক দেখুন।");
+        openOtpModal(email);
+        toast("আপনার ইমেইলে ৬ সংখ্যার কোড পাঠানো হয়েছে।");
       }
     } else {
       const { data, error } = await db.auth.signInWithPassword({
@@ -763,7 +788,15 @@ $("authForm").onsubmit = async event => {
         password
       });
 
-      if (error) throw error;
+      if (error) {
+        if (error.message?.toLowerCase().includes("email not confirmed")) {
+          hide("authModal");
+          openOtpModal(email);
+          toast("প্রথমে ইমেইলের ৬ সংখ্যার কোড দিয়ে ভেরিফাই করুন।");
+          return;
+        }
+        throw error;
+      }
 
       user = data.user;
       await loadProfile();
@@ -786,6 +819,66 @@ $("authForm").onsubmit = async event => {
       await openDashboard();
       toast("লগইন সফল হয়েছে।");
     }
+  } catch (error) {
+    showError(error);
+  } finally {
+    setLoading(button, false);
+  }
+};
+
+$("otpVerifyForm").onsubmit = async event => {
+  event.preventDefault();
+
+  const token = $("otpCodeInput").value.trim().replace(/\s+/g, "");
+  if (!/^\d{6}$/.test(token)) {
+    toast("সঠিক ৬ সংখ্যার কোড লিখুন।");
+    $("otpCodeInput").focus();
+    return;
+  }
+
+  const button = $("verifyOtpBtn");
+  setLoading(button, true, "যাচাই হচ্ছে...");
+
+  try {
+    const { data, error } = await db.auth.verifyOtp({
+      email: pendingOtpEmail,
+      token,
+      type: "signup"
+    });
+
+    if (error) throw error;
+
+    user = data.user || data.session?.user;
+    hide("otpVerifyModal");
+
+    if (user) {
+      await loadProfile();
+      await openDashboard();
+    }
+
+    toast("ইমেইল ভেরিফিকেশন সফল হয়েছে!");
+  } catch (error) {
+    showError(error);
+  } finally {
+    setLoading(button, false);
+  }
+};
+
+$("resendOtpBtn").onclick = async () => {
+  if (!pendingOtpEmail) return;
+
+  const button = $("resendOtpBtn");
+  setLoading(button, true, "কোড পাঠানো হচ্ছে...");
+
+  try {
+    const { error } = await db.auth.resend({
+      type: "signup",
+      email: pendingOtpEmail
+    });
+
+    if (error) throw error;
+
+    toast("নতুন ৬ সংখ্যার কোড ইমেইলে পাঠানো হয়েছে।");
   } catch (error) {
     showError(error);
   } finally {
@@ -933,7 +1026,7 @@ $("checkoutBtn").onclick = async () => {
 };
 
 // ------------------------------------------------------
-// STATUS & TIMERS
+// STATUS, TIMERS & ONE-WAY DELIVERY PROGRESS
 // ------------------------------------------------------
 
 function statusLabel(status) {
@@ -967,6 +1060,22 @@ function countdownText(endAt) {
   return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 }
 
+function calculateDeliveryProgress(startAt, endAt, minutes) {
+  if (!endAt) return 0;
+
+  const endMs = new Date(endAt).getTime();
+  const totalMs = startAt
+    ? Math.max(1000, endMs - new Date(startAt).getTime())
+    : Math.max(1000, Number(minutes || 15) * 60 * 1000);
+
+  const startMs = startAt
+    ? new Date(startAt).getTime()
+    : endMs - totalMs;
+
+  const elapsed = Math.max(0, Date.now() - startMs);
+  return Math.min(1, Math.max(0, elapsed / totalMs));
+}
+
 function timerMarkup(label, endAt, id) {
   if (!endAt) return "";
 
@@ -984,23 +1093,34 @@ function timerMarkup(label, endAt, id) {
 function deliveryTrackingMarkup(order, prefix = "customer") {
   if (order.status !== "out_for_delivery") return "";
 
+  const startAt = order.delivery_started_at || "";
   const endAt = order.delivery_ends_at || "";
+  const mins = Number(order.delivery_minutes || 15);
   const timerId = `${prefix}-${order.id}`;
+
+  const progress = calculateDeliveryProgress(startAt, endAt, mins);
+  const bikeLeft = (8 + progress * 68).toFixed(2);
+  const fillWidth = (progress * 100).toFixed(1);
 
   return `
     <section
       class="delivery-tracking"
       data-delivery-panel="${escapeHTML(order.id)}"
+      data-start="${escapeHTML(startAt)}"
+      data-end="${escapeHTML(endAt)}"
+      data-mins="${escapeHTML(mins)}"
     >
       <div class="delivery-heading">
         <h3>
           <i class="fa-solid fa-motorcycle"></i>
           খাবার আপনার পথে!
         </h3>
-        <span class="delivery-subtitle">Padma Cafe Delivery</span>
+        <span class="delivery-subtitle">Padma Cafe Delivery (${numberBN(mins)} মিনিট)</span>
       </div>
 
       <div class="delivery-road">
+        <div class="delivery-progress-fill" style="width: ${fillWidth}%;"></div>
+
         <div class="delivery-start">
           <i class="fa-solid fa-store"></i>
           ক্যাফে
@@ -1011,7 +1131,7 @@ function deliveryTrackingMarkup(order, prefix = "customer") {
           আপনার ঠিকানা
         </div>
 
-        <div class="delivery-bike" aria-label="ডেলিভারি বাইক">
+        <div class="delivery-bike" style="left: ${bikeLeft}%;" aria-label="ডেলিভারি বাইক">
           <i class="fa-solid fa-motorcycle"></i>
         </div>
       </div>
@@ -1025,7 +1145,7 @@ function deliveryTrackingMarkup(order, prefix = "customer") {
         >${countdownText(endAt)}</strong>
 
         <span class="delivery-note">
-          GPS ব্যবহার করা হচ্ছে না; এটি অ্যানিমেশনভিত্তিক ট্র্যাকিং।
+          নির্ধারিত সময় অনুযায়ী বাইকটি ক্যাফে থেকে আপনার ঠিকানার দিকে এগোচ্ছে।
         </span>
       </div>
     </section>
@@ -1052,6 +1172,24 @@ function startOrderTimerTicker() {
           note.textContent =
             "আনুমানিক সময় শেষ — ডেলিভারি সম্পন্ন হলে অ্যাডমিন নিশ্চিত করবেন।";
         }
+      }
+    });
+
+    document.querySelectorAll(".delivery-tracking").forEach(panel => {
+      const progress = calculateDeliveryProgress(
+        panel.dataset.start,
+        panel.dataset.end,
+        panel.dataset.mins
+      );
+
+      const bike = panel.querySelector(".delivery-bike");
+      const fill = panel.querySelector(".delivery-progress-fill");
+
+      if (bike) {
+        bike.style.left = `${(8 + progress * 68).toFixed(2)}%`;
+      }
+      if (fill) {
+        fill.style.width = `${(progress * 100).toFixed(1)}%`;
       }
     });
   };
@@ -1515,7 +1653,7 @@ async function adminStatus(orderId, status) {
   if (status === "out_for_delivery") {
     deliveryMinutes = readMinutesInput(`delivery-min-${orderId}`, 15);
 
-    if (!confirm("খাবার তৈরি হয়েছে এবং ডেলিভারি ম্যান খাবার নিয়ে বের হয়েছেন?")) {
+    if (!confirm(`খাবার তৈরি হয়েছে এবং ডেলিভারি ম্যান ${numberBN(deliveryMinutes)} মিনিটের মধ্যে পৌঁছাবেন নিশ্চিত করছেন?`)) {
       return;
     }
   }
@@ -1537,7 +1675,7 @@ async function adminStatus(orderId, status) {
 
   toast(
     status === "out_for_delivery"
-      ? "ডেলিভারি শুরু হয়েছে। কাস্টমার বাইক অ্যানিমেশন দেখতে পাবেন।"
+      ? "ডেলিভারি শুরু হয়েছে। বাইকটি নির্ধারিত সময় অনুযায়ী ঠিকানার দিকে এগোচ্ছে।"
       : status === "completed"
         ? "ডেলিভারি সম্পন্ন হয়েছে।"
         : "অর্ডারের অবস্থা আপডেট হয়েছে।"
@@ -2499,33 +2637,6 @@ $("refreshDashboardBtn")?.addEventListener("click", async () => {
     showError(error);
   }
 });
-
-$("logoutBtn").onclick = async () => {
-  if (!user) return;
-
-  try {
-    const { error } = await db.auth.signOut();
-    if (error) throw error;
-
-    user = null;
-    profile = null;
-    currentReceipt = null;
-
-    if (liveChannel) {
-      await db.removeChannel(liveChannel);
-      liveChannel = null;
-    }
-
-    $("accountBtn").textContent = "আমার অ্যাকাউন্ট";
-    $("accountBtn").classList.add("hidden");
-
-    hide("dashboardModal");
-    hide("approvalModal");
-    toast("আপনি লগআউট হয়েছেন।");
-  } catch (error) {
-    showError(error);
-  }
-};
 
 db.auth.onAuthStateChange(async (event, session) => {
   if (event === "PASSWORD_RECOVERY") {
