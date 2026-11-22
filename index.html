@@ -335,23 +335,24 @@
       <p class="qr-amount-label">অটো-নির্ধারিত পেমেন্ট অ্যামাউন্ট</p>
       <strong id="qrExactAmount" class="qr-exact-amount">৳০</strong>
       <small class="field-hint">
-        QR কোডটি স্ক্যান করলে আপনার পেমেন্ট অ্যাপে স্বয়ংক্রিয়ভাবে এই টাকা বসে যাবে; আলাদা করে টাকা লিখতে হবে না।
+        QR কোডটি স্ক্যান করলে আপনার পেমেন্ট অ্যাপে স্বয়ংক্রিয়ভাবে এই টাকা বসে যাবে; আলাদা করে টাকা লিখতে হবে না। পেমেন্ট শেষে Transaction ID দিয়ে ভেরিফিকেশনের জন্য পাঠান।
       </small>
     </div>
 
     <form id="banglaQrConfirmForm" style="margin-top: 12px;">
       <label>
-        ট্রানজেকশন রেফারেন্স / নোট (ঐচ্ছিক)
+        ট্রানজেকশন আইডি / রেফারেন্স
         <input
           id="qrReferenceInput"
           type="text"
-          placeholder="যেমন: TXN / ট্রানজেকশন আইডি"
+          required
+          placeholder="পেমেন্ট অ্যাপের Transaction ID লিখুন"
         >
       </label>
 
       <button id="confirmQrPaidOrderBtn" class="gold-btn wide" type="submit">
-        <i class="fa-solid fa-circle-check"></i>
-        পেমেন্ট সম্পন্ন করেছি — অর্ডার করুন
+        <i class="fa-solid fa-paper-plane"></i>
+        ভেরিফিকেশনের জন্য পাঠান — অর্ডার করুন
       </button>
     </form>
 
