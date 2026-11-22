@@ -1,2733 +1,1142 @@
-// ======================================================
-// PADMA CAFE — COMPLETE WEBSITE SCRIPT
-// File: script.js
-// Menu: 26 items | Currency: BDT | Timezone: Asia/Dhaka
-// ======================================================
+const SUPABASE_URL = "https://YOUR_PROJECT_ID.supabase.co";
+const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
+const ADMIN_EMAIL = "admin@padmacafe.com";
 
-// SUPABASE CONFIGURATION
-const SUPABASE_URL = "https://qeoxoujxdptjiwgxhvbb.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_mjf3B4SkF1kOXwhVxy_veA_oTHLPNLU";
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-const db = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_ANON_KEY
-);
-
-// ------------------------------------------------------
-// HELPERS
-// ------------------------------------------------------
-
-const $ = id => document.getElementById(id);
-
-const money = value =>
-  `৳${Number(value || 0).toLocaleString("bn-BD")}`;
-
-const numberBN = value =>
-  Number(value || 0).toLocaleString("bn-BD");
-
-const escapeHTML = value =>
-  String(value ?? "").replace(/[&<>"']/g, char => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
-  })[char]);
-
-const dhakaDate = date => {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Dhaka",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit"
-  }).formatToParts(date);
-
-  const values = {};
-  parts.forEach(part => {
-    values[part.type] = part.value;
-  });
-
-  return `${values.year}-${values.month}-${values.day}`;
-};
-
-// Bangladesh time is UTC+6.
-function dhakaDayRange(dateString) {
-  const [year, month, day] = dateString.split("-").map(Number);
-
-  const start = new Date(
-    Date.UTC(year, month - 1, day) - 6 * 60 * 60 * 1000
-  );
-
-  const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
-
-  return {
-    start: start.toISOString(),
-    end: end.toISOString()
-  };
-}
-
-function dhakaMonthRange(dateString) {
-  const [year, month] = dateString.split("-").map(Number);
-
-  const startDate = `${year}-${String(month).padStart(2, "0")}-01`;
-
-  const nextYear = month === 12 ? year + 1 : year;
-  const nextMonth = month === 12 ? 1 : month + 1;
-
-  const endDate =
-    `${nextYear}-${String(nextMonth).padStart(2, "0")}-01`;
-
-  return {
-    start: dhakaDayRange(startDate).start,
-    end: dhakaDayRange(endDate).start
-  };
-}
-
-function dateTime(value) {
-  if (!value) return "—";
-
-  return new Intl.DateTimeFormat("bn-BD", {
-    timeZone: "Asia/Dhaka",
-    dateStyle: "medium",
-    timeStyle: "short"
-  }).format(new Date(value));
-}
-
-function toast(message) {
-  const element = $("toast");
-  if (!element) return;
-
-  element.textContent = message;
-  element.classList.add("show");
-
-  clearTimeout(toast.timer);
-
-  toast.timer = setTimeout(() => {
-    element.classList.remove("show");
-  }, 3500);
-}
-
-function show(id) {
-  const element = $(id);
-  if (!element) return;
-
-  element.classList.add("show");
-  document.body.classList.add("modal-open");
-}
-
-function hide(id) {
-  const element = $(id);
-  if (!element) return;
-
-  element.classList.remove("show");
-
-  if (!document.querySelector(".modal.show")) {
-    document.body.classList.remove("modal-open");
-  }
-}
-
-function setLoading(button, loading, text = "অপেক্ষা করুন...") {
-  if (!button) return;
-
-  if (loading) {
-    button.dataset.originalText = button.textContent;
-    button.textContent = text;
-    button.disabled = true;
-  } else {
-    button.textContent =
-      button.dataset.originalText || button.textContent;
-    button.disabled = false;
-  }
-}
-
-function showError(error) {
-  console.error(error);
-  toast(error?.message || "কাজটি সম্পন্ন করা যায়নি।");
-}
-
-// ------------------------------------------------------
-// MENU — 26 ITEMS
-// Original 7 i.ibb.co image URLs preserved unchanged; remaining 19 items added.
-// ------------------------------------------------------
-
-const MENU = [
-  // PADMA SPECIAL — 11
+// Menu items: Original 7 i.ibb.co URLs preserved; Chicken Spring Roll image & Combo Package (হাঁস+খিচুড়ি রেগুলার ও স্পেশাল) added
+const MENU_ITEMS = [
+  // কম্বো প্যাকেজ (নতুন ক্যাটাগরি — নিচের image লিংকগুলো পরবর্তীতে সহজেই পরিবর্তন করা যাবে)
   {
-    id: "hot_coffee",
-    name: "হট কফি",
-    category: "পদ্মা স্পেশাল",
-    price: 50,
-    image: "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=640&q=80"
+    id: "combo-hans-regular",
+    category: "কম্বো প্যাকেজ",
+    name: "হাঁস+খিচুড়ি (রেগুলার)",
+    price: 230,
+    desc: "সুগন্ধি খিচুড়ির সাথে ঐতিহ্যবাহী হাঁসের মাংস—রেগুলার প্যাকেজ।",
+    image: "https://i.ibb.co/yB758d7H/images-2026-03-04-T003950-108.jpg"
   },
   {
-    id: "malai_cha",
-    name: "মালাই চা",
-    category: "পদ্মা স্পেশাল",
-    price: 40,
-    image: "https://i.ibb.co/VcLK5nYV/file-00000000e9a88208aa7be40259922c1c.png"
-  },
-  {
-    id: "dudh_cha",
-    name: "দুধ চা",
-    category: "পদ্মা স্পেশাল",
-    price: 30,
-    image: "https://i.ibb.co/bRNDZZ3K/file-000000005ccc820889393bb309440d71.png"
-  },
-  {
-    id: "pora_roti_10",
-    name: "পোড়া রুটি",
-    category: "পদ্মা স্পেশাল",
-    price: 10,
-    image: "https://i.ibb.co/Df9P5mS3/file-000000000830820897010f7871918eb4.png"
-  },
-  {
-    id: "pora_roti_15",
-    name: "পোড়া রুটি",
-    category: "পদ্মা স্পেশাল",
-    price: 15,
-    image: "https://i.ibb.co/99X1SkxX/file-000000008dbc8208b998a942475980d9.png"
-  },
-  {
-    id: "malai_cha_roti",
-    name: "মালাই চা + পোড়া রুটি",
-    category: "পদ্মা স্পেশাল",
-    price: 50,
-    image: "https://images.unsplash.com/photo-1544787219-7f47ccb76574?auto=format&fit=crop&w=640&q=80"
-  },
-  {
-    id: "chotpoti",
-    name: "চটপটি",
-    category: "পদ্মা স্পেশাল",
-    price: 40,
-    image: "https://i.ibb.co/q3XbrDhz/file-0000000004648211b58070faa54dd03d.png"
-  },
-  {
-    id: "chotpoti_egg",
-    name: "চটপটি (ডিম)",
-    category: "পদ্মা স্পেশাল",
-    price: 60,
-    image: "https://i.ibb.co/V01TCgLQ/file-000000003354820899f2e4c773b57782.png"
-  },
-  {
-    id: "fuchka",
-    name: "ফুচকা",
-    category: "পদ্মা স্পেশাল",
-    price: 50,
-    image: "https://i.ibb.co/5h7kHJ6n/file-0000000017748208bf7b9981383311f1.png"
-  },
-  {
-    id: "doi_fuchka",
-    name: "দই ফুচকা",
-    category: "পদ্মা স্পেশাল",
-    price: 90,
-    image: "https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=640&q=80"
-  },
-  {
-    id: "doi_chira",
-    name: "দই চিড়া",
-    category: "পদ্মা স্পেশাল",
-    price: 80,
-    image: "https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&w=640&q=80"
+    id: "combo-hans-special",
+    category: "কম্বো প্যাকেজ",
+    name: "হাঁস+খিচুড়ি (স্পেশাল)",
+    price: 270,
+    desc: "বাড়তি পিস ও স্পেশাল মসলায় রান্না হাঁসের মাংস ও ভুনা খিচুড়ি।",
+    image: "https://i.ibb.co/yB758d7H/images-2026-03-04-T003950-108.jpg"
   },
 
-  // BURGER — 2
+  // স্টার্টার ও স্ন্যাক্স
   {
-    id: "chicken_tikka_burger",
-    name: "চিকেন টিক্কা বার্গার",
-    category: "বার্গার",
-    price: 80,
-    image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=640&q=80"
-  },
-  {
-    id: "beef_burger",
-    name: "বিফ বার্গার",
-    category: "বার্গার",
-    price: 130,
-    image: "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=640&q=80"
-  },
-
-  // STARTER — 5
-  {
-    id: "kolija_singara",
-    name: "কলিজা সিঙ্গারা",
-    category: "স্টাটার",
-    price: 25,
-    image: "https://images.unsplash.com/photo-1601050690117-94f5f6fa8bd7?auto=format&fit=crop&w=640&q=80"
-  },
-  {
-    id: "french_fries",
-    name: "ফ্রেন্স ফ্রাই",
-    category: "স্টাটার",
-    price: 50,
-    image: "https://images.unsplash.com/photo-1576107232684-1279f390859f?auto=format&fit=crop&w=640&q=80"
-  },
-  {
-    id: "chicken_spring_roll",
+    id: "chicken-spring-roll",
+    category: "স্টার্টার",
     name: "চিকেন স্প্রিং রোল",
-    category: "স্টাটার",
-    price: 80,
-    image: "https://images.unsplash.com/photo-1548507200-e587247c2d06?auto=format&fit=crop&w=640&q=80"
-  },
-  {
-    id: "chicken_momos",
-    name: "চিকেন মমস",
-    category: "স্টাটার",
-    price: 100,
-    image: "https://images.unsplash.com/photo-1625220194771-7ebdea0b70b9?auto=format&fit=crop&w=640&q=80"
-  },
-  {
-    id: "chicken_fry_3pcs",
-    name: "চিকেন ফ্রাই (৩ পিস)",
-    category: "স্টাটার",
     price: 120,
-    image: "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?auto=format&fit=crop&w=640&q=80"
-  },
-
-  // SHAKES — 6
-  {
-    id: "cold_coffee",
-    name: "কোল্ড কফি",
-    category: "শেক",
-    price: 80,
-    image: "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?auto=format&fit=crop&w=640&q=80"
+    desc: "মচমচে ক্রিস্পি রোল, ভেতরে জুসি চিকেন ও সবজির পুর।",
+    image: "https://i.ibb.co/yB758d7H/images-2026-03-04-T003950-108.jpg"
   },
   {
-    id: "chocolate_shake",
-    name: "চকলেট শেক",
-    category: "শেক",
+    id: "porota-platter",
+    category: "ব্রেড ও রুটি",
+    name: "পোড়া রুটি",
+    price: 45,
+    desc: "গরম ও নরম হাতে তৈরি বিশেষ রুটি।",
+    image: "https://i.ibb.co/yB758d7H/images-2026-03-04-T003950-108.jpg"
+  },
+  {
+    id: "hot-coffee",
+    category: "কফি ও পানীয়",
+    name: "হট কফি",
     price: 90,
-    image: "https://images.unsplash.com/photo-1572490122747-3968b75cc699?auto=format&fit=crop&w=640&q=80"
+    desc: "সতেজ রোস্টেড কফির গাঢ় ও সুগন্ধি কাপ।",
+    image: "https://i.ibb.co/yB758d7H/images-2026-03-04-T003950-108.jpg"
   },
   {
-    id: "vanilla_shake",
-    name: "ভ্যানিলা শেক",
-    category: "শেক",
-    price: 99,
-    image: "https://images.unsplash.com/photo-1579954115545-a95591f28bfc?auto=format&fit=crop&w=640&q=80"
+    id: "beef-burger",
+    category: "বার্গার",
+    name: "রয়্যাল বিফ বার্গার",
+    price: 240,
+    desc: "সফট বান, জুসি বিফ প্যাটি, চিজ ও বিশেষ সস।",
+    image: "https://i.ibb.co/yB758d7H/images-2026-03-04-T003950-108.jpg"
   },
   {
-    id: "oreo_shake",
-    name: "অরিও শেক",
-    category: "শেক",
-    price: 110,
-    image: "https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=640&q=80"
+    id: "chicken-pasta",
+    category: "পাস্তা",
+    name: "ক্রিমি চিকেন পাস্তা",
+    price: 260,
+    desc: "রিচ হোয়াইট সস, চিকেন ও চিজ দিয়ে বেকড পাস্তা।",
+    image: "https://i.ibb.co/yB758d7H/images-2026-03-04-T003950-108.jpg"
   },
   {
-    id: "kitkat_shake",
-    name: "কিটক্যাট শেক",
-    category: "শেক",
-    price: 110,
-    image: "https://images.unsplash.com/photo-1553787499-6f9133860278?auto=format&fit=crop&w=640&q=80"
+    id: "cheese-pizza",
+    category: "পিজ্জা",
+    name: "চিজ লাভার পিজ্জা",
+    price: 390,
+    desc: "মোৎজারেলা চিজ ও সিজনড টপিংসে তৈরি পিজ্জা।",
+    image: "https://i.ibb.co/yB758d7H/images-2026-03-04-T003950-108.jpg"
   },
   {
-    id: "butterscotch_shake",
-    name: "বাটারস্কচ শেক (Padma Special)",
-    category: "শেক",
-    price: 110,
-    image: "https://images.unsplash.com/photo-1541658016709-82535e94bc69?auto=format&fit=crop&w=640&q=80"
-  },
-
-  // SOFT DRINKS — 2
-  {
-    id: "water",
-    name: "পানি",
-    category: "সফট ড্রিঙ্কস",
-    price: 20,
-    image: "https://images.unsplash.com/photo-1548839140-29a749e1cf4d?auto=format&fit=crop&w=640&q=80"
-  },
-  {
-    id: "mojo",
-    name: "মজো",
-    category: "সফট ড্রিঙ্কস",
-    price: 20,
-    image: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=640&q=80"
+    id: "blue-mojito",
+    category: "কফি ও পানীয়",
+    name: "ব্লু লেগুন মজিটো",
+    price: 130,
+    desc: "পুদিনা, লেবু ও বরফে ঠান্ডা রিফ্রেশিং মজিটো।",
+    image: "https://i.ibb.co/yB758d7H/images-2026-03-04-T003950-108.jpg"
   }
 ];
 
 const CATEGORIES = [
-  "সব খাবার",
-  "পদ্মা স্পেশাল",
+  "সব",
+  "কম্বো প্যাকেজ",
+  "স্টার্টার",
   "বার্গার",
-  "স্টাটার",
-  "শেক",
-  "সফট ড্রিঙ্কস"
+  "পাস্তা",
+  "পিজ্জা",
+  "ব্রেড ও রুটি",
+  "কফি ও পানীয়"
 ];
 
-let selectedCategory = "সব খাবার";
+const state = {
+  selectedCategory: "সব",
+  searchQuery: "",
+  cart: [],
+  sessionUser: null,
+  profile: {
+    full_name: "",
+    email: "",
+    avatar_url: "",
+    role: "customer"
+  },
+  authMode: "customer", // 'customer' | 'admin'
+  pendingOtpEmail: "",
+  pendingOtpName: "",
+  storeOnline: true,
+  orders: [],
+  activeDayKey: getLocalDayKey(new Date()),
+  selectedMonth: getCurrentMonthValue(),
+  timerInterval: null
+};
 
-// ------------------------------------------------------
-// GLOBAL STATE
-// ------------------------------------------------------
-
-let user = null;
-let profile = null;
-let cart = {};
-let authMode = "login";
-let authRole = "customer";
-let pendingOtpEmail = "";
-let phoneInput = null;
-let liveChannel = null;
-let currentReceipt = null;
-let audioCtx = null;
-let reportDate = dhakaDate(new Date());
-let reportType = "daily";
-let offlineCart = {};
-let orderTimerInterval = null;
-
-// ------------------------------------------------------
-// MODAL CLOSE EVENTS
-// ------------------------------------------------------
-
-document.querySelectorAll("[data-close]").forEach(button => {
-  button.addEventListener("click", () => {
-    hide(button.dataset.close);
-  });
-});
-
-document.querySelectorAll(".modal").forEach(modal => {
-  modal.addEventListener("click", event => {
-    if (event.target === modal) hide(modal.id);
-  });
-});
-
-document.addEventListener("keydown", event => {
-  if (event.key !== "Escape") return;
-
-  document.querySelectorAll(".modal.show").forEach(modal => {
-    modal.classList.remove("show");
-  });
-
-  document.body.classList.remove("modal-open");
-});
-
-// ------------------------------------------------------
-// MENU DISPLAY & SEARCH
-// ------------------------------------------------------
-
-function renderCategories() {
-  const container = $("menuCategories");
-  if (!container) return;
-
-  container.innerHTML = CATEGORIES.map(category => `
-    <button
-      type="button"
-      class="category-btn ${selectedCategory === category ? "active" : ""}"
-      data-category="${escapeHTML(category)}"
-    >
-      ${escapeHTML(category)}
-    </button>
-  `).join("");
+// Helpers
+function toast(message) {
+  const container = document.getElementById("toastContainer");
+  const el = document.createElement("div");
+  el.className = "toast-msg";
+  el.textContent = message;
+  container.appendChild(el);
+  setTimeout(() => el.remove(), 3200);
 }
 
-function menuCardHTML(item) {
-  return `
-    <article class="menu-card">
-      ${
-        item.image
-          ? `<img
-              src="${escapeHTML(item.image)}"
-              alt="${escapeHTML(item.name)}"
-              loading="lazy"
-              onerror="this.outerHTML='<div class=&quot;menu-card-placeholder&quot;><i class=&quot;fa-solid fa-utensils&quot;></i></div>'"
-            >`
-          : `<div class="menu-card-placeholder">
-              <i class="fa-solid fa-utensils"></i>
-            </div>`
-      }
+function formatBDT(amount) {
+  const num = Number(amount || 0);
+  return `${num.toLocaleString("bn-BD")}৳`;
+}
 
-      <div class="menu-card-body">
-        <span class="menu-category-label">
-          ${escapeHTML(item.category)}
-        </span>
+function getLocalDayKey(dateObj) {
+  const d = new Date(dateObj);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
 
-        <h3>${escapeHTML(item.name)}</h3>
+function getCurrentMonthValue() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
 
-        <div class="menu-card-bottom">
-          <span class="menu-price">${money(item.price)}</span>
+function isTodayOrder(isoString) {
+  if (!isoString) return false;
+  return getLocalDayKey(new Date(isoString)) === getLocalDayKey(new Date());
+}
 
-          <button
-            class="add-cart-btn"
-            type="button"
-            data-add="${escapeHTML(item.id)}"
-          >
-            <i class="fa-solid fa-plus"></i>
-            কার্টে যোগ
-          </button>
-        </div>
-      </div>
-    </article>
-  `;
+function isAdminUser() {
+  const email = (state.sessionUser?.email || "").toLowerCase();
+  return Boolean(email && email === ADMIN_EMAIL.toLowerCase());
+}
+
+function isCustomerUser() {
+  return Boolean(state.sessionUser && !isAdminUser());
+}
+
+function openModal(id) {
+  const modal = document.getElementById(id);
+  if (modal) {
+    modal.classList.add("open");
+    modal.setAttribute("aria-hidden", "false");
+  }
+}
+
+function closeModal(id) {
+  const modal = document.getElementById(id);
+  if (modal) {
+    modal.classList.remove("open");
+    modal.setAttribute("aria-hidden", "true");
+  }
+}
+
+function openCustomerDrawer() {
+  if (!isCustomerUser()) return;
+  const drawer = document.getElementById("customerDrawer");
+  const backdrop = document.getElementById("customerDrawerBackdrop");
+
+  document.getElementById("customerProfileNameInput").value =
+    state.profile.full_name || state.sessionUser.email.split("@")[0];
+  document.getElementById("customerProfileEmailInput").value = state.sessionUser.email || "";
+  syncDrawerAvatarPreview(state.profile.avatar_url || "");
+
+  backdrop.hidden = false;
+  drawer.classList.add("open");
+  drawer.setAttribute("aria-hidden", "false");
+}
+
+function closeCustomerDrawer() {
+  const drawer = document.getElementById("customerDrawer");
+  const backdrop = document.getElementById("customerDrawerBackdrop");
+  drawer.classList.remove("open");
+  drawer.setAttribute("aria-hidden", "true");
+  backdrop.hidden = true;
+}
+
+function syncDrawerAvatarPreview(url) {
+  const img = document.getElementById("drawerAvatarPreview");
+  const fallback = document.getElementById("drawerAvatarFallback");
+  if (url) {
+    img.src = url;
+    img.hidden = false;
+    fallback.hidden = true;
+  } else {
+    img.removeAttribute("src");
+    img.hidden = true;
+    fallback.hidden = false;
+  }
+}
+
+// Render Store Online/Offline Single Button (Never shows both green & red together)
+function renderStoreStatusUI() {
+  const btn = document.getElementById("storeStatusBtn");
+  const label = document.getElementById("storeStatusLabel");
+  const checkoutLabel = document.getElementById("checkoutBtnLabel");
+
+  btn.classList.remove("is-online", "is-offline");
+
+  if (state.storeOnline) {
+    btn.classList.add("is-online");
+    label.textContent = "অনলাইন";
+    btn.title = isAdminUser()
+      ? "রেস্টুরেন্ট অনলাইন আছে — অফলাইন করতে ক্লিক করুন"
+      : "রেস্টুরেন্ট এখন অনলাইন";
+  } else {
+    btn.classList.add("is-offline");
+    label.textContent = "অফলাইন";
+    btn.title = isAdminUser()
+      ? "রেস্টুরেন্ট অফলাইন আছে — অনলাইন করতে ক্লিক করুন"
+      : "রেস্টুরেন্ট এখন অফলাইন";
+  }
+
+  if (isAdminUser()) {
+    checkoutLabel.textContent = "অফলাইন সেল ও রসিদ";
+  } else if (!state.storeOnline) {
+    checkoutLabel.textContent = "রেস্টুরেন্ট অফলাইন";
+  } else {
+    checkoutLabel.textContent = "অর্ডার করুন";
+  }
+}
+
+// Render Header Buttons according to Customer vs Admin login state
+function renderHeaderAuthUI() {
+  const custBtn = document.getElementById("customerLoginBtn");
+  const custLabel = document.getElementById("customerLoginLabel");
+  const custAvatarWrap = document.getElementById("customerHeaderAvatar");
+  const adminBtn = document.getElementById("adminLoginBtn");
+  const adminLabel = document.getElementById("adminLoginLabel");
+
+  if (isCustomerUser()) {
+    const displayName =
+      state.profile.full_name?.trim() || state.sessionUser.email.split("@")[0];
+    custLabel.textContent = displayName;
+    custBtn.style.display = "inline-flex";
+    adminBtn.style.display = "none";
+
+    if (state.profile.avatar_url) {
+      custAvatarWrap.innerHTML = `<img src="${state.profile.avatar_url}" alt="${displayName}" class="header-avatar-img" />`;
+    } else {
+      custAvatarWrap.innerHTML = `<span class="header-avatar-placeholder"><i class="fa-regular fa-user"></i></span>`;
+    }
+  } else if (isAdminUser()) {
+    const adminName = state.profile.full_name?.trim() || "Amir Hamza";
+    adminLabel.textContent = adminName;
+    adminBtn.style.display = "inline-flex";
+    custBtn.style.display = "none";
+  } else {
+    custLabel.textContent = "কাস্টমার লগইন";
+    custAvatarWrap.innerHTML = `<span class="header-avatar-placeholder"><i class="fa-regular fa-user"></i></span>`;
+    custBtn.style.display = "inline-flex";
+
+    adminLabel.textContent = "অ্যাডমিন লগইন";
+    adminBtn.style.display = "inline-flex";
+  }
+
+  renderStoreStatusUI();
+}
+
+// Menu Rendering
+function renderCategoryTabs() {
+  const container = document.getElementById("categoryTabs");
+  container.innerHTML = CATEGORIES.map((cat) => {
+    const activeClass = state.selectedCategory === cat ? "active" : "";
+    return `<button type="button" class="cat-tab ${activeClass}" data-cat="${cat}">${cat}</button>`;
+  }).join("");
+
+  container.querySelectorAll(".cat-tab").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      state.selectedCategory = btn.dataset.cat;
+      renderCategoryTabs();
+      renderMenu();
+    });
+  });
 }
 
 function renderMenu() {
-  const container = $("menuGrid");
-  if (!container) return;
+  const grid = document.getElementById("menuGrid");
+  const q = state.searchQuery.trim().toLowerCase();
 
-  const query = ($("menuSearch")?.value || "").trim().toLowerCase();
-
-  const items = MENU.filter(item => {
-    const matchesCategory =
-      selectedCategory === "সব খাবার" || item.category === selectedCategory;
-
-    if (!matchesCategory) return false;
-    if (!query) return true;
-
-    return (
-      item.name.toLowerCase().includes(query) ||
-      item.category.toLowerCase().includes(query)
-    );
+  const filtered = MENU_ITEMS.filter((item) => {
+    const matchCat =
+      state.selectedCategory === "সব" || item.category === state.selectedCategory;
+    const matchSearch =
+      !q ||
+      item.name.toLowerCase().includes(q) ||
+      item.category.toLowerCase().includes(q) ||
+      item.desc.toLowerCase().includes(q);
+    return matchCat && matchSearch;
   });
 
-  container.innerHTML = items.length
-    ? items.map(menuCardHTML).join("")
-    : `<p class="empty-state">কোনো খাবার পাওয়া যায়নি।</p>`;
+  if (!filtered.length) {
+    grid.innerHTML = `<p class="empty-state">কোনো খাবার পাওয়া যায়নি।</p>`;
+    return;
+  }
+
+  grid.innerHTML = filtered
+    .map(
+      (item) => `
+      <article class="menu-card">
+        <img src="${item.image}" alt="${item.name}" class="menu-thumb" loading="lazy" />
+        <div class="menu-body">
+          <span class="menu-cat-tag">${item.category}</span>
+          <h3 class="menu-title">${item.name}</h3>
+          <p class="menu-desc">${item.desc}</p>
+          <div class="menu-foot">
+            <strong class="menu-price">${formatBDT(item.price)}</strong>
+            <button type="button" class="gold-btn small-btn add-to-order-btn" data-id="${item.id}">
+              <i class="fa-solid fa-plus"></i>
+              <span>যুক্ত করুন</span>
+            </button>
+          </div>
+        </div>
+      </article>
+    `
+    )
+    .join("");
+
+  grid.querySelectorAll(".add-to-order-btn").forEach((btn) => {
+    btn.addEventListener("click", () => addToOrderList(btn.dataset.id));
+  });
 }
 
-$("menuCategories")?.addEventListener("click", event => {
-  const button = event.target.closest("[data-category]");
-  if (!button) return;
-
-  selectedCategory = button.dataset.category;
-  renderCategories();
-  renderMenu();
-});
-
-$("menuSearch")?.addEventListener("input", renderMenu);
-
-$("menuGrid")?.addEventListener("click", event => {
-  const button = event.target.closest("[data-add]");
-  if (!button) return;
-
-  addCart(button.dataset.add);
-});
-
-// ------------------------------------------------------
-// CART
-// ------------------------------------------------------
-
-function addCart(id) {
-  const item = MENU.find(product => product.id === id);
+// Order List (Cart) Logic
+function addToOrderList(itemId) {
+  const item = MENU_ITEMS.find((m) => m.id === itemId);
   if (!item) return;
 
-  cart[id] = (cart[id] || 0) + 1;
-
-  renderCart();
-  toast(`${item.name} কার্টে যোগ হয়েছে`);
-}
-
-function changeQty(id, difference) {
-  cart[id] = Math.max(0, (cart[id] || 0) + difference);
-
-  if (!cart[id]) delete cart[id];
-
-  renderCart();
-}
-
-function cartRows() {
-  return Object.entries(cart)
-    .map(([id, qty]) => {
-      const item = MENU.find(product => product.id === id);
-      if (!item || qty < 1) return null;
-
-      return {
-        ...item,
-        qty,
-        subtotal: item.price * qty
-      };
-    })
-    .filter(Boolean);
-}
-
-function cartTotal() {
-  return cartRows().reduce((sum, item) => sum + item.subtotal, 0);
-}
-
-function renderCart() {
-  const rows = cartRows();
-
-  $("cartCount").textContent = numberBN(
-    rows.reduce((sum, item) => sum + item.qty, 0)
-  );
-
-  $("cartLines").innerHTML = rows.length
-    ? rows.map(item => `
-        <div class="cart-line">
-          <div class="cart-line-info">
-            <strong>${escapeHTML(item.name)}</strong>
-            <small>${money(item.price)} × ${numberBN(item.qty)}</small>
-            <b>${money(item.subtotal)}</b>
-          </div>
-
-          <div class="quantity-controls">
-            <button type="button" data-cart-change="${escapeHTML(item.id)}" data-diff="-1">−</button>
-            <span>${numberBN(item.qty)}</span>
-            <button type="button" data-cart-change="${escapeHTML(item.id)}" data-diff="1">+</button>
-          </div>
-        </div>
-      `).join("")
-    : `<p class="empty-state">আপনার কার্ট এখনো খালি।</p>`;
-
-  $("cartTotal").textContent = money(cartTotal());
-  $("checkoutBtn").disabled = !rows.length;
-}
-
-$("cartLines")?.addEventListener("click", event => {
-  const button = event.target.closest("[data-cart-change]");
-  if (!button) return;
-
-  changeQty(button.dataset.cartChange, Number(button.dataset.diff));
-});
-
-$("cartBtn").onclick = () => {
-  renderCart();
-  show("cartModal");
-};
-
-$("continueShoppingBtn")?.addEventListener("click", () => {
-  hide("cartModal");
-  $("menuSection")?.scrollIntoView({ behavior: "smooth" });
-});
-
-// ------------------------------------------------------
-// PASSWORD SHOW / HIDE
-// ------------------------------------------------------
-
-document.querySelectorAll("[data-toggle-password]").forEach(button => {
-  button.addEventListener("click", () => {
-    const input = $(button.dataset.togglePassword);
-    if (!input) return;
-
-    const isPassword = input.type === "password";
-    input.type = isPassword ? "text" : "password";
-
-    button.innerHTML = isPassword
-      ? '<i class="fa-solid fa-eye-slash"></i>'
-      : '<i class="fa-solid fa-eye"></i>';
-
-    button.setAttribute(
-      "aria-label",
-      isPassword ? "পাসওয়ার্ড লুকান" : "পাসওয়ার্ড দেখুন"
-    );
-  });
-});
-
-// ------------------------------------------------------
-// INTERNATIONAL PHONE INPUT
-// ------------------------------------------------------
-
-function initializePhoneInput() {
-  const input = $("authPhone");
-  if (!input || !window.intlTelInput || phoneInput) return;
-
-  phoneInput = window.intlTelInput(input, {
-    initialCountry: "bd",
-    separateDialCode: true,
-    nationalMode: true,
-    autoPlaceholder: "polite",
-    formatOnDisplay: true,
-    countrySearch: true,
-    loadUtils: () =>
-      import(
-        "https://cdn.jsdelivr.net/npm/intl-tel-input@25.3.1/build/js/utils.js"
-      )
-  });
-}
-
-// ------------------------------------------------------
-// AUTHENTICATION & 6-DIGIT OTP VERIFICATION
-// ------------------------------------------------------
-
-$("customerLoginBtn").onclick = () => {
-  authRole = "customer";
-  openAuth("login");
-};
-
-$("adminLoginBtn").onclick = () => {
-  authRole = "admin";
-  openAuth("login");
-};
-
-$("accountBtn").onclick = () => {
-  if (user) {
-    openDashboard();
+  const existing = state.cart.find((c) => c.id === item.id);
+  if (existing) {
+    existing.qty += 1;
   } else {
-    authRole = "customer";
-    openAuth("login");
+    state.cart.push({ ...item, qty: 1 });
   }
-};
-
-function openAuth(mode) {
-  authMode = mode;
-
-  const isAdmin = authRole === "admin";
-  const isSignup = mode === "signup" && !isAdmin;
-
-  $("authRoleLabel").textContent =
-    isAdmin ? "ADMIN ACCOUNT" : "CUSTOMER ACCOUNT";
-
-  $("authTitle").textContent = isAdmin
-    ? "অ্যাডমিন লগইন"
-    : isSignup
-      ? "কাস্টমার রেজিস্ট্রেশন"
-      : "কাস্টমার লগইন";
-
-  ["nameWrap", "phoneWrap", "addressWrap", "confirmPasswordWrap"]
-    .forEach(id => {
-      $(id).classList.toggle("hidden", !isSignup);
-    });
-
-  $("forgotPasswordWrap").classList.toggle("hidden", isSignup);
-  $("switchAuthWrap").classList.toggle("hidden", isAdmin);
-
-  $("authSwitchText").textContent =
-    isSignup ? "আগে অ্যাকাউন্ট আছে?" : "নতুন কাস্টমার?";
-
-  $("authSwitch").textContent =
-    isSignup ? "লগইন করুন" : "রেজিস্টার করুন";
-
-  $("authSubmitBtn").textContent =
-    isSignup ? "রেজিস্টার করুন" : "লগইন করুন";
-
-  $("authHint").textContent = isAdmin
-    ? "শুধু অনুমোদিত অ্যাডমিন অ্যাকাউন্ট দিয়ে প্রবেশ করা যাবে।"
-    : "রেজিস্ট্রেশনের পর ইমেইলে পাঠানো ৬ সংখ্যার কোড দিয়ে ভেরিফাই করুন।";
-
-  $("authPassword").autocomplete =
-    isSignup ? "new-password" : "current-password";
-
-  if (isSignup) initializePhoneInput();
-
-  show("authModal");
+  renderOrderList();
+  toast(`${item.name} অর্ডার তালিকায় যোগ হয়েছে`);
 }
 
-$("authSwitch").onclick = () => {
-  openAuth(authMode === "signup" ? "login" : "signup");
-};
-
-function openOtpModal(email) {
-  pendingOtpEmail = email;
-  $("otpEmailDisplay").textContent = email;
-  $("otpCodeInput").value = "";
-  show("otpVerifyModal");
-  setTimeout(() => $("otpCodeInput")?.focus(), 100);
+function updateOrderListQty(itemId, delta) {
+  const idx = state.cart.findIndex((c) => c.id === itemId);
+  if (idx === -1) return;
+  state.cart[idx].qty += delta;
+  if (state.cart[idx].qty <= 0) {
+    state.cart.splice(idx, 1);
+  }
+  renderOrderList();
 }
 
-$("authForm").onsubmit = async event => {
-  event.preventDefault();
+function renderOrderList() {
+  const countEl = document.getElementById("cartCount");
+  const linesEl = document.getElementById("cartLines");
+  const totalEl = document.getElementById("cartTotal");
 
-  const button = $("authSubmitBtn");
-  setLoading(button, true);
+  const totalQty = state.cart.reduce((sum, item) => sum + item.qty, 0);
+  const totalAmount = state.cart.reduce((sum, item) => sum + item.qty * item.price, 0);
 
-  try {
-    const email = $("authEmail").value.trim().toLowerCase();
-    const password = $("authPassword").value;
+  countEl.textContent = totalQty.toLocaleString("bn-BD");
+  totalEl.textContent = formatBDT(totalAmount);
 
-    if (authMode === "signup") {
-      if (authRole !== "customer") {
-        throw new Error("অ্যাডমিন রেজিস্ট্রেশন অনুমোদিত নয়।");
-      }
-
-      const name = $("authName").value.trim();
-      const address = $("authAddress").value.trim();
-      const confirmPassword = $("authConfirmPassword").value;
-
-      if (!name || !address) {
-        throw new Error("নাম ও ঠিকানা পূরণ করুন।");
-      }
-
-      if (password.length < 6) {
-        throw new Error("পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে।");
-      }
-
-      if (password !== confirmPassword) {
-        throw new Error("দুইটি পাসওয়ার্ড মিলছে না।");
-      }
-
-      if (!phoneInput) {
-        throw new Error("মোবাইল নম্বরের কান্ট্রি কোড নির্বাচন করুন।");
-      }
-
-      if (phoneInput.promise) {
-        await phoneInput.promise;
-      }
-
-      if (!phoneInput.isValidNumber()) {
-        throw new Error("সঠিক মোবাইল নম্বর দিন।");
-      }
-
-      const phone = phoneInput.getNumber();
-
-      const { data, error } = await db.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: name,
-            phone,
-            address
-          }
-        }
-      });
-
-      if (error) throw error;
-
-      hide("authModal");
-
-      if (data.session) {
-        user = data.user;
-        await loadProfile();
-        await openDashboard();
-        toast("রেজিস্ট্রেশন সফল হয়েছে।");
-      } else {
-        openOtpModal(email);
-        toast("আপনার ইমেইলে ৬ সংখ্যার কোড পাঠানো হয়েছে।");
-      }
-    } else {
-      const { data, error } = await db.auth.signInWithPassword({
-        email,
-        password
-      });
-
-      if (error) {
-        if (error.message?.toLowerCase().includes("email not confirmed")) {
-          hide("authModal");
-          openOtpModal(email);
-          toast("প্রথমে ইমেইলের ৬ সংখ্যার কোড দিয়ে ভেরিফাই করুন।");
-          return;
-        }
-        throw error;
-      }
-
-      user = data.user;
-      await loadProfile();
-
-      if (authRole === "admin" && profile.role !== "admin") {
-        await db.auth.signOut();
-        user = null;
-        profile = null;
-        throw new Error("এই অ্যাকাউন্টের অ্যাডমিন অনুমতি নেই।");
-      }
-
-      if (authRole === "customer" && profile.role === "admin") {
-        await db.auth.signOut();
-        user = null;
-        profile = null;
-        throw new Error("এই অ্যাকাউন্টটি অ্যাডমিন। অ্যাডমিন লগইন ব্যবহার করুন।");
-      }
-
-      hide("authModal");
-      await openDashboard();
-      toast("লগইন সফল হয়েছে।");
-    }
-  } catch (error) {
-    showError(error);
-  } finally {
-    setLoading(button, false);
-  }
-};
-
-$("otpVerifyForm").onsubmit = async event => {
-  event.preventDefault();
-
-  const token = $("otpCodeInput").value.trim().replace(/\s+/g, "");
-  if (!/^\d{6}$/.test(token)) {
-    toast("সঠিক ৬ সংখ্যার কোড লিখুন।");
-    $("otpCodeInput").focus();
+  if (!state.cart.length) {
+    linesEl.innerHTML = `<p class="empty-state">আপনার অর্ডার তালিকা এখনো খালি।</p>`;
     return;
   }
 
-  const button = $("verifyOtpBtn");
-  setLoading(button, true, "যাচাই হচ্ছে...");
+  linesEl.innerHTML = state.cart
+    .map(
+      (item) => `
+      <div class="cart-line">
+        <div>
+          <strong>${item.name}</strong>
+          <div class="hint-text">${formatBDT(item.price)} × ${item.qty} = ${formatBDT(item.price * item.qty)}</div>
+        </div>
+        <div class="qty-controls">
+          <button type="button" class="qty-btn" data-action="dec" data-id="${item.id}">-</button>
+          <span>${item.qty}</span>
+          <button type="button" class="qty-btn" data-action="inc" data-id="${item.id}">+</button>
+        </div>
+      </div>
+    `
+    )
+    .join("");
 
-  try {
-    const { data, error } = await db.auth.verifyOtp({
-      email: pendingOtpEmail,
-      token,
-      type: "signup"
+  linesEl.querySelectorAll(".qty-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      updateOrderListQty(btn.dataset.id, btn.dataset.action === "inc" ? 1 : -1);
     });
+  });
+}
 
-    if (error) throw error;
+// Auth (6-Digit OTP)
+function openAuthModal(mode) {
+  state.authMode = mode;
+  document.getElementById("authStepEmail").hidden = false;
+  document.getElementById("authStepOtp").hidden = true;
+  document.getElementById("otpCodeInput").value = "";
 
-    user = data.user || data.session?.user;
-    hide("otpVerifyModal");
-
-    if (user) {
-      await loadProfile();
-      await openDashboard();
-    }
-
-    toast("ইমেইল ভেরিফিকেশন সফল হয়েছে!");
-  } catch (error) {
-    showError(error);
-  } finally {
-    setLoading(button, false);
+  if (mode === "admin") {
+    document.getElementById("authEyebrow").textContent = "ADMIN ACCESS";
+    document.getElementById("authTitle").textContent = "অ্যাডমিন লগইন";
+    document.getElementById("authNameGroup").hidden = true;
+    document.getElementById("authEmailInput").value = ADMIN_EMAIL;
+  } else {
+    document.getElementById("authEyebrow").textContent = "CUSTOMER ACCOUNT";
+    document.getElementById("authTitle").textContent = "কাস্টমার লগইন";
+    document.getElementById("authNameGroup").hidden = false;
+    document.getElementById("authEmailInput").value = "";
+    document.getElementById("authNameInput").value = "";
   }
-};
+  openModal("authModal");
+}
 
-$("resendOtpBtn").onclick = async () => {
-  if (!pendingOtpEmail) return;
-
-  const button = $("resendOtpBtn");
-  setLoading(button, true, "কোড পাঠানো হচ্ছে...");
-
-  try {
-    const { error } = await db.auth.resend({
-      type: "signup",
-      email: pendingOtpEmail
-    });
-
-    if (error) throw error;
-
-    toast("নতুন ৬ সংখ্যার কোড ইমেইলে পাঠানো হয়েছে।");
-  } catch (error) {
-    showError(error);
-  } finally {
-    setLoading(button, false);
-  }
-};
-
-// ------------------------------------------------------
-// FORGOT & RESET PASSWORD
-// ------------------------------------------------------
-
-$("forgotPasswordBtn").onclick = async () => {
-  const email = $("authEmail").value.trim().toLowerCase();
+async function handleSendOtp() {
+  const email = document.getElementById("authEmailInput").value.trim();
+  const fullName = document.getElementById("authNameInput").value.trim();
 
   if (!email) {
-    toast("প্রথমে আপনার ইমেইল লিখুন।");
-    $("authEmail").focus();
+    toast("অনুগ্রহ করে ইমেইল ঠিকানা লিখুন");
+    return;
+  }
+  if (state.authMode === "admin" && email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+    toast("সঠিক অ্যাডমিন ইমেইল ব্যবহার করুন");
     return;
   }
 
-  try {
-    const { error } = await db.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin + window.location.pathname
-    });
+  state.pendingOtpEmail = email;
+  state.pendingOtpName =
+    state.authMode === "admin" ? "Amir Hamza" : fullName || email.split("@")[0];
 
-    if (error) throw error;
+  const { error } = await db.auth.signInWithOtp({
+    email,
+    options: {
+      shouldCreateUser: true,
+      data: { full_name: state.pendingOtpName }
+    }
+  });
 
-    toast("পাসওয়ার্ড রিসেট লিংক ইমেইলে পাঠানো হয়েছে।");
-  } catch (error) {
-    showError(error);
-  }
-};
-
-$("resetPasswordForm").onsubmit = async event => {
-  event.preventDefault();
-
-  const password = $("newPassword").value;
-  const confirmPassword = $("confirmNewPassword").value;
-
-  if (password.length < 6) {
-    toast("পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে।");
+  if (error) {
+    toast(`OTP পাঠাতে সমস্যা হয়েছে: ${error.message}`);
     return;
   }
 
-  if (password !== confirmPassword) {
-    toast("দুইটি পাসওয়ার্ড মিলছে না।");
+  document.getElementById("authStepEmail").hidden = true;
+  document.getElementById("authStepOtp").hidden = false;
+  toast("ইমেইলে ৬ সংখ্যার OTP পাঠানো হয়েছে");
+}
+
+async function handleVerifyOtp() {
+  const token = document.getElementById("otpCodeInput").value.trim();
+  if (!token || token.length < 6) {
+    toast("৬ সংখ্যার OTP কোড লিখুন");
     return;
   }
 
-  try {
-    const { error } = await db.auth.updateUser({ password });
-    if (error) throw error;
+  const { data, error } = await db.auth.verifyOtp({
+    email: state.pendingOtpEmail,
+    token,
+    type: "email"
+  });
 
-    hide("resetPasswordModal");
-    toast("নতুন পাসওয়ার্ড সেট হয়েছে।");
-  } catch (error) {
-    showError(error);
+  if (error) {
+    toast(`ভেরিফিকেশন ব্যর্থ: ${error.message}`);
+    return;
   }
-};
 
-// ------------------------------------------------------
-// PROFILE
-// ------------------------------------------------------
+  state.sessionUser = data.user || data.session?.user || null;
+  await ensureAndLoadProfile();
+  renderHeaderAuthUI();
+  closeModal("authModal");
+  toast("সফলভাবে লগইন সম্পন্ন হয়েছে");
+}
 
-async function loadProfile() {
-  if (!user) return;
+async function ensureAndLoadProfile() {
+  if (!state.sessionUser) {
+    state.profile = { full_name: "", email: "", avatar_url: "", role: "customer" };
+    return;
+  }
 
-  const { data, error } = await db
+  const uid = state.sessionUser.id;
+  const email = state.sessionUser.email || "";
+  const defaultName =
+    state.pendingOtpName ||
+    state.sessionUser.user_metadata?.full_name ||
+    email.split("@")[0];
+
+  const { data } = await db
     .from("profiles")
     .select("*")
-    .eq("id", user.id)
-    .single();
-
-  if (error) throw error;
-
-  profile = data;
-
-  $("accountBtn").textContent =
-    profile.full_name || user.email || "আমার অ্যাকাউন্ট";
-
-  $("accountBtn").classList.remove("hidden");
-}
-
-async function ensureCustomer() {
-  if (!user || !profile) {
-    authRole = "customer";
-    openAuth("login");
-    return false;
-  }
-
-  if (profile.role !== "customer") {
-    toast("কাস্টমার অ্যাকাউন্ট প্রয়োজন।");
-    return false;
-  }
-
-  return true;
-}
-
-function ensureAdmin() {
-  if (!user || !profile || profile.role !== "admin") {
-    toast("এই কাজের জন্য অ্যাডমিন অনুমতি প্রয়োজন।");
-    return false;
-  }
-
-  return true;
-}
-
-// ------------------------------------------------------
-// PLACE CUSTOMER ORDER
-// ------------------------------------------------------
-
-$("checkoutBtn").onclick = async () => {
-  if (!(await ensureCustomer())) return;
-
-  const rows = cartRows();
-  if (!rows.length) return;
-
-  const button = $("checkoutBtn");
-  setLoading(button, true, "অর্ডার পাঠানো হচ্ছে...");
-
-  try {
-    const items = rows.map(item => ({
-      id: item.id,
-      quantity: item.qty
-    }));
-
-    const { error } = await db.rpc(
-      "place_customer_order",
-      { p_items: items }
-    );
-
-    if (error) throw error;
-
-    cart = {};
-    renderCart();
-    hide("cartModal");
-
-    toast("আপনার অর্ডার সফলভাবে পাঠানো হয়েছে।");
-    await openDashboard();
-  } catch (error) {
-    showError(error);
-  } finally {
-    setLoading(button, false);
-  }
-};
-
-// ------------------------------------------------------
-// STATUS, TIMERS & ONE-WAY DELIVERY PROGRESS
-// ------------------------------------------------------
-
-function statusLabel(status) {
-  return ({
-    pending: "অপেক্ষমাণ",
-    confirmed: "অর্ডার কনফার্ম — খাবার তৈরি হচ্ছে",
-    preparing: "খাবার তৈরি হচ্ছে",
-    out_for_delivery: "ডেলিভারির পথে",
-    completed: "ডেলিভারি সম্পন্ন",
-    cancelled: "বাতিল",
-    awaiting_customer: "আপনার অনুমতির অপেক্ষায়",
-    not_required: "অনুমতি প্রয়োজন নেই",
-    accepted: "গ্রহণ করা হয়েছে",
-    rejected: "বাতিল করা হয়েছে"
-  })[status] || status || "—";
-}
-
-function countdownText(endAt) {
-  if (!endAt) return "সময় নির্ধারণ করা হয়নি";
-
-  const remaining = Math.max(
-    0,
-    Math.ceil((new Date(endAt).getTime() - Date.now()) / 1000)
-  );
-
-  if (remaining <= 0) return "সময় শেষ";
-
-  const minutes = Math.floor(remaining / 60);
-  const seconds = remaining % 60;
-
-  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-}
-
-function calculateDeliveryProgress(startAt, endAt, minutes) {
-  if (!endAt) return 0;
-
-  const endMs = new Date(endAt).getTime();
-  const totalMs = startAt
-    ? Math.max(1000, endMs - new Date(startAt).getTime())
-    : Math.max(1000, Number(minutes || 15) * 60 * 1000);
-
-  const startMs = startAt
-    ? new Date(startAt).getTime()
-    : endMs - totalMs;
-
-  const elapsed = Math.max(0, Date.now() - startMs);
-  return Math.min(1, Math.max(0, elapsed / totalMs));
-}
-
-function timerMarkup(label, endAt, id) {
-  if (!endAt) return "";
-
-  return `
-    <div class="preparation-timer">
-      <span>${escapeHTML(label)}</span>
-      <strong
-        data-countdown="${escapeHTML(id)}"
-        data-end="${escapeHTML(endAt)}"
-      >${countdownText(endAt)}</strong>
-    </div>
-  `;
-}
-
-function deliveryTrackingMarkup(order, prefix = "customer") {
-  if (order.status !== "out_for_delivery") return "";
-
-  const startAt = order.delivery_started_at || "";
-  const endAt = order.delivery_ends_at || "";
-  const mins = Number(order.delivery_minutes || 15);
-  const timerId = `${prefix}-${order.id}`;
-
-  const progress = calculateDeliveryProgress(startAt, endAt, mins);
-  const bikeLeft = (8 + progress * 68).toFixed(2);
-  const fillWidth = (progress * 100).toFixed(1);
-
-  return `
-    <section
-      class="delivery-tracking"
-      data-delivery-panel="${escapeHTML(order.id)}"
-      data-start="${escapeHTML(startAt)}"
-      data-end="${escapeHTML(endAt)}"
-      data-mins="${escapeHTML(mins)}"
-    >
-      <div class="delivery-heading">
-        <h3>
-          <i class="fa-solid fa-motorcycle"></i>
-          খাবার আপনার পথে!
-        </h3>
-        <span class="delivery-subtitle">Padma Cafe Delivery (${numberBN(mins)} মিনিট)</span>
-      </div>
-
-      <div class="delivery-road">
-        <div class="delivery-progress-fill" style="width: ${fillWidth}%;"></div>
-
-        <div class="delivery-start">
-          <i class="fa-solid fa-store"></i>
-          ক্যাফে
-        </div>
-
-        <div class="delivery-end">
-          <i class="fa-solid fa-house"></i>
-          আপনার ঠিকানা
-        </div>
-
-        <div class="delivery-bike" style="left: ${bikeLeft}%;" aria-label="ডেলিভারি বাইক">
-          <i class="fa-solid fa-motorcycle"></i>
-        </div>
-      </div>
-
-      <div class="delivery-time">
-        <span>আনুমানিক ডেলিভারি সময়</span>
-
-        <strong
-          data-countdown="${escapeHTML(timerId)}"
-          data-end="${escapeHTML(endAt)}"
-        >${countdownText(endAt)}</strong>
-
-        <span class="delivery-note">
-          নির্ধারিত সময় অনুযায়ী বাইকটি ক্যাফে থেকে আপনার ঠিকানার দিকে এগোচ্ছে।
-        </span>
-      </div>
-    </section>
-  `;
-}
-
-function startOrderTimerTicker() {
-  if (orderTimerInterval) {
-    clearInterval(orderTimerInterval);
-  }
-
-  const tick = () => {
-    document.querySelectorAll("[data-countdown]").forEach(element => {
-      const value = countdownText(element.dataset.end);
-      element.textContent = value;
-
-      if (value === "সময় শেষ") {
-        element.classList.add("delivery-finished");
-
-        const panel = element.closest(".delivery-tracking");
-        const note = panel?.querySelector(".delivery-note");
-
-        if (note) {
-          note.textContent =
-            "আনুমানিক সময় শেষ — ডেলিভারি সম্পন্ন হলে অ্যাডমিন নিশ্চিত করবেন।";
-        }
-      }
-    });
-
-    document.querySelectorAll(".delivery-tracking").forEach(panel => {
-      const progress = calculateDeliveryProgress(
-        panel.dataset.start,
-        panel.dataset.end,
-        panel.dataset.mins
-      );
-
-      const bike = panel.querySelector(".delivery-bike");
-      const fill = panel.querySelector(".delivery-progress-fill");
-
-      if (bike) {
-        bike.style.left = `${(8 + progress * 68).toFixed(2)}%`;
-      }
-      if (fill) {
-        fill.style.width = `${(progress * 100).toFixed(1)}%`;
-      }
-    });
-  };
-
-  tick();
-  orderTimerInterval = setInterval(tick, 1000);
-}
-
-function readMinutesInput(id, fallback = 15) {
-  const value = Number($(id)?.value ?? fallback);
-
-  if (!Number.isInteger(value) || value < 1 || value > 180) {
-    throw new Error("সময় ১ থেকে ১৮০ মিনিটের মধ্যে দিন।");
-  }
-
-  return value;
-}
-
-// ------------------------------------------------------
-// DASHBOARD
-// ------------------------------------------------------
-
-async function openDashboard() {
-  if (!user) return;
-
-  try {
-    await loadProfile();
-
-    $("dashTitle").textContent =
-      profile.role === "admin"
-        ? "অ্যাডমিন ড্যাশবোর্ড"
-        : "আমার অর্ডার";
-
-    show("dashboardModal");
-
-    await renderDashboard();
-    subscribeLive();
-  } catch (error) {
-    showError(error);
-  }
-}
-
-async function renderDashboard() {
-  if (!profile) return;
-
-  if (profile.role === "admin") {
-    await renderAdmin();
-  } else {
-    await renderCustomer();
-  }
-}
-
-async function fetchItems(orderId) {
-  const { data, error } = await db
-    .from("order_items")
-    .select("*")
-    .eq("order_id", orderId)
-    .order("created_at");
-
-  if (error) throw error;
-
-  return data || [];
-}
-
-// ------------------------------------------------------
-// CUSTOMER DASHBOARD
-// ------------------------------------------------------
-
-async function renderCustomer() {
-  const container = $("dashboardContent");
-  container.innerHTML = `<p class="loading">আপনার অর্ডার লোড হচ্ছে...</p>`;
-
-  const { data, error } = await db
-    .from("orders")
-    .select("*")
-    .eq("customer_id", user.id)
-    .neq("sale_type", "offline")
-    .order("created_at", { ascending: false });
-
-  if (error) throw error;
-
-  if (!data.length) {
-    container.innerHTML = `
-      <div class="empty-state">
-        <i class="fa-solid fa-bag-shopping"></i>
-        <p>এখনো কোনো অর্ডার করেননি।</p>
-      </div>
-    `;
-    return;
-  }
-
-  let output = `
-    <div class="dashboard-panel">
-      <h3>স্বাগতম, ${escapeHTML(profile.full_name || "কাস্টমার")}</h3>
-      <p>আপনার অর্ডারের অবস্থা ও রসিদ এখানে দেখতে পারবেন।</p>
-    </div>
-  `;
-
-  for (const order of data) {
-    const items = await fetchItems(order.id);
-
-    output += `
-      <article class="order-card">
-        <h3>অর্ডার #${escapeHTML(order.id.slice(0, 8))}</h3>
-
-        <span class="status ${escapeHTML(order.status)}">
-          ${statusLabel(order.status)}
-        </span>
-
-        <p>${dateTime(order.created_at)}</p>
-
-        ${items.map(item => `
-          <div class="cart-line">
-            <div class="cart-line-info">
-              <strong>${escapeHTML(item.item_name)}</strong>
-              <small>
-                ${numberBN(item.quantity)} × ${money(item.unit_price)}
-                ${item.item_status === "unavailable" ? " · পাওয়া যাচ্ছে না" : ""}
-              </small>
-            </div>
-            <b>${money(item.line_total)}</b>
-          </div>
-        `).join("")}
-
-        <div class="total-line">
-          <b>মোট</b>
-          <b>${money(order.total_amount)}</b>
-        </div>
-
-        ${
-          ["confirmed", "preparing"].includes(order.status)
-            ? timerMarkup(
-                "খাবার তৈরির বাকি সময়",
-                order.preparation_ends_at,
-                `prep-customer-${order.id}`
-              )
-            : ""
-        }
-
-        ${deliveryTrackingMarkup(order, "customer")}
-
-        ${
-          order.approval_status === "awaiting_customer"
-            ? `<button
-                 class="gold-btn wide"
-                 type="button"
-                 data-approval="${escapeHTML(order.id)}"
-               >
-                 পরিবর্তিত অর্ডার দেখুন
-               </button>`
-            : ""
-        }
-
-        <button
-          class="outline wide"
-          type="button"
-          data-receipt="${escapeHTML(order.id)}"
-        >
-          <i class="fa-solid fa-receipt"></i>
-          রসিদ দেখুন
-        </button>
-      </article>
-    `;
-  }
-
-  container.innerHTML = output;
-  startOrderTimerTicker();
-}
-
-// ------------------------------------------------------
-// ADMIN DASHBOARD
-// ------------------------------------------------------
-
-async function renderAdmin() {
-  const container = $("dashboardContent");
-  container.innerHTML = `<p class="loading">অ্যাডমিন ড্যাশবোর্ড লোড হচ্ছে...</p>`;
-
-  const { data, error } = await db
-    .from("orders")
-    .select("*")
-    .neq("sale_type", "offline")
-    .order("created_at", { ascending: false })
-    .limit(100);
-
-  if (error) throw error;
-
-  const orders = data || [];
-
-  container.innerHTML = `
-    <div class="dashboard-panel">
-      <h3>অ্যাডমিন কন্ট্রোল</h3>
-
-      <div class="order-actions">
-        <button id="openOfflineSale" class="gold-btn" type="button">
-          <i class="fa-solid fa-cash-register"></i>
-          নতুন অফলাইন বিক্রি
-        </button>
-
-        <button id="openSalesReport" class="outline" type="button">
-          <i class="fa-solid fa-chart-column"></i>
-          বিক্রির রিপোর্ট
-        </button>
-      </div>
-    </div>
-
-    <div class="dashboard-panel">
-      <h3>অনলাইন অর্ডার ব্যবস্থাপনা</h3>
-      <p>মোট প্রদর্শিত অর্ডার: ${numberBN(orders.length)}</p>
-    </div>
-
-    <div id="adminOrders">
-      ${orders.length ? "" : `<p class="empty-state">এখনো কোনো অর্ডার নেই।</p>`}
-    </div>
-  `;
-
-  $("openOfflineSale").onclick = openOfflineSale;
-  $("openSalesReport").onclick = openSalesReport;
-
-  let output = "";
-
-  for (const order of orders) {
-    const items = await fetchItems(order.id);
-
-    output += `
-      <article class="order-card">
-        <h3>
-          অর্ডার #${escapeHTML(order.id.slice(0, 8))}
-          · ${escapeHTML(order.customer_name || "কাস্টমার")}
-        </h3>
-
-        <span class="status ${escapeHTML(order.status)}">
-          ${statusLabel(order.status)}
-        </span>
-
-        <p>
-          ইমেইল: ${escapeHTML(order.customer_email || "—")}<br>
-          ফোন: ${escapeHTML(order.customer_phone || "—")}<br>
-          ঠিকানা: ${escapeHTML(order.customer_address || "—")}<br>
-          সময়: ${dateTime(order.created_at)}
-        </p>
-
-        <div>
-          ${items.map(item => `
-            <div class="cart-line">
-              <div class="cart-line-info">
-                <strong>${escapeHTML(item.item_name)}</strong>
-                <small>
-                  ${numberBN(item.quantity)} × ${money(item.unit_price)}
-                  ${item.item_status === "unavailable" ? " · পাওয়া যাচ্ছে না" : ""}
-                </small>
-              </div>
-
-              <div>
-                <b>${money(item.line_total)}</b>
-
-                ${
-                  order.status === "pending" &&
-                  item.item_status === "active"
-                    ? `<button
-                         class="outline"
-                         type="button"
-                         data-unavailable="${escapeHTML(item.id)}"
-                       >স্টক নেই</button>`
-                    : ""
-                }
-              </div>
-            </div>
-          `).join("")}
-        </div>
-
-        <div class="total-line">
-          <b>মোট</b>
-          <b>${money(order.total_amount)}</b>
-        </div>
-
-        ${
-          order.approval_status === "awaiting_customer"
-            ? `<p class="status waiting">কাস্টমারের অনুমতির অপেক্ষায়</p>`
-            : ""
-        }
-
-        ${
-          ["confirmed", "preparing"].includes(order.status)
-            ? timerMarkup(
-                "খাবার তৈরির বাকি সময়",
-                order.preparation_ends_at,
-                `prep-admin-${order.id}`
-              )
-            : ""
-        }
-
-        ${deliveryTrackingMarkup(order, "admin")}
-
-        <div class="order-actions">
-          ${
-            order.status === "pending"
-              ? `
-                <div class="preparation-timer">
-                  <label for="prep-min-${escapeHTML(order.id)}">খাবার তৈরির সময় (মিনিট)</label>
-                  <div class="timer-controls">
-                    <button type="button"
-                      data-minute-adjust="prep-min-${escapeHTML(order.id)}"
-                      data-diff="-1">−</button>
-
-                    <input id="prep-min-${escapeHTML(order.id)}"
-                      type="number" min="1" max="180" value="15">
-
-                    <button type="button"
-                      data-minute-adjust="prep-min-${escapeHTML(order.id)}"
-                      data-diff="1">+</button>
-                  </div>
-                </div>
-
-                <button class="gold-btn"
-                  data-order-status="${escapeHTML(order.id)}"
-                  data-status="confirmed">
-                  <i class="fa-solid fa-check"></i>
-                  অর্ডার কনফার্ম ও কাউন্টডাউন শুরু
-                </button>
-
-                <button class="danger-btn"
-                  data-order-status="${escapeHTML(order.id)}"
-                  data-status="cancelled">
-                  বাতিল
-                </button>
-              `
-              : ""
-          }
-
-          ${
-            ["confirmed", "preparing"].includes(order.status)
-              ? `
-                <div class="preparation-timer">
-                  <label for="delivery-min-${escapeHTML(order.id)}">
-                    ডেলিভারির আনুমানিক সময় (মিনিট)
-                  </label>
-
-                  <div class="timer-controls">
-                    <button type="button"
-                      data-minute-adjust="delivery-min-${escapeHTML(order.id)}"
-                      data-diff="-1">−</button>
-
-                    <input id="delivery-min-${escapeHTML(order.id)}"
-                      type="number" min="1" max="180" value="15">
-
-                    <button type="button"
-                      data-minute-adjust="delivery-min-${escapeHTML(order.id)}"
-                      data-diff="1">+</button>
-                  </div>
-                </div>
-
-                <button class="gold-btn delivery-btn"
-                  data-order-status="${escapeHTML(order.id)}"
-                  data-status="out_for_delivery">
-                  <i class="fa-solid fa-motorcycle"></i>
-                  খাবার তৈরি হয়েছে — ডেলিভারি শুরু
-                </button>
-              `
-              : ""
-          }
-
-          ${
-            order.status === "out_for_delivery"
-              ? `<button class="gold-btn complete-delivery-btn"
-                   data-order-status="${escapeHTML(order.id)}"
-                   data-status="completed">
-                   <i class="fa-solid fa-check-double"></i>
-                   ডেলিভারি সম্পন্ন
-                 </button>`
-              : ""
-          }
-
-          <button class="outline" data-receipt="${escapeHTML(order.id)}">
-            রসিদ
-          </button>
-        </div>
-      </article>
-    `;
-  }
-
-  $("adminOrders").innerHTML = output;
-  startOrderTimerTicker();
-}
-
-// ------------------------------------------------------
-// DASHBOARD BUTTON EVENTS
-// ------------------------------------------------------
-
-$("dashboardContent").addEventListener("click", async event => {
-  const statusButton = event.target.closest("[data-order-status]");
-  const unavailableButton = event.target.closest("[data-unavailable]");
-  const receiptButton = event.target.closest("[data-receipt]");
-  const approvalButton = event.target.closest("[data-approval]");
-  const minuteButton = event.target.closest("[data-minute-adjust]");
-
-  try {
-    if (minuteButton) {
-      const input = $(minuteButton.dataset.minuteAdjust);
-
-      if (input) {
-        input.value = Math.min(
-          180,
-          Math.max(
-            1,
-            Number(input.value || 15) + Number(minuteButton.dataset.diff)
-          )
-        );
-      }
-      return;
-    }
-
-    if (statusButton) {
-      await adminStatus(
-        statusButton.dataset.orderStatus,
-        statusButton.dataset.status
-      );
-    }
-
-    if (unavailableButton) {
-      await markUnavailable(unavailableButton.dataset.unavailable);
-    }
-
-    if (receiptButton) {
-      await showReceipt(receiptButton.dataset.receipt);
-    }
-
-    if (approvalButton) {
-      await openApproval(approvalButton.dataset.approval);
-    }
-  } catch (error) {
-    showError(error);
-  }
-});
-
-// ------------------------------------------------------
-// ADMIN ORDER STATUS & UNAVAILABLE ITEM
-// ------------------------------------------------------
-
-async function adminStatus(orderId, status) {
-  if (!ensureAdmin()) return;
-
-  const allowed = [
-    "confirmed",
-    "preparing",
-    "out_for_delivery",
-    "completed",
-    "cancelled"
-  ];
-
-  if (!allowed.includes(status)) {
-    throw new Error("অবৈধ অর্ডার স্ট্যাটাস।");
-  }
-
-  let preparationMinutes = null;
-  let deliveryMinutes = null;
-
-  if (status === "confirmed") {
-    preparationMinutes = readMinutesInput(`prep-min-${orderId}`, 15);
-  }
-
-  if (status === "out_for_delivery") {
-    deliveryMinutes = readMinutesInput(`delivery-min-${orderId}`, 15);
-
-    if (!confirm(`খাবার তৈরি হয়েছে এবং ডেলিভারি ম্যান ${numberBN(deliveryMinutes)} মিনিটের মধ্যে পৌঁছাবেন নিশ্চিত করছেন?`)) {
-      return;
-    }
-  }
-
-  if (status === "completed") {
-    if (!confirm("এই অর্ডারের ডেলিভারি সম্পন্ন হয়েছে নিশ্চিত করছেন?")) {
-      return;
-    }
-  }
-
-  const { error } = await db.rpc("admin_update_order_status", {
-    p_order_id: orderId,
-    p_status: status,
-    p_preparation_minutes: preparationMinutes,
-    p_delivery_minutes: deliveryMinutes
-  });
-
-  if (error) throw error;
-
-  toast(
-    status === "out_for_delivery"
-      ? "ডেলিভারি শুরু হয়েছে। বাইকটি নির্ধারিত সময় অনুযায়ী ঠিকানার দিকে এগোচ্ছে।"
-      : status === "completed"
-        ? "ডেলিভারি সম্পন্ন হয়েছে।"
-        : "অর্ডারের অবস্থা আপডেট হয়েছে।"
-  );
-
-  await renderDashboard();
-}
-
-async function markUnavailable(itemId) {
-  if (!ensureAdmin()) return;
-
-  const { error } = await db.rpc("admin_mark_item_unavailable", {
-    p_item_id: itemId
-  });
-
-  if (error) throw error;
-
-  toast("কাস্টমারের অনুমতির জন্য পরিবর্তন পাঠানো হয়েছে।");
-  await renderDashboard();
-}
-
-// ------------------------------------------------------
-// CUSTOMER APPROVAL FOR CHANGED ORDER
-// ------------------------------------------------------
-
-async function openApproval(orderId) {
-  if (!(await ensureCustomer())) return;
-
-  const { data: order, error } = await db
-    .from("orders")
-    .select("*")
-    .eq("id", orderId)
-    .eq("customer_id", user.id)
-    .single();
-
-  if (error) throw error;
-
-  if (order.approval_status !== "awaiting_customer") {
-    toast("এই অর্ডারে এখন অনুমতি প্রয়োজন নেই।");
-    return;
-  }
-
-  const items = await fetchItems(orderId);
-
-  const availableItems = items.filter(
-    item => item.item_status !== "unavailable"
-  );
-
-  const unavailableItems = items.filter(
-    item => item.item_status === "unavailable"
-  );
-
-  const availableTotal = availableItems.reduce(
-    (sum, item) => sum + Number(item.line_total || 0),
-    0
-  );
-
-  $("approvalContent").innerHTML = `
-    <div class="approval-box">
-      <p>দুঃখিত! নিচের কিছু খাবার বর্তমানে পাওয়া যাচ্ছে না।</p>
-
-      <h4>পাওয়া যাচ্ছে না</h4>
-      ${
-        unavailableItems.length
-          ? unavailableItems.map(item => `
-              <div class="approval-line unavailable-item">
-                <span>${escapeHTML(item.item_name)}</span>
-                <b>স্টক নেই</b>
-              </div>
-            `).join("")
-          : "<p>কোনো খাবার বাদ দেওয়া হয়নি।</p>"
-      }
-
-      <h4>যেসব খাবার পাওয়া যাবে</h4>
-      ${
-        availableItems.length
-          ? availableItems.map(item => `
-              <div class="approval-line">
-                <span>${escapeHTML(item.item_name)} × ${numberBN(item.quantity)}</span>
-                <b>${money(item.line_total)}</b>
-              </div>
-            `).join("")
-          : "<p>কোনো খাবার অবশিষ্ট নেই।</p>"
-      }
-
-      <div class="total-line">
-        <strong>নতুন মোট বিল</strong>
-        <strong>${money(availableTotal)}</strong>
-      </div>
-
-      <p>আপনি অবশিষ্ট খাবার নিতে পারেন অথবা সম্পূর্ণ অর্ডার বাতিল করতে পারেন।</p>
-
-      <button
-        type="button"
-        class="gold-btn wide"
-        id="acceptChangedOrder"
-        ${availableItems.length ? "" : "disabled"}
-      >
-        অবশিষ্ট খাবার গ্রহণ করুন
-      </button>
-
-      <button
-        type="button"
-        class="danger-btn wide"
-        id="rejectChangedOrder"
-      >
-        সম্পূর্ণ অর্ডার বাতিল করুন
-      </button>
-    </div>
-  `;
-
-  $("acceptChangedOrder").onclick = () => respondToChangedOrder(orderId, true);
-  $("rejectChangedOrder").onclick = () => respondToChangedOrder(orderId, false);
-
-  show("approvalModal");
-}
-
-async function respondToChangedOrder(orderId, accepted) {
-  if (!(await ensureCustomer())) return;
-
-  const button = accepted
-    ? $("acceptChangedOrder")
-    : $("rejectChangedOrder");
-
-  setLoading(button, true, "অপেক্ষা করুন...");
-
-  try {
-    const { error } = await db.rpc(
-      "customer_respond_to_order_change",
-      {
-        p_order_id: orderId,
-        p_accept: accepted
-      }
-    );
-
-    if (error) throw error;
-
-    hide("approvalModal");
-
-    toast(
-      accepted
-        ? "পরিবর্তিত অর্ডার গ্রহণ করা হয়েছে।"
-        : "আপনার সম্পূর্ণ অর্ডার বাতিল করা হয়েছে।"
-    );
-
-    await renderDashboard();
-  } catch (error) {
-    showError(error);
-  } finally {
-    setLoading(button, false);
-  }
-}
-
-// ------------------------------------------------------
-// RECEIPT & PRINT
-// ------------------------------------------------------
-
-async function getOrderForReceipt(orderId) {
-  const { data: order, error } = await db
-    .from("orders")
-    .select("*")
-    .eq("id", orderId)
-    .single();
-
-  if (error) throw error;
-
-  if (profile.role !== "admin" && order.customer_id !== user.id) {
-    throw new Error("এই রসিদ দেখার অনুমতি আপনার নেই।");
-  }
-
-  const items = await fetchItems(orderId);
-  return { order, items };
-}
-
-function receiptHTML(order, items) {
-  const isOffline = order.sale_type === "offline";
-
-  const rows = items.map(item => `
-    <tr>
-      <td>
-        ${escapeHTML(item.item_name)}
-        ${item.item_status === "unavailable" ? " (স্টক নেই)" : ""}
-      </td>
-      <td>${numberBN(item.quantity)}</td>
-      <td>${money(item.unit_price)}</td>
-      <td>${money(item.line_total)}</td>
-    </tr>
-  `).join("");
-
-  return `
-    <div class="receipt-paper">
-      <div class="receipt-header">
-        <img
-          src="https://i.ibb.co/4nW7J6d0/IMG-20261121-WA0000.jpg"
-          alt="Padma Cafe"
-        >
-        <h2>PADMA CAFE</h2>
-        <p>স্বাদে ও আতিথেয়তায় আপনাদের পাশে</p>
-        <p>${isOffline ? "অফলাইন বিক্রির রসিদ" : "অনলাইন অর্ডার রসিদ"}</p>
-      </div>
-
-      <div class="receipt-info">
-        <p>রসিদ: ${escapeHTML(order.id.slice(0, 8))}</p>
-        <p>তারিখ: ${dateTime(order.created_at)}</p>
-        ${
-          isOffline
-            ? `<p>বিক্রির ধরন: অফলাইন</p>`
-            : `
-              <p>কাস্টমার: ${escapeHTML(order.customer_name || "কাস্টমার")}</p>
-              <p>ফোন: ${escapeHTML(order.customer_phone || "—")}</p>
-              <p>ঠিকানা: ${escapeHTML(order.customer_address || "—")}</p>
-              <p>অবস্থা: ${statusLabel(order.status)}</p>
-            `
-        }
-      </div>
-
-      <table class="receipt-table">
-        <thead>
-          <tr>
-            <th>খাবার</th>
-            <th>পরিমাণ</th>
-            <th>দাম</th>
-            <th>মোট</th>
-          </tr>
-        </thead>
-        <tbody>${rows}</tbody>
-      </table>
-
-      <div class="receipt-total">
-        <strong>সর্বমোট</strong>
-        <strong>${money(order.total_amount)}</strong>
-      </div>
-
-      <div class="receipt-footer">
-        <p>আপনাকে ধন্যবাদ! আবার আসবেন।</p>
-        <small>Powered by Padma Cafe</small>
-      </div>
-    </div>
-  `;
-}
-
-async function showReceipt(orderId) {
-  try {
-    const { order, items } = await getOrderForReceipt(orderId);
-    currentReceipt = { order, items };
-    $("receiptContent").innerHTML = receiptHTML(order, items);
-    show("receiptModal");
-  } catch (error) {
-    showError(error);
-  }
-}
-
-$("printReceiptBtn").onclick = () => {
-  if (!currentReceipt) {
-    toast("প্রথমে একটি রসিদ খুলুন।");
-    return;
-  }
-
-  const content = $("receiptContent").innerHTML;
-  const printWindow = window.open("", "_blank", "width=450,height=700");
-
-  if (!printWindow) {
-    toast("পপ-আপ অনুমতি দিন, তারপর আবার চেষ্টা করুন।");
-    return;
-  }
-
-  printWindow.document.write(`
-    <!DOCTYPE html>
-    <html lang="bn">
-    <head>
-      <meta charset="UTF-8">
-      <title>Padma Cafe Receipt</title>
-      <style>
-        * { box-sizing: border-box; }
-        body {
-          margin: 0;
-          padding: 8px;
-          color: #111;
-          background: #fff;
-          font-family: Arial, sans-serif;
-        }
-        .receipt-paper {
-          width: 100%;
-          max-width: 320px;
-          margin: auto;
-          padding: 8px;
-          font-size: 12px;
-        }
-        .receipt-header {
-          text-align: center;
-          border-bottom: 1px dashed #555;
-          padding-bottom: 10px;
-        }
-        .receipt-header img {
-          width: 65px;
-          height: 65px;
-          object-fit: cover;
-          border-radius: 50%;
-          display: block;
-          margin: 0 auto 8px;
-        }
-        .receipt-header h2 {
-          margin: 5px 0;
-          font-size: 20px;
-        }
-        .receipt-header p,
-        .receipt-info p {
-          margin: 4px 0;
-        }
-        .receipt-info {
-          padding: 8px 0;
-          border-bottom: 1px dashed #555;
-          overflow-wrap: anywhere;
-        }
-        .receipt-table {
-          width: 100%;
-          border-collapse: collapse;
-          margin-top: 8px;
-          font-size: 11px;
-        }
-        .receipt-table th,
-        .receipt-table td {
-          padding: 5px 2px;
-          text-align: left;
-          border-bottom: 1px dotted #aaa;
-        }
-        .receipt-table th:last-child,
-        .receipt-table td:last-child {
-          text-align: right;
-        }
-        .receipt-total {
-          display: flex;
-          justify-content: space-between;
-          border-top: 1px dashed #333;
-          margin-top: 10px;
-          padding-top: 8px;
-          font-size: 15px;
-        }
-        .receipt-footer {
-          text-align: center;
-          margin-top: 20px;
-          border-top: 1px dashed #555;
-          padding-top: 8px;
-        }
-        @page {
-          size: 80mm auto;
-          margin: 2mm;
-        }
-      </style>
-    </head>
-    <body>
-      ${content}
-      <script>
-        window.onload = function() {
-          setTimeout(function() {
-            window.print();
-          }, 300);
-        };
-      <\/script>
-    </body>
-    </html>
-  `);
-
-  printWindow.document.close();
-};
-
-// ------------------------------------------------------
-// OFFLINE SALE
-// ------------------------------------------------------
-
-function openOfflineSale() {
-  if (!ensureAdmin()) return;
-
-  offlineCart = {};
-
-  const categoryOptions = CATEGORIES
-    .filter(category => category !== "সব খাবার")
-    .map(category => `
-      <option value="${escapeHTML(category)}">
-        ${escapeHTML(category)}
-      </option>
-    `).join("");
-
-  $("offlineSaleContent").innerHTML = `
-    <div class="offline-sale">
-      <p class="field-hint">কাস্টমারের কোনো তথ্য লাগবে না। শুধু খাবার ও পরিমাণ দিন।</p>
-
-      <label for="offlineCategory">ক্যাটাগরি</label>
-      <select id="offlineCategory">
-        <option value="সব খাবার">সব খাবার</option>
-        ${categoryOptions}
-      </select>
-
-      <div id="offlineMenuList"></div>
-
-      <div class="dashboard-panel">
-        <h3>বিক্রির তালিকা</h3>
-        <div id="offlineCartList"></div>
-
-        <div class="total-line">
-          <strong>মোট</strong>
-          <strong id="offlineTotal">${money(0)}</strong>
-        </div>
-      </div>
-
-      <button class="gold-btn wide" id="saveOfflineSaleBtn" type="button">
-        <i class="fa-solid fa-print"></i>
-        বিক্রি সংরক্ষণ ও রসিদ তৈরি
-      </button>
-    </div>
-  `;
-
-  renderOfflineMenu();
-  renderOfflineCart();
-
-  $("offlineCategory").onchange = renderOfflineMenu;
-
-  $("offlineMenuList").onclick = event => {
-    const button = event.target.closest("[data-offline-add]");
-    if (!button) return;
-
-    const id = button.dataset.offlineAdd;
-    offlineCart[id] = (offlineCart[id] || 0) + 1;
-    renderOfflineCart();
-  };
-
-  $("offlineCartList").onclick = event => {
-    const button = event.target.closest("[data-offline-change]");
-    if (!button) return;
-
-    const id = button.dataset.offlineChange;
-    const diff = Number(button.dataset.diff);
-
-    offlineCart[id] = Math.max(0, (offlineCart[id] || 0) + diff);
-    if (!offlineCart[id]) delete offlineCart[id];
-
-    renderOfflineCart();
-  };
-
-  $("saveOfflineSaleBtn").onclick = saveOfflineSale;
-
-  show("offlineSaleModal");
-}
-
-function renderOfflineMenu() {
-  const container = $("offlineMenuList");
-  if (!container) return;
-
-  const category = $("offlineCategory").value;
-  const items = category === "সব খাবার"
-    ? MENU
-    : MENU.filter(item => item.category === category);
-
-  container.innerHTML = items.map(item => `
-    <div class="offline-line">
-      <div class="cart-line-info">
-        <strong>${escapeHTML(item.name)}</strong>
-        <small>${money(item.price)}</small>
-      </div>
-
-      <button
-        class="add-cart-btn"
-        type="button"
-        data-offline-add="${escapeHTML(item.id)}"
-      >
-        যোগ করুন
-      </button>
-    </div>
-  `).join("");
-}
-
-function offlineRows() {
-  return Object.entries(offlineCart)
-    .map(([id, qty]) => {
-      const item = MENU.find(product => product.id === id);
-      if (!item || qty < 1) return null;
-
-      return {
-        ...item,
-        qty,
-        subtotal: item.price * qty
-      };
-    })
-    .filter(Boolean);
-}
-
-function renderOfflineCart() {
-  const rows = offlineRows();
-
-  $("offlineCartList").innerHTML = rows.length
-    ? rows.map(item => `
-        <div class="offline-line">
-          <div class="cart-line-info">
-            <strong>${escapeHTML(item.name)}</strong>
-            <small>${money(item.price)} × ${numberBN(item.qty)}</small>
-          </div>
-
-          <div class="quantity-controls">
-            <button
-              type="button"
-              data-offline-change="${escapeHTML(item.id)}"
-              data-diff="-1"
-            >−</button>
-
-            <span>${numberBN(item.qty)}</span>
-
-            <button
-              type="button"
-              data-offline-change="${escapeHTML(item.id)}"
-              data-diff="1"
-            >+</button>
-          </div>
-
-          <b>${money(item.subtotal)}</b>
-        </div>
-      `).join("")
-    : `<p class="empty-state">এখনো কোনো খাবার যোগ করা হয়নি।</p>`;
-
-  $("offlineTotal").textContent = money(
-    rows.reduce((sum, item) => sum + item.subtotal, 0)
-  );
-}
-
-async function saveOfflineSale() {
-  if (!ensureAdmin()) return;
-
-  const rows = offlineRows();
-  if (!rows.length) {
-    toast("প্রথমে খাবার যোগ করুন।");
-    return;
-  }
-
-  const button = $("saveOfflineSaleBtn");
-  setLoading(button, true, "বিক্রি সংরক্ষণ হচ্ছে...");
-
-  try {
-    const payload = rows.map(item => ({
-      id: item.id,
-      quantity: item.qty
-    }));
-
-    const { data, error } = await db.rpc(
-      "admin_create_offline_sale",
-      { p_items: payload }
-    );
-
-    if (error) throw error;
-
-    const saleId = typeof data === "string"
-      ? data
-      : data?.id || data?.sale_id;
-
-    if (!saleId) {
-      throw new Error("বিক্রির রসিদ নম্বর পাওয়া যায়নি।");
-    }
-
-    const sale = {
-      id: saleId,
-      created_at: new Date().toISOString(),
-      customer_name: "অফলাইন বিক্রি",
-      customer_phone: "",
-      customer_address: "",
-      status: "completed",
-      sale_type: "offline",
-      total_amount: rows.reduce((sum, item) => sum + item.subtotal, 0)
+    .eq("id", uid)
+    .maybeSingle();
+
+  if (data) {
+    state.profile = {
+      full_name: data.full_name || defaultName,
+      email: data.email || email,
+      avatar_url: data.avatar_url || "",
+      role: isAdminUser() ? "admin" : "customer"
     };
-
-    const receiptItems = rows.map(item => ({
-      item_name: item.name,
-      quantity: item.qty,
-      unit_price: item.price,
-      line_total: item.subtotal,
-      item_status: "active"
-    }));
-
-    currentReceipt = { order: sale, items: receiptItems };
-    $("receiptContent").innerHTML = receiptHTML(sale, receiptItems);
-
-    offlineCart = {};
-    hide("offlineSaleModal");
-    show("receiptModal");
-
-    toast("অফলাইন বিক্রি সংরক্ষণ হয়েছে।");
-  } catch (error) {
-    showError(error);
-  } finally {
-    setLoading(button, false);
+  } else {
+    const newRow = {
+      id: uid,
+      email,
+      full_name: defaultName,
+      avatar_url: "",
+      role: isAdminUser() ? "admin" : "customer"
+    };
+    await db.from("profiles").upsert(newRow);
+    state.profile = newRow;
   }
 }
 
-// ------------------------------------------------------
-// SALES REPORT
-// ------------------------------------------------------
+async function saveCustomerProfileChanges() {
+  if (!isCustomerUser()) return;
+  const newName = document.getElementById("customerProfileNameInput").value.trim();
+  if (!newName) {
+    toast("নাম খালি রাখা যাবে না");
+    return;
+  }
 
-async function openSalesReport() {
-  if (!ensureAdmin()) return;
+  const updated = {
+    id: state.sessionUser.id,
+    email: state.sessionUser.email,
+    full_name: newName,
+    avatar_url: state.profile.avatar_url || "",
+    role: "customer"
+  };
 
-  $("salesReportContent").innerHTML = `
-    <div class="report-panel">
-      <div class="report-filters">
-        <label for="reportDate">
-          তারিখ নির্বাচন করুন
-          <input
-            type="date"
-            id="reportDate"
-            value="${escapeHTML(reportDate)}"
-          >
-        </label>
-      </div>
+  const { error } = await db.from("profiles").upsert(updated);
+  if (error) {
+    toast(`প্রোফাইল সেভ হয়নি: ${error.message}`);
+    return;
+  }
 
-      <div class="report-actions">
-        <button type="button" id="dailyReportBtn" class="gold-btn">
-          দৈনিক রিপোর্ট
-        </button>
+  state.profile.full_name = newName;
+  renderHeaderAuthUI();
+  closeCustomerDrawer();
+  toast("প্রোফাইল আপডেট সেভ হয়েছে");
+}
 
-        <button type="button" id="monthlyReportBtn" class="outline">
-          মাসিক রিপোর্ট
-        </button>
+async function handleCustomerAvatarUpload(event) {
+  const file = event.target.files?.[0];
+  if (!file || !isCustomerUser()) return;
 
-        <button type="button" id="allTimeReportBtn" class="outline">
-          সর্বমোট রিপোর্ট
-        </button>
-      </div>
+  const fileExt = file.name.split(".").pop() || "jpg";
+  const filePath = `${state.sessionUser.id}/avatar-${Date.now()}.${fileExt}`;
 
-      <div id="reportResults">
-        <p class="loading">রিপোর্ট লোড হচ্ছে...</p>
+  const { error: uploadError } = await db.storage
+    .from("avatars")
+    .upload(filePath, file, { upsert: true });
+
+  if (uploadError) {
+    toast(`ছবি আপলোড হয়নি: ${uploadError.message}`);
+    return;
+  }
+
+  const { data: pubData } = db.storage.from("avatars").getPublicUrl(filePath);
+  const publicUrl = pubData?.publicUrl || "";
+
+  state.profile.avatar_url = publicUrl;
+  syncDrawerAvatarPreview(publicUrl);
+
+  await db.from("profiles").upsert({
+    id: state.sessionUser.id,
+    email: state.sessionUser.email,
+    full_name: state.profile.full_name || state.sessionUser.email.split("@")[0],
+    avatar_url: publicUrl,
+    role: "customer"
+  });
+
+  renderHeaderAuthUI();
+  toast("প্রোফাইল ছবি আপডেট হয়েছে");
+}
+
+async function handleLogout() {
+  await db.auth.signOut();
+  state.sessionUser = null;
+  state.profile = { full_name: "", email: "", avatar_url: "", role: "customer" };
+  closeCustomerDrawer();
+  renderHeaderAuthUI();
+  toast("লগআউট সম্পন্ন হয়েছে");
+}
+
+// Store Online / Offline Status
+async function fetchStoreStatus() {
+  const { data, error } = await db.rpc("get_store_status");
+  if (!error && typeof data === "boolean") {
+    state.storeOnline = data;
+  } else if (!error && data && typeof data.is_online === "boolean") {
+    state.storeOnline = data.is_online;
+  }
+  renderStoreStatusUI();
+}
+
+async function handleStoreStatusClick() {
+  if (!isAdminUser()) {
+    toast(
+      state.storeOnline
+        ? "রেস্টুরেন্ট এখন অনলাইন — অর্ডার করতে পারবেন"
+        : "রেস্টুরেন্ট এখন অফলাইন — সাময়িকভাবে অর্ডার বন্ধ আছে"
+    );
+    return;
+  }
+
+  const nextStatus = !state.storeOnline;
+  const { error } = await db.rpc("set_store_status", { p_is_online: nextStatus });
+  if (error) {
+    toast(`স্ট্যাটাস বদলানো যায়নি: ${error.message}`);
+    return;
+  }
+
+  state.storeOnline = nextStatus;
+  renderStoreStatusUI();
+  toast(nextStatus ? "রেস্টুরেন্ট অনলাইন করা হয়েছে" : "রেস্টুরেন্ট অফলাইন করা হয়েছে");
+}
+
+// Checkout: Offline Sale for Admin, Online Order for Customer
+async function handleCheckoutClick() {
+  if (!state.cart.length) {
+    toast("আপনার অর্ডার তালিকা খালি");
+    return;
+  }
+
+  if (isAdminUser()) {
+    await createAdminOfflineSaleAndReceipt();
+    return;
+  }
+
+  if (!state.storeOnline) {
+    toast("রেস্টুরেন্ট বর্তমানে অফলাইন রয়েছে, অর্ডার করা যাচ্ছে না");
+    return;
+  }
+
+  if (!isCustomerUser()) {
+    closeModal("cartModal");
+    openAuthModal("customer");
+    toast("অর্ডার করতে আগে কাস্টমার লগইন করুন");
+    return;
+  }
+
+  document.getElementById("custNameInput").value = state.profile.full_name || "";
+  document.getElementById("custPhoneInput").value = "";
+  document.getElementById("custAddressInput").value = "";
+  document.getElementById("custNoteInput").value = "";
+
+  closeModal("cartModal");
+  openModal("checkoutModal");
+}
+
+async function submitCustomerOrder() {
+  if (!state.storeOnline) {
+    toast("রেস্টুরেন্ট অফলাইন থাকায় অর্ডার প্লেস করা যায়নি");
+    return;
+  }
+  if (!isCustomerUser()) {
+    toast("কাস্টমার অ্যাকাউন্ট প্রয়োজন");
+    return;
+  }
+
+  const customerName = document.getElementById("custNameInput").value.trim();
+  const phone = document.getElementById("custPhoneInput").value.trim();
+  const address = document.getElementById("custAddressInput").value.trim();
+  const note = document.getElementById("custNoteInput").value.trim();
+
+  if (!customerName || !phone || !address) {
+    toast("নাম, ফোন নম্বর এবং ঠিকানা লিখুন");
+    return;
+  }
+
+  const totalAmount = state.cart.reduce((sum, i) => sum + i.price * i.qty, 0);
+
+  const { data, error } = await db.rpc("place_customer_order", {
+    p_customer_name: customerName,
+    p_customer_email: state.sessionUser.email,
+    p_customer_phone: phone,
+    p_delivery_address: address,
+    p_note: note,
+    p_items: state.cart,
+    p_total_amount: totalAmount
+  });
+
+  if (error) {
+    toast(`অর্ডার সম্পন্ন হয়নি: ${error.message}`);
+    return;
+  }
+
+  state.cart = [];
+  renderOrderList();
+  closeModal("checkoutModal");
+  toast("আপনার অর্ডার সফলভাবে গ্রহণ করা হয়েছে");
+
+  if (data) {
+    openReceiptModal(data);
+  }
+  await loadOrdersAndReports();
+  openModal("ordersModal");
+}
+
+async function createAdminOfflineSaleAndReceipt() {
+  const totalAmount = state.cart.reduce((sum, i) => sum + i.price * i.qty, 0);
+  const salePayload = {
+    sale_type: "offline",
+    customer_name: "অফলাইন কাস্টমার",
+    customer_email: state.sessionUser?.email || ADMIN_EMAIL,
+    customer_phone: "Counter Sale",
+    delivery_address: "Padma Cafe Counter (Offline)",
+    items: state.cart,
+    total_amount: totalAmount,
+    status: "completed",
+    created_at: new Date().toISOString()
+  };
+
+  const { data, error } = await db.rpc("admin_create_offline_sale", {
+    p_items: state.cart,
+    p_total_amount: totalAmount,
+    p_customer_name: "অফলাইন কাস্টমার",
+    p_customer_email: state.sessionUser?.email || ADMIN_EMAIL
+  });
+
+  const savedRecord = data && typeof data === "object" ? data : { id: `OFF-${Date.now().toString().slice(-6)}`, ...salePayload };
+
+  if (error) {
+    toast(`অফলাইন সেল সেভ হয়নি: ${error.message}`);
+    return;
+  }
+
+  state.cart = [];
+  renderOrderList();
+  closeModal("cartModal");
+  toast("অফলাইন বিক্রি হিসেবে সেভ হয়েছে ও রসিদ প্রস্তুত");
+  openReceiptModal(savedRecord);
+  await loadOrdersAndReports();
+}
+
+// Orders, Daily Reset at 12:00 AM, and Monthly Report & History
+async function loadOrdersAndReports() {
+  if (!state.sessionUser) {
+    document.getElementById("ordersListContainer").innerHTML =
+      `<p class="empty-state">অর্ডার দেখতে লগইন করুন।</p>`;
+    return;
+  }
+
+  const query = isAdminUser()
+    ? db.from("orders").select("*").order("created_at", { ascending: false })
+    : db
+        .from("orders")
+        .select("*")
+        .eq("customer_email", state.sessionUser.email)
+        .order("created_at", { ascending: false });
+
+  const { data, error } = await query;
+  if (error) {
+    toast(`অর্ডার লোড করতে সমস্যা হয়েছে: ${error.message}`);
+    return;
+  }
+
+  state.orders = data || [];
+  renderOrdersAndReports();
+}
+
+function renderOrdersAndReports() {
+  const isAdmin = isAdminUser();
+  const reportsPanel = document.getElementById("adminReportsPanel");
+  const container = document.getElementById("ordersListContainer");
+
+  document.getElementById("ordersEyebrow").textContent = isAdmin
+    ? "ADMIN KITCHEN & SALES DASHBOARD"
+    : "YOUR ORDERS & TRACKING";
+  document.getElementById("ordersTitle").textContent = isAdmin
+    ? "সকল অর্ডার"
+    : "আমার অর্ডারসমূহ";
+
+  reportsPanel.hidden = !isAdmin;
+
+  // Today's orders (automatically fresh after 12:00 AM midnight)
+  const todayOrders = state.orders.filter((o) => isTodayOrder(o.created_at));
+
+  if (isAdmin) {
+    const onlineToday = todayOrders
+      .filter((o) => o.sale_type !== "offline")
+      .reduce((sum, o) => sum + Number(o.total_amount || 0), 0);
+    const offlineToday = todayOrders
+      .filter((o) => o.sale_type === "offline")
+      .reduce((sum, o) => sum + Number(o.total_amount || 0), 0);
+
+    document.getElementById("todayOnlineTotal").textContent = formatBDT(onlineToday);
+    document.getElementById("todayOfflineTotal").textContent = formatBDT(offlineToday);
+    document.getElementById("todayGrandTotal").textContent = formatBDT(onlineToday + offlineToday);
+
+    renderMonthlyReportAndHistory();
+  }
+
+  const visibleOrders = isAdmin ? todayOrders : state.orders;
+  updateDeliveryTracker(visibleOrders);
+
+  if (!visibleOrders.length) {
+    container.innerHTML = `<p class="empty-state">আজকের কোনো অর্ডার এখনো আসেনি।</p>`;
+    return;
+  }
+
+  container.innerHTML = visibleOrders
+    .map((order) => {
+      const emailText = order.customer_email || order.email || "—";
+      const itemsHtml = Array.isArray(order.items)
+        ? order.items
+            .map((it) => `<div>${it.name} — ${it.qty} × ${formatBDT(it.price)}</div>`)
+            .join("")
+        : "";
+      const timeStr = order.created_at
+        ? new Date(order.created_at).toLocaleString("bn-BD")
+        : "";
+
+      return `
+        <div class="order-card">
+          <div class="order-card-head">
+            <div>
+              <strong>অর্ডার #${String(order.id).slice(0, 8)} • ${order.customer_name || "কাস্টমার"}</strong>
+              <span class="order-badge">${order.sale_type === "offline" ? "অফলাইন সেল" : order.status || "নতুন"}</span>
+            </div>
+            <strong>${formatBDT(order.total_amount)}</strong>
+          </div>
+
+          <div class="order-meta">
+            <div>ইমেইল: ${emailText}</div>
+            <div>ফোন: ${order.customer_phone || "—"}</div>
+            <div>ঠিকানা: ${order.delivery_address || "—"}</div>
+            <div>সময়: ${timeStr}</div>
+          </div>
+
+          <div class="order-items-list">${itemsHtml}</div>
+
+          <div class="admin-controls-box">
+            <button type="button" class="ghost-btn small-btn view-receipt-btn" data-order-id="${order.id}">
+              <i class="fa-solid fa-receipt"></i>
+              <span>রসিদ</span>
+            </button>
+
+            ${
+              isAdmin && order.sale_type !== "offline"
+                ? `
+                <label class="hint-text">ডেলিভারি মিনিট:</label>
+                <input type="number" min="1" max="180" value="${order.delivery_minutes || 15}" id="delivery-min-${order.id}" class="minutes-input" />
+                <button type="button" class="gold-btn small-btn start-delivery-btn" data-order-id="${order.id}">
+                  <i class="fa-solid fa-motorcycle"></i>
+                  <span>খাবার তৈরি হয়েছে — ডেলিভারি শুরু</span>
+                </button>
+              `
+                : ""
+            }
+          </div>
+        </div>
+      `;
+    })
+    .join("");
+
+  container.querySelectorAll(".view-receipt-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const found = state.orders.find((o) => String(o.id) === String(btn.dataset.orderId));
+      if (found) openReceiptModal(found);
+    });
+  });
+
+  // Direct start without browser confirm() popup
+  container.querySelectorAll(".start-delivery-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      adminStartDelivery(btn.dataset.orderId);
+    });
+  });
+}
+
+function renderMonthlyReportAndHistory() {
+  const monthVal = state.selectedMonth || getCurrentMonthValue();
+  const monthOrders = state.orders.filter((o) => {
+    if (!o.created_at) return false;
+    const d = new Date(o.created_at);
+    const ym = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    return ym === monthVal;
+  });
+
+  const onlineSum = monthOrders
+    .filter((o) => o.sale_type !== "offline")
+    .reduce((sum, o) => sum + Number(o.total_amount || 0), 0);
+  const offlineSum = monthOrders
+    .filter((o) => o.sale_type === "offline")
+    .reduce((sum, o) => sum + Number(o.total_amount || 0), 0);
+
+  document.getElementById("monthlyReportTitle").textContent = `মাসিক হিসাব (${monthVal})`;
+  document.getElementById("monthlyReportTotals").innerHTML = `
+    <span>অনলাইন: ${formatBDT(onlineSum)}</span>
+    <span>অফলাইন: ${formatBDT(offlineSum)}</span>
+    <strong>মোট: ${formatBDT(onlineSum + offlineSum)}</strong>
+  `;
+
+  const historyList = document.getElementById("monthlyHistoryList");
+  if (!monthOrders.length) {
+    historyList.innerHTML = `<p class="empty-state">এই মাসের কোনো রেকর্ড নেই।</p>`;
+    return;
+  }
+
+  historyList.innerHTML = monthOrders
+    .map((o) => {
+      const dt = new Date(o.created_at).toLocaleString("bn-BD");
+      const tag = o.sale_type === "offline" ? "অফলাইন" : "অনলাইন";
+      return `
+        <div class="history-row">
+          <div>
+            <strong>#${String(o.id).slice(0, 8)}</strong> • ${o.customer_name || "কাস্টমার"} (${tag})
+            <div class="hint-text">${dt}</div>
+          </div>
+          <strong>${formatBDT(o.total_amount)}</strong>
+        </div>
+      `;
+    })
+    .join("");
+}
+
+// No confirm() dialog when starting delivery
+async function adminStartDelivery(orderId) {
+  const minInput = document.getElementById(`delivery-min-${orderId}`);
+  const deliveryMinutes = Math.max(1, Number(minInput?.value || 15));
+
+  const { error } = await db
+    .from("orders")
+    .update({
+      status: "out_for_delivery",
+      delivery_minutes: deliveryMinutes,
+      delivery_started_at: new Date().toISOString()
+    })
+    .eq("id", orderId);
+
+  if (error) {
+    toast(`ডেলিভারি শুরু করা যায়নি: ${error.message}`);
+    return;
+  }
+
+  toast(`ডেলিভারি শুরু হয়েছে (${deliveryMinutes} মিনিট)`);
+  await loadOrdersAndReports();
+}
+
+function updateDeliveryTracker(ordersList) {
+  const activeDelivery = ordersList.find((o) => o.status === "out_for_delivery");
+  const titleEl = document.getElementById("trackerStatusTitle");
+  const timerEl = document.getElementById("trackerTimerValue");
+  const progressEl = document.getElementById("roadProgressFill");
+  const bikeEl = document.getElementById("deliveryBike");
+
+  if (!activeDelivery || !activeDelivery.delivery_started_at) {
+    titleEl.textContent = "সক্রিয় ডেলিভারি নেই";
+    timerEl.textContent = "--:--";
+    progressEl.style.width = "0%";
+    bikeEl.style.left = "0%";
+    return;
+  }
+
+  const totalMs = Math.max(1, Number(activeDelivery.delivery_minutes || 15)) * 60 * 1000;
+  const startMs = new Date(activeDelivery.delivery_started_at).getTime();
+  const elapsedMs = Math.max(0, Date.now() - startMs);
+  const ratio = Math.min(1, elapsedMs / totalMs);
+  const remainingSec = Math.max(0, Math.ceil((totalMs - elapsedMs) / 1000));
+
+  const mins = String(Math.floor(remainingSec / 60)).padStart(2, "0");
+  const secs = String(remainingSec % 60).padStart(2, "0");
+
+  titleEl.textContent = `ডেলিভারির পথে • #${String(activeDelivery.id).slice(0, 8)}`;
+  timerEl.textContent = `${mins}:${secs}`;
+
+  const pct = `${(ratio * 92).toFixed(1)}%`;
+  progressEl.style.width = pct;
+  bikeEl.style.left = pct;
+}
+
+// Receipt Modal
+function openReceiptModal(order) {
+  const itemsHtml = Array.isArray(order.items)
+    ? order.items
+        .map(
+          (it) => `
+          <div class="receipt-line">
+            <span>${it.name} × ${it.qty}</span>
+            <span>${formatBDT(it.price * it.qty)}</span>
+          </div>
+        `
+        )
+        .join("")
+    : "";
+
+  document.getElementById("receiptContent").innerHTML = `
+    <div class="receipt-box">
+      <h3 style="text-align:center; margin-bottom:4px;">PADMA CAFE</h3>
+      <p style="text-align:center; font-size:12px; color:#555; margin-bottom:12px;">
+        ${order.sale_type === "offline" ? "অফলাইন কাউন্টার রসিদ" : "অনলাইন অর্ডার রসিদ"}
+      </p>
+      <hr/>
+      <div class="receipt-line"><span>অর্ডার আইডি:</span><strong>#${String(order.id).slice(0, 8)}</strong></div>
+      <div class="receipt-line"><span>নাম:</span><span>${order.customer_name || "কাস্টমার"}</span></div>
+      <div class="receipt-line"><span>ইমেইল:</span><span>${order.customer_email || "—"}</span></div>
+      <div class="receipt-line"><span>সময়:</span><span>${new Date(order.created_at || Date.now()).toLocaleString("bn-BD")}</span></div>
+      <hr style="margin:10px 0;"/>
+      ${itemsHtml}
+      <hr style="margin:10px 0;"/>
+      <div class="receipt-line" style="font-size:16px; font-weight:700;">
+        <span>সর্বমোট</span>
+        <span>${formatBDT(order.total_amount)}</span>
       </div>
     </div>
   `;
-
-  $("reportDate").onchange = event => {
-    reportDate = event.target.value || dhakaDate(new Date());
-  };
-
-  $("dailyReportBtn").onclick = () => loadSalesReport("daily");
-  $("monthlyReportBtn").onclick = () => loadSalesReport("monthly");
-  $("allTimeReportBtn").onclick = () => loadSalesReport("all");
-
-  show("salesReportModal");
-  await loadSalesReport(reportType);
+  openModal("receiptModal");
 }
 
-async function loadSalesReport(type) {
-  if (!ensureAdmin()) return;
-
-  reportType = type;
-  const date = $("reportDate")?.value || reportDate;
-
-  if (type !== "all" && !date) {
-    toast("একটি তারিখ নির্বাচন করুন।");
-    return;
-  }
-
-  const result = $("reportResults");
-  result.innerHTML = `<p class="loading">রিপোর্ট তৈরি হচ্ছে...</p>`;
-
-  try {
-    let query = db
-      .from("orders")
-      .select("*")
-      .eq("status", "completed")
-      .order("created_at", { ascending: false });
-
-    if (type === "daily") {
-      const range = dhakaDayRange(date);
-      query = query.gte("created_at", range.start).lt("created_at", range.end);
-    } else if (type === "monthly") {
-      const range = dhakaMonthRange(date);
-      query = query.gte("created_at", range.start).lt("created_at", range.end);
+// Midnight Auto-Reset Watcher (Every 30 seconds)
+function startMidnightWatcher() {
+  setInterval(() => {
+    const nowDay = getLocalDayKey(new Date());
+    if (nowDay !== state.activeDayKey) {
+      state.activeDayKey = nowDay;
+      renderOrdersAndReports();
+      toast("নতুন দিন শুরু হয়েছে — আজকের সামারি ফ্রেশ করা হয়েছে");
     }
+  }, 30000);
 
-    const { data, error } = await query;
-    if (error) throw error;
+  setInterval(() => {
+    const visibleOrders = isAdminUser()
+      ? state.orders.filter((o) => isTodayOrder(o.created_at))
+      : state.orders;
+    updateDeliveryTracker(visibleOrders);
+  }, 1000);
+}
 
-    const orders = data || [];
+// Event Bindings & Init
+function bindEvents() {
+  document.getElementById("menuSearch").addEventListener("input", (e) => {
+    state.searchQuery = e.target.value;
+    renderMenu();
+  });
 
-    const onlineOrders = orders.filter(order => order.sale_type !== "offline");
-    const offlineOrders = orders.filter(order => order.sale_type === "offline");
+  document.getElementById("cartBtn").addEventListener("click", () => openModal("cartModal"));
+  document.getElementById("checkoutBtn").addEventListener("click", handleCheckoutClick);
+  document.getElementById("confirmOrderBtn").addEventListener("click", submitCustomerOrder);
 
-    const onlineTotal = onlineOrders.reduce(
-      (sum, order) => sum + Number(order.total_amount || 0),
-      0
-    );
+  document.getElementById("storeStatusBtn").addEventListener("click", handleStoreStatusClick);
 
-    const offlineTotal = offlineOrders.reduce(
-      (sum, order) => sum + Number(order.total_amount || 0),
-      0
-    );
-
-    const total = onlineTotal + offlineTotal;
-
-    let cancelledQuery = db
-      .from("orders")
-      .select("id,status,created_at")
-      .eq("status", "cancelled");
-
-    if (type === "daily") {
-      const range = dhakaDayRange(date);
-      cancelledQuery = cancelledQuery
-        .gte("created_at", range.start)
-        .lt("created_at", range.end);
-    } else if (type === "monthly") {
-      const range = dhakaMonthRange(date);
-      cancelledQuery = cancelledQuery
-        .gte("created_at", range.start)
-        .lt("created_at", range.end);
+  document.getElementById("allOrdersBtn").addEventListener("click", async () => {
+    if (!state.sessionUser) {
+      openAuthModal("customer");
+      toast("অর্ডার দেখতে আগে লগইন করুন");
+      return;
     }
+    await loadOrdersAndReports();
+    openModal("ordersModal");
+  });
 
-    const { data: cancelledData, error: cancelledError } = await cancelledQuery;
-    if (cancelledError) throw cancelledError;
-
-    const cancelledCount = (cancelledData || []).length;
-
-    const periodTitle = type === "daily"
-      ? `দৈনিক রিপোর্ট (${escapeHTML(date)})`
-      : type === "monthly"
-        ? `মাসিক রিপোর্ট (${escapeHTML(date.slice(0, 7))})`
-        : "সর্বমোট রিপোর্ট";
-
-    result.innerHTML = `
-      <div class="dashboard-panel">
-        <h3>${periodTitle}</h3>
-      </div>
-
-      <div class="report-summary">
-        <div class="report-card">
-          <span>সর্বমোট বিক্রি</span>
-          <strong>${money(total)}</strong>
-        </div>
-
-        <div class="report-card">
-          <span>অনলাইন বিক্রি</span>
-          <strong>${money(onlineTotal)}</strong>
-          <small>${numberBN(onlineOrders.length)} টি অর্ডার</small>
-        </div>
-
-        <div class="report-card">
-          <span>অফলাইন বিক্রি</span>
-          <strong>${money(offlineTotal)}</strong>
-          <small>${numberBN(offlineOrders.length)} টি বিক্রি</small>
-        </div>
-
-        <div class="report-card">
-          <span>সম্পন্ন অর্ডার</span>
-          <strong>${numberBN(orders.length)}</strong>
-        </div>
-
-        <div class="report-card">
-          <span>বাতিল অর্ডার</span>
-          <strong>${numberBN(cancelledCount)}</strong>
-        </div>
-      </div>
-
-      <h3>সম্পন্ন বিক্রির তালিকা</h3>
-
-      ${
-        orders.length
-          ? orders.map(order => `
-              <div class="cart-line report-order">
-                <div class="cart-line-info">
-                  <strong>
-                    ${escapeHTML(order.customer_name || (order.sale_type === "offline" ? "অফলাইন বিক্রি" : "কাস্টমার"))}
-                  </strong>
-
-                  <small>
-                    ${dateTime(order.created_at)}
-                    · ${order.sale_type === "offline" ? "অফলাইন" : "অনলাইন"}
-                  </small>
-                </div>
-
-                <b>${money(order.total_amount)}</b>
-              </div>
-            `).join("")
-          : `<p class="empty-state">এই সময়ে কোনো সম্পন্ন বিক্রি নেই।</p>`
-      }
-    `;
-  } catch (error) {
-    result.innerHTML = `
-      <p class="empty-state">
-        রিপোর্ট তৈরি করা যায়নি: ${escapeHTML(error.message)}
-      </p>
-    `;
-    showError(error);
-  }
-}
-
-$("printSalesReport").onclick = () => {
-  const results = $("reportResults");
-  if (!results) return;
-
-  const printWindow = window.open("", "_blank", "width=700,height=800");
-  if (!printWindow) {
-    toast("পপ-আপ অনুমতি দিন, তারপর আবার চেষ্টা করুন।");
-    return;
-  }
-
-  printWindow.document.write(`
-    <!DOCTYPE html>
-    <html lang="bn">
-    <head>
-      <meta charset="UTF-8">
-      <title>Padma Cafe Sales Report</title>
-      <style>
-        body {
-          font-family: Arial, sans-serif;
-          padding: 24px;
-          color: #111;
-        }
-        h1, h2, h3 {
-          color: #8b6824;
-        }
-        .report-summary {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 12px;
-          margin: 16px 0;
-        }
-        .report-card {
-          border: 1px solid #bbb;
-          padding: 12px;
-        }
-        .report-card strong {
-          display: block;
-          font-size: 20px;
-          margin-top: 6px;
-        }
-        .cart-line {
-          display: flex;
-          justify-content: space-between;
-          padding: 8px;
-          border-bottom: 1px solid #ddd;
-        }
-      </style>
-    </head>
-    <body>
-      <h1>PADMA CAFE</h1>
-      <h2>বিক্রির রিপোর্ট</h2>
-      ${results.innerHTML}
-      <script>
-        window.onload = function() {
-          window.print();
-        };
-      <\/script>
-    </body>
-    </html>
-  `);
-
-  printWindow.document.close();
-};
-
-// ------------------------------------------------------
-// REALTIME, SOUND ALERT & AUTH
-// ------------------------------------------------------
-
-function playAlert() {
-  try {
-    audioCtx = audioCtx || new (
-      window.AudioContext || window.webkitAudioContext
-    )();
-
-    if (audioCtx.state === "suspended") {
-      audioCtx.resume();
+  document.getElementById("customerLoginBtn").addEventListener("click", () => {
+    if (isCustomerUser()) {
+      openCustomerDrawer();
+    } else {
+      openAuthModal("customer");
     }
+  });
 
-    [0, 0.22, 0.44].forEach(time => {
-      const oscillator = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-
-      oscillator.connect(gain);
-      gain.connect(audioCtx.destination);
-
-      oscillator.frequency.value = 880;
-
-      gain.gain.setValueAtTime(0.001, audioCtx.currentTime + time);
-      gain.gain.exponentialRampToValueAtTime(
-        0.18,
-        audioCtx.currentTime + time + 0.02
-      );
-      gain.gain.exponentialRampToValueAtTime(
-        0.001,
-        audioCtx.currentTime + time + 0.16
-      );
-
-      oscillator.start(audioCtx.currentTime + time);
-      oscillator.stop(audioCtx.currentTime + time + 0.17);
-    });
-  } catch (error) {
-    console.info("Sound requires browser interaction.", error);
-  }
-}
-
-function subscribeLive() {
-  if (!user || !profile) return;
-
-  if (liveChannel) {
-    db.removeChannel(liveChannel);
-    liveChannel = null;
-  }
-
-  liveChannel = db
-    .channel(`padma-live-${user.id}`)
-    .on(
-      "postgres_changes",
-      {
-        event: "*",
-        schema: "public",
-        table: "orders"
-      },
-      async payload => {
-        const order = payload.new || payload.old || {};
-
-        if (
-          profile.role === "customer" &&
-          order.customer_id !== user.id
-        ) {
-          return;
-        }
-
-        if (
-          profile.role === "admin" &&
-          payload.eventType === "INSERT" &&
-          order.sale_type !== "offline"
-        ) {
-          playAlert();
-          toast("নতুন অনলাইন অর্ডার এসেছে!");
-        }
-
-        if (
-          profile.role === "customer" &&
-          order.approval_status === "awaiting_customer"
-        ) {
-          toast("আপনার অর্ডারে পরিবর্তন হয়েছে। ড্যাশবোর্ড দেখুন।");
-        }
-
-        if (
-          profile.role === "customer" &&
-          order.status === "out_for_delivery"
-        ) {
-          toast("আপনার খাবার ডেলিভারির পথে!");
-        }
-
-        if ($("dashboardModal")?.classList.contains("show")) {
-          try {
-            await renderDashboard();
-          } catch (error) {
-            console.error("Live dashboard update failed:", error);
-          }
-        }
-      }
-    )
-    .subscribe();
-}
-
-$("refreshDashboardBtn")?.addEventListener("click", async () => {
-  try {
-    await renderDashboard();
-    toast("ড্যাশবোর্ড আপডেট হয়েছে।");
-  } catch (error) {
-    showError(error);
-  }
-});
-
-db.auth.onAuthStateChange(async (event, session) => {
-  if (event === "PASSWORD_RECOVERY") {
-    show("resetPasswordModal");
-    return;
-  }
-
-  if (event === "SIGNED_OUT") {
-    user = null;
-    profile = null;
-
-    if (liveChannel) {
-      await db.removeChannel(liveChannel);
-      liveChannel = null;
+  document.getElementById("adminLoginBtn").addEventListener("click", () => {
+    if (isAdminUser()) {
+      loadOrdersAndReports().then(() => openModal("ordersModal"));
+    } else {
+      openAuthModal("admin");
     }
+  });
 
-    $("accountBtn").textContent = "আমার অ্যাকাউন্ট";
-    $("accountBtn").classList.add("hidden");
-    return;
-  }
+  // Customer Profile Drawer Events
+  document.getElementById("closeCustomerDrawerBtn").addEventListener("click", closeCustomerDrawer);
+  document.getElementById("customerDrawerBackdrop").addEventListener("click", closeCustomerDrawer);
+  document
+    .getElementById("customerAvatarInput")
+    .addEventListener("change", handleCustomerAvatarUpload);
+  document
+    .getElementById("saveCustomerProfileBtn")
+    .addEventListener("click", saveCustomerProfileChanges);
+  document.getElementById("drawerLogoutBtn").addEventListener("click", handleLogout);
 
-  if (session?.user && !user) {
-    user = session.user;
+  // Auth Events
+  document.getElementById("sendOtpBtn").addEventListener("click", handleSendOtp);
+  document.getElementById("verifyOtpBtn").addEventListener("click", handleVerifyOtp);
+  document.getElementById("backToEmailBtn").addEventListener("click", () => {
+    document.getElementById("authStepEmail").hidden = false;
+    document.getElementById("authStepOtp").hidden = true;
+  });
 
-    setTimeout(async () => {
-      try {
-        await loadProfile();
-      } catch (error) {
-        console.error("Profile loading error:", error);
-      }
-    }, 0);
-  }
-});
+  // Monthly Picker
+  const monthInput = document.getElementById("monthlyReportInput");
+  monthInput.value = state.selectedMonth;
+  monthInput.addEventListener("change", (e) => {
+    state.selectedMonth = e.target.value || getCurrentMonthValue();
+    renderMonthlyReportAndHistory();
+  });
 
-// ------------------------------------------------------
-// CONNECTION STATUS, BACK TO TOP & INITIALIZATION
-// ------------------------------------------------------
+  // Print Receipt
+  document.getElementById("printReceiptBtn").addEventListener("click", () => {
+    window.print();
+  });
 
-function updateConnectionStatus() {
-  const element = $("connectionStatus");
-  if (!element) return;
-
-  if (navigator.onLine) {
-    element.textContent = "অনলাইন";
-    element.classList.remove("offline");
-    element.classList.add("online");
-  } else {
-    element.textContent = "ইন্টারনেট সংযোগ নেই";
-    element.classList.remove("online");
-    element.classList.add("offline");
-  }
+  // Modal Close Triggers
+  document.querySelectorAll("[data-close-modal]").forEach((el) => {
+    el.addEventListener("click", () => closeModal(el.dataset.closeModal));
+  });
 }
 
-window.addEventListener("online", updateConnectionStatus);
-window.addEventListener("offline", updateConnectionStatus);
-
-$("backToTopBtn")?.addEventListener("click", () => {
-  window.scrollTo({ top: 0, behavior: "smooth" });
-});
-
-window.addEventListener("scroll", () => {
-  $("backToTopBtn")?.classList.toggle("visible", window.scrollY > 400);
-});
-
-(async function initializeWebsite() {
-  if ($("footerYear")) {
-    $("footerYear").textContent = new Date().getFullYear();
-  }
-
-  renderCategories();
+async function initApp() {
+  renderCategoryTabs();
   renderMenu();
-  renderCart();
-  initializePhoneInput();
-  updateConnectionStatus();
-  startOrderTimerTicker();
+  renderOrderList();
+  bindEvents();
+  startMidnightWatcher();
 
-  try {
-    const { data, error } = await db.auth.getSession();
-    if (error) throw error;
+  await fetchStoreStatus();
 
-    if (data.session) {
-      user = data.session.user;
-
-      try {
-        await loadProfile();
-      } catch (profileError) {
-        console.warn("Profile load error:", profileError);
-      }
-    }
-  } catch (error) {
-    console.error("Initialization error:", error);
-    toast("ওয়েবসাইট সংযোগে সমস্যা হয়েছে।");
+  const { data } = await db.auth.getSession();
+  state.sessionUser = data?.session?.user || null;
+  if (state.sessionUser) {
+    await ensureAndLoadProfile();
   }
-})();
+  renderHeaderAuthUI();
+}
+
+document.addEventListener("DOMContentLoaded", initApp);
