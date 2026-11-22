@@ -9,7 +9,7 @@ begin;
 drop function if exists public.place_customer_order(jsonb);
 
 -- ---------------------------------------------------------
--- 1. ADD NEW ORDER COLUMNS & CONSTRAINTS
+-- 1. ADD NEW ORDER & PROFILE COLUMNS & CONSTRAINTS
 -- ---------------------------------------------------------
 
 alter table public.orders
@@ -21,6 +21,19 @@ alter table public.orders
   add column if not exists delivery_started_at timestamptz,
   add column if not exists delivery_ends_at timestamptz,
   add column if not exists completed_at timestamptz;
+
+alter table public.profiles
+  add column if not exists avatar_url text default '';
+
+create table if not exists public.store_settings (
+  id integer primary key default 1,
+  is_online boolean not null default true,
+  updated_at timestamptz not null default now()
+);
+
+insert into public.store_settings (id, is_online)
+values (1, true)
+on conflict (id) do nothing;
 
 alter table public.orders
   drop constraint if exists orders_status_check;
@@ -92,7 +105,9 @@ declare
     {"id":"kitkat_shake","name":"কিটক্যাট শেক","price":110},
     {"id":"butterscotch_shake","name":"বাটারস্কচ শেক (Padma Special)","price":110},
     {"id":"water","name":"পানি","price":20},
-    {"id":"mojo","name":"মজো","price":20}
+    {"id":"mojo","name":"মজো","price":20},
+    {"id":"combo_hash_khichuri_regular","name":"হাঁস+খিচুড়ি (রেগুলার)","price":230},
+    {"id":"combo_hash_khichuri_special","name":"হাঁস+খিচুড়ি (স্পেশাল)","price":270}
   ]'::jsonb;
 
   v_user_name text;
@@ -105,6 +120,10 @@ begin
 
   if public.is_admin() then
     raise exception 'কাস্টমার অ্যাকাউন্ট দিয়ে অর্ডার করুন';
+  end if;
+
+  if exists (select 1 from public.store_settings where id = 1 and is_online = false) then
+    raise exception 'ক্যাফে বর্তমানে অফলাইন রয়েছে';
   end if;
 
   if jsonb_typeof(p_items) <> 'array'
@@ -383,7 +402,9 @@ declare
     {"id":"kitkat_shake","name":"কিটক্যাট শেক","price":110},
     {"id":"butterscotch_shake","name":"বাটারস্কচ শেক (Padma Special)","price":110},
     {"id":"water","name":"পানি","price":20},
-    {"id":"mojo","name":"মজো","price":20}
+    {"id":"mojo","name":"মজো","price":20},
+    {"id":"combo_hash_khichuri_regular","name":"হাঁস+খিচুড়ি (রেগুলার)","price":230},
+    {"id":"combo_hash_khichuri_special","name":"হাঁস+খিচুড়ি (স্পেশাল)","price":270}
   ]'::jsonb;
 begin
   if not public.is_admin() then
