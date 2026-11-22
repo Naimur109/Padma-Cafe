@@ -181,10 +181,8 @@ function buildDynamicBanglaQrPayload(basePayload, amount) {
     ? basePayload.slice(0, basePayload.indexOf("6304"))
     : basePayload;
 
-  // Switch Point of Initiation Method (Tag 01) from static (11) to dynamic (12) if present
   let updated = rawWithoutCrc.replace("010211", "010212");
 
-  // Insert Tag 54 (Transaction Amount) right before Tag 58 (Country Code) or Tag 59 (Merchant Name)
   const amountTag = `54${String(amountStr.length).padStart(2, "0")}${amountStr}`;
   const countryIdx = updated.indexOf("5802BD");
   if (countryIdx !== -1) {
@@ -1351,7 +1349,6 @@ $("checkoutBtn").onclick = async () => {
 
   const isAdminLoggedIn = Boolean(user && profile && profile.role === "admin");
 
-  // Admin quick offline sale directly from cart modal
   if (isAdminLoggedIn) {
     const button = $("checkoutBtn");
     setLoading(button, true, "অফলাইন রসিদ তৈরি হচ্ছে...");
@@ -1458,7 +1455,6 @@ $("checkoutDetailsForm")?.addEventListener("submit", event => {
     return;
   }
 
-  // Saved strictly for this order; user's registered profile remains untouched
   checkoutDeliveryDraft = {
     recipient_name: name,
     recipient_phone: phone,
@@ -1472,7 +1468,7 @@ $("checkoutDetailsForm")?.addEventListener("submit", event => {
 
   hide("checkoutDetailsModal");
   show("paymentMethodModal");
-}
+});
 
 $("paymentMethodBackBtn")?.addEventListener("click", () => {
   hide("paymentMethodModal");
