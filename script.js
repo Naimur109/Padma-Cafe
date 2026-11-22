@@ -272,7 +272,7 @@ const MENU = [
     name: "চিকেন স্প্রিং রোল",
     category: "স্টাটার",
     price: 80,
-    image: SPRING_ROLL_IMAGE_URL
+    image: "https://i.ibb.co/LXFwxr8B/5-D1-E5792-4978-4-C91-A3-BF-B77-F1-AD40-E1-E.png"
   },
   {
     id: "chicken_momos",
