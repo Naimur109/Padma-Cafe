@@ -37,13 +37,33 @@
   </nav>
 
   <div class="head-actions">
-    <button id="customerLoginBtn" class="outline" type="button">কাস্টমার লগইন</button>
+    <!-- Admin Online/Offline Switch -->
+    <div id="adminStoreSwitchWrap" class="store-switch-wrap hidden">
+      <button id="storeOnlineBtn" class="status-pill online-btn" type="button">অনলাইন</button>
+      <button id="storeOfflineBtn" class="status-pill offline-btn" type="button">অফলাইন</button>
+    </div>
+
+    <!-- Customer Single Status Indicator (only one visible at a time) -->
+    <span id="customerStoreBadge" class="customer-store-badge online">
+      <i class="fa-solid fa-circle"></i>
+      <span id="customerStoreBadgeText">অনলাইন</span>
+    </span>
+
+    <button id="customerLoginBtn" class="outline user-btn" type="button">
+      <img id="customerHeaderAvatar" class="header-avatar hidden" src="" alt="প্রোফাইল">
+      <span id="customerLoginLabel">কাস্টমার লগইন</span>
+    </button>
+
     <button id="adminLoginBtn" class="outline" type="button">অ্যাডমিন লগইন</button>
-    <button id="accountBtn" class="outline hidden" type="button">আমার অ্যাকাউন্ট</button>
+
+    <button id="allOrdersBtn" class="outline hidden" type="button">
+      <i class="fa-solid fa-list-check"></i>
+      সকল অর্ডার
+    </button>
 
     <button id="cartBtn" class="gold-btn" type="button">
       <i class="fa-solid fa-bag-shopping"></i>
-      কার্ট <span id="cartCount">০</span>
+      অর্ডার তালিকা <span id="cartCount">০</span>
     </button>
   </div>
 </header>
@@ -106,13 +126,59 @@
 
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-<!-- CART MODAL -->
+<!-- CUSTOMER PROFILE SIDE SLIDE -->
+<aside id="profileSlideDrawer" class="side-drawer" aria-hidden="true">
+  <div id="profileSlideBackdrop" class="side-drawer-backdrop"></div>
+  <div class="side-drawer-panel">
+    <button id="closeProfileSlideBtn" class="x" type="button">×</button>
+    <p class="eyebrow">CUSTOMER PROFILE</p>
+    <h2>প্রোফাইল সেটিংস</h2>
+
+    <div class="profile-avatar-box">
+      <img
+        id="profileSlidePreview"
+        src="https://i.ibb.co/4nW7J6d0/IMG-20261121-WA0000.jpg"
+        alt="প্রোফাইল ছবি"
+      >
+      <label class="outline upload-photo-btn">
+        <i class="fa-solid fa-camera"></i>
+        ছবি নির্বাচন করুন
+        <input id="profilePhotoInput" type="file" accept="image/*" class="hidden">
+      </label>
+      <small class="field-hint">অথবা নিচে সরাসরি ইমেজের লিংক দিন:</small>
+      <input
+        id="profilePhotoUrlInput"
+        type="url"
+        placeholder="https://example.com/photo.jpg"
+      >
+    </div>
+
+    <form id="profileSlideForm">
+      <label>
+        আপনার নাম
+        <input id="profileNameInput" type="text" required placeholder="আপনার নাম লিখুন">
+      </label>
+
+      <button id="saveProfileSlideBtn" class="gold-btn wide" type="submit">
+        <i class="fa-solid fa-floppy-disk"></i>
+        সেভ করুন
+      </button>
+
+      <button id="slideLogoutBtn" class="danger-btn wide" type="button">
+        <i class="fa-solid fa-right-from-bracket"></i>
+        লগআউট
+      </button>
+    </form>
+  </div>
+</aside>
+
+<!-- ORDER LIST (FORMER CART) MODAL -->
 <div id="cartModal" class="modal">
   <div class="modal-card">
     <button id="closeCartBtn" class="x" data-close="cartModal" type="button">×</button>
 
-    <p class="eyebrow">YOUR SELECTION</p>
-    <h2>আপনার কার্ট</h2>
+    <p class="eyebrow">YOUR ORDER LIST</p>
+    <h2>আপনার অর্ডার তালিকা</h2>
 
     <div id="cartLines"></div>
 
@@ -303,7 +369,7 @@
   </div>
 </div>
 
-<!-- CUSTOMER / ADMIN DASHBOARD -->
+<!-- CUSTOMER / ADMIN DASHBOARD MODAL (NO LOGOUT BUTTON HERE) -->
 <div id="dashboardModal" class="modal">
   <div class="modal-card dashboard">
     <button id="closeDashboardBtn" class="x" data-close="dashboardModal" type="button">×</button>
