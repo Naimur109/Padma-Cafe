@@ -8,8 +8,8 @@
 const SUPABASE_URL = "https://qeoxoujxdptjiwgxhvbb.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_mjf3B4SkF1kOXwhVxy_veA_oTHLPNLU";
 
-// ONLINE CUSTOMER ORDER RECEIPT ONLY (replace with your cafe phone number)
-const CAFE_CONTACT_PHONE = "+8801XXXXXXXXX";
+// ONLINE CUSTOMER ORDER RECEIPT ONLY
+const CAFE_CONTACT_PHONE = "+8801304178943";
 
 // SONALI BANK BANGLA QR BASE EMVCO STRING (PADMA CAFE, KUSHTIA)
 const BANGLA_QR_BASE_PAYLOAD =
@@ -111,7 +111,7 @@ function toast(message) {
 
   toast.timer = setTimeout(() => {
     element.classList.remove("show");
-  }, 3500);
+  }, 3800);
 }
 
 function show(id) {
@@ -150,6 +150,76 @@ function setLoading(button, loading, text = "অপেক্ষা করুন.
 function showError(error) {
   console.error(error);
   toast(error?.message || "কাজটি সম্পন্ন করা যায়নি।");
+}
+
+// ------------------------------------------------------
+// SOUND ALERTS (ADMIN LOUD ALERT + CUSTOMER STAGE CHIMES)
+// ------------------------------------------------------
+
+function playToneSequence(notes) {
+  try {
+    audioCtx = audioCtx || new (
+      window.AudioContext || window.webkitAudioContext
+    )();
+
+    if (audioCtx.state === "suspended") {
+      audioCtx.resume();
+    }
+
+    const baseTime = audioCtx.currentTime;
+
+    notes.forEach(({ delay, duration, freq, volume }) => {
+      const oscillator = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      oscillator.type = "triangle";
+      oscillator.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      oscillator.frequency.setValueAtTime(freq, baseTime + delay);
+
+      gain.gain.setValueAtTime(0.001, baseTime + delay);
+      gain.gain.exponentialRampToValueAtTime(
+        volume,
+        baseTime + delay + 0.02
+      );
+      gain.gain.exponentialRampToValueAtTime(
+        0.001,
+        baseTime + delay + duration
+      );
+
+      oscillator.start(baseTime + delay);
+      oscillator.stop(baseTime + delay + duration + 0.02);
+    });
+  } catch (error) {
+    console.info("Sound requires browser interaction.", error);
+  }
+}
+
+// Loud alarm for Admin when a new order or payment verification arrives
+function playAdminLoudAlert() {
+  playToneSequence([
+    { delay: 0.00, duration: 0.22, freq: 987.77, volume: 0.45 },
+    { delay: 0.25, duration: 0.22, freq: 1318.51, volume: 0.45 },
+    { delay: 0.50, duration: 0.22, freq: 987.77, volume: 0.45 },
+    { delay: 0.75, duration: 0.30, freq: 1567.98, volume: 0.50 }
+  ]);
+}
+
+// Notification chime for Customer on status / payment verification updates
+function playCustomerNotifySound(kind = "info") {
+  if (kind === "paid" || kind === "completed") {
+    playToneSequence([
+      { delay: 0.00, duration: 0.16, freq: 659.25, volume: 0.28 },
+      { delay: 0.18, duration: 0.16, freq: 880.00, volume: 0.28 },
+      { delay: 0.36, duration: 0.26, freq: 1174.66, volume: 0.32 }
+    ]);
+  } else {
+    playToneSequence([
+      { delay: 0.00, duration: 0.18, freq: 783.99, volume: 0.26 },
+      { delay: 0.21, duration: 0.24, freq: 1046.50, volume: 0.30 }
+    ]);
+  }
 }
 
 // ------------------------------------------------------
@@ -471,6 +541,7 @@ let orderTimerInterval = null;
 let storeOnline = true;
 let draftPhotoDataUrl = "";
 let profileCacheById = {};
+let previousOrderSnapshot = {};
 
 // ------------------------------------------------------
 // MODAL & DRAWER CLOSE EVENTS
@@ -754,6 +825,7 @@ $("slideLogoutBtn")?.addEventListener("click", async () => {
   } catch (_) {}
   user = null;
   profile = null;
+  previousOrderSnapshot = {};
   closeProfileSlide();
   hide("dashboardModal");
   updateHeaderAuthButtons();
@@ -1519,9 +1591,16 @@ $("banglaQrConfirmForm")?.addEventListener("submit", async event => {
   event.preventDefault();
   const refText = ($("qrReferenceInput")?.value || "").trim();
 
+  if (!refText) {
+    toast("অনুগ্রহ করে Transaction ID লিখুন।");
+    $("qrReferenceInput")?.focus();
+    return;
+  }
+
+  // Starts as pending_verification until Admin verifies payment
   await submitCustomerOrder({
     paymentMethod: "online_qr",
-    paymentStatus: "paid",
+    paymentStatus: "pending_verification",
     paymentReference: refText,
     buttonEl: $("confirmQrPaidOrderBtn"),
     sourceModalId: "banglaQrModal"
@@ -1620,8 +1699,8 @@ async function submitCustomerOrder({
     show("receiptModal");
 
     toast(
-      paymentStatus === "paid"
-        ? "অনলাইন পেমেন্ট সম্পন্ন ও PAID রসিদ তৈরি হয়েছে!"
+      paymentStatus === "pending_verification"
+        ? "Transaction ID পাঠানো হয়েছে! অ্যাডমিন ভেরিফাই করলে PAID দেখাবে।"
         : "আপনার অর্ডার সফলভাবে পাঠানো হয়েছে।"
     );
   } catch (error) {
@@ -1632,7 +1711,7 @@ async function submitCustomerOrder({
 }
 
 // ------------------------------------------------------
-// STATUS, TIMERS & ONE-WAY DELIVERY PROGRESS
+// STATUS, PAYMENT BADGES, TIMERS & DELIVERY PROGRESS
 // ------------------------------------------------------
 
 function statusLabel(status) {
@@ -1659,8 +1738,11 @@ function paymentMethodLabel(order) {
 
 function paymentBadgeHTML(order) {
   if (order.sale_type === "offline") return "";
-  if (order.payment_status === "paid" || order.payment_method === "online_qr") {
+  if (order.payment_status === "paid") {
     return `<span class="status paid"><i class="fa-solid fa-circle-check"></i> PAID</span>`;
+  }
+  if (order.payment_method === "online_qr" || order.payment_status === "pending_verification") {
+    return `<span class="status pending_verification"><i class="fa-solid fa-clock"></i> পেমেন্ট যাচাইাধীন</span>`;
   }
   return `<span class="status cod">ক্যাশ অন ডেলিভারি</span>`;
 }
@@ -1928,6 +2010,7 @@ async function renderCustomer() {
           ফোন: ${escapeHTML(order.customer_phone || "—")}<br>
           ঠিকানা: ${escapeHTML(order.customer_address || "—")}<br>
           পেমেন্ট মাধ্যম: ${escapeHTML(paymentMethodLabel(order))}<br>
+          ${order.payment_reference ? `Transaction ID: ${escapeHTML(order.payment_reference)}<br>` : ""}
           সময়: ${dateTime(order.created_at)}
         </p>
 
@@ -2112,6 +2195,8 @@ async function renderAdmin() {
   for (const order of todayOnlineOrders) {
     const items = await fetchItems(order.id);
     const emailDisplay = await resolveCustomerEmail(order);
+    const showVerifyPaidBtn =
+      order.payment_method === "online_qr" && order.payment_status !== "paid";
 
     output += `
       <article class="order-card">
@@ -2129,7 +2214,7 @@ async function renderAdmin() {
 
         <p>
           পেমেন্ট মাধ্যম: ${escapeHTML(paymentMethodLabel(order))}<br>
-          ${order.payment_reference ? `রেফারেন্স: ${escapeHTML(order.payment_reference)}<br>` : ""}
+          ${order.payment_reference ? `Transaction ID: <strong>${escapeHTML(order.payment_reference)}</strong><br>` : ""}
           ইমেইল: ${escapeHTML(emailDisplay)}<br>
           ফোন: ${escapeHTML(order.customer_phone || "—")}<br>
           ঠিকানা: ${escapeHTML(order.customer_address || "—")}<br>
@@ -2189,6 +2274,17 @@ async function renderAdmin() {
         ${deliveryTrackingMarkup(order, "admin")}
 
         <div class="order-actions">
+          ${
+            showVerifyPaidBtn
+              ? `<button class="gold-btn verify-paid-btn"
+                   type="button"
+                   data-verify-paid="${escapeHTML(order.id)}">
+                   <i class="fa-solid fa-circle-check"></i>
+                   পেমেন্ট ভেরিফাই (PAID)
+                 </button>`
+              : ""
+          }
+
           ${
             order.status === "pending"
               ? `
@@ -2284,6 +2380,7 @@ async function renderAdmin() {
 // ------------------------------------------------------
 
 $("dashboardContent").addEventListener("click", async event => {
+  const verifyPaidButton = event.target.closest("[data-verify-paid]");
   const statusButton = event.target.closest("[data-order-status]");
   const unavailableButton = event.target.closest("[data-unavailable]");
   const receiptButton = event.target.closest("[data-receipt]");
@@ -2303,6 +2400,11 @@ $("dashboardContent").addEventListener("click", async event => {
           )
         );
       }
+      return;
+    }
+
+    if (verifyPaidButton) {
+      await adminVerifyPaymentPaid(verifyPaidButton.dataset.verifyPaid);
       return;
     }
 
@@ -2330,8 +2432,21 @@ $("dashboardContent").addEventListener("click", async event => {
 });
 
 // ------------------------------------------------------
-// ADMIN ORDER STATUS & UNAVAILABLE ITEM
+// ADMIN PAYMENT VERIFICATION & ORDER STATUS
 // ------------------------------------------------------
+
+async function adminVerifyPaymentPaid(orderId) {
+  if (!ensureAdmin()) return;
+
+  const { error } = await db.rpc("admin_mark_payment_paid", {
+    p_order_id: orderId
+  });
+
+  if (error) throw error;
+
+  toast("পেমেন্ট ভেরিফাই (PAID) সম্পন্ন হয়েছে।");
+  await renderDashboard();
+}
 
 async function adminStatus(orderId, status) {
   if (!ensureAdmin()) return;
@@ -2548,9 +2663,11 @@ async function getOrderForReceipt(orderId) {
 
 function receiptHTML(order, items) {
   const isOffline = order.sale_type === "offline";
-  const isOnlinePaid =
+  const isOnlinePaid = !isOffline && order.payment_status === "paid";
+  const isOnlinePendingVerify =
     !isOffline &&
-    (order.payment_status === "paid" || order.payment_method === "online_qr");
+    order.payment_method === "online_qr" &&
+    order.payment_status !== "paid";
 
   const rows = items.map(item => `
     <tr>
@@ -2582,7 +2699,9 @@ function receiptHTML(order, items) {
         ${
           isOnlinePaid
             ? `<span class="paid-stamp">PAID</span>`
-            : ""
+            : isOnlinePendingVerify
+              ? `<span class="pending-stamp">পেমেন্ট যাচাইাধীন</span>`
+              : ""
         }
       </div>
 
@@ -2598,8 +2717,8 @@ function receiptHTML(order, items) {
               <p>ফোন: ${escapeHTML(order.customer_phone || "—")}</p>
               <p>ঠিকানা: ${escapeHTML(order.customer_address || "—")}</p>
               <p>পেমেন্ট মাধ্যম: ${escapeHTML(paymentMethodLabel(order))}</p>
-              <p>পেমেন্ট স্ট্যাটাস: ${isOnlinePaid ? "PAID" : "ক্যাশ অন ডেলিভারি"}</p>
-              ${order.payment_reference ? `<p>রেফারেন্স: ${escapeHTML(order.payment_reference)}</p>` : ""}
+              <p>পেমেন্ট স্ট্যাটাস: ${isOnlinePaid ? "PAID" : isOnlinePendingVerify ? "পেমেন্ট যাচাইাধীন" : "ক্যাশ অন ডেলিভারি"}</p>
+              ${order.payment_reference ? `<p>Transaction ID: ${escapeHTML(order.payment_reference)}</p>` : ""}
               <p>অবস্থা: ${statusLabel(order.status)}</p>
             `
         }
@@ -2706,6 +2825,14 @@ $("printReceiptBtn").onclick = () => {
           color: #1b7a46;
           font-weight: 800;
           letter-spacing: 2px;
+        }
+        .pending-stamp {
+          display: inline-block;
+          margin-top: 6px;
+          padding: 3px 10px;
+          border: 2px solid #966309;
+          color: #966309;
+          font-weight: 700;
         }
         .receipt-info {
           padding: 8px 0;
@@ -3253,45 +3380,8 @@ $("printSalesReport").onclick = () => {
 };
 
 // ------------------------------------------------------
-// REALTIME, SOUND ALERT & AUTH
+// REALTIME, SOUND ALERTS & AUTH
 // ------------------------------------------------------
-
-function playAlert() {
-  try {
-    audioCtx = audioCtx || new (
-      window.AudioContext || window.webkitAudioContext
-    )();
-
-    if (audioCtx.state === "suspended") {
-      audioCtx.resume();
-    }
-
-    [0, 0.22, 0.44].forEach(time => {
-      const oscillator = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-
-      oscillator.connect(gain);
-      gain.connect(audioCtx.destination);
-
-      oscillator.frequency.value = 880;
-
-      gain.gain.setValueAtTime(0.001, audioCtx.currentTime + time);
-      gain.gain.exponentialRampToValueAtTime(
-        0.18,
-        audioCtx.currentTime + time + 0.02
-      );
-      gain.gain.exponentialRampToValueAtTime(
-        0.001,
-        audioCtx.currentTime + time + 0.16
-      );
-
-      oscillator.start(audioCtx.currentTime + time);
-      oscillator.stop(audioCtx.currentTime + time + 0.17);
-    });
-  } catch (error) {
-    console.info("Sound requires browser interaction.", error);
-  }
-}
 
 function subscribeLive() {
   if (!user || !profile) return;
@@ -3312,35 +3402,60 @@ function subscribeLive() {
       },
       async payload => {
         const order = payload.new || payload.old || {};
+        if (!order.id) return;
 
-        if (
-          profile.role === "customer" &&
-          order.customer_id !== user.id
-        ) {
-          return;
+        const prev = previousOrderSnapshot[order.id] || {};
+        previousOrderSnapshot[order.id] = {
+          status: order.status,
+          payment_status: order.payment_status
+        };
+
+        if (profile.role === "admin" && order.sale_type !== "offline") {
+          if (payload.eventType === "INSERT") {
+            playAdminLoudAlert();
+            toast(
+              order.payment_status === "pending_verification"
+                ? "নতুন অনলাইন পেমেন্ট ভেরিফিকেশনের জন্য এসেছে!"
+                : "নতুন অনলাইন অর্ডার এসেছে!"
+            );
+          } else if (
+            order.payment_status === "pending_verification" &&
+            prev.payment_status !== "pending_verification"
+          ) {
+            playAdminLoudAlert();
+            toast("একটি পেমেন্ট ভেরিফিকেশনের জন্য এসেছে!");
+          }
         }
 
-        if (
-          profile.role === "admin" &&
-          payload.eventType === "INSERT" &&
-          order.sale_type !== "offline"
-        ) {
-          playAlert();
-          toast("নতুন অনলাইন অর্ডার এসেছে!");
-        }
+        if (profile.role === "customer" && order.customer_id === user.id) {
+          if (
+            order.payment_status === "paid" &&
+            prev.payment_status !== "paid"
+          ) {
+            playCustomerNotifySound("paid");
+            toast("আপনার পেমেন্ট ভেরিফাই (PAID) সম্পন্ন হয়েছে!");
+          }
 
-        if (
-          profile.role === "customer" &&
-          order.approval_status === "awaiting_customer"
-        ) {
-          toast("আপনার অর্ডারে পরিবর্তন হয়েছে। ড্যাশবোর্ড দেখুন।");
-        }
+          if (order.status && order.status !== prev.status) {
+            if (order.status === "confirmed" || order.status === "preparing") {
+              playCustomerNotifySound("info");
+              toast("আপনার অর্ডার কনফার্ম হয়েছে ও খাবার তৈরি শুরু হয়েছে!");
+            } else if (order.status === "out_for_delivery") {
+              playCustomerNotifySound("info");
+              toast("খাবার রেডি হয়েছে এবং ডেলিভারির জন্য বের হয়েছে!");
+            } else if (order.status === "completed") {
+              playCustomerNotifySound("completed");
+              toast("আপনার অর্ডারের ডেলিভারি সম্পন্ন হয়েছে!");
+            } else if (order.status === "cancelled") {
+              playCustomerNotifySound("info");
+              toast("আপনার অর্ডারটি বাতিল করা হয়েছে।");
+            }
+          }
 
-        if (
-          profile.role === "customer" &&
-          order.status === "out_for_delivery"
-        ) {
-          toast("আপনার খাবার ডেলিভারির পথে!");
+          if (order.approval_status === "awaiting_customer") {
+            playCustomerNotifySound("info");
+            toast("আপনার অর্ডারে পরিবর্তন হয়েছে। ড্যাশবোর্ড দেখুন।");
+          }
         }
 
         if ($("dashboardModal")?.classList.contains("show")) {
@@ -3373,6 +3488,7 @@ db.auth.onAuthStateChange(async (event, session) => {
   if (event === "SIGNED_OUT") {
     user = null;
     profile = null;
+    previousOrderSnapshot = {};
 
     if (liveChannel) {
       await db.removeChannel(liveChannel);
