@@ -43,7 +43,9 @@ const dhakaDate = date => {
   }).formatToParts(date);
 
   const values = {};
-  parts.forEach(part => values[part.type] = part.value);
+  parts.forEach(part => {
+    values[part.type] = part.value;
+  });
 
   return `${values.year}-${values.month}-${values.day}`;
 };
@@ -145,7 +147,6 @@ function showError(error) {
 
 // ------------------------------------------------------
 // MENU — 26 ITEMS
-// Original seven image URLs preserved; remaining menu items use food-specific photo URLs.
 // ------------------------------------------------------
 
 const MENU = [
@@ -154,8 +155,7 @@ const MENU = [
     id: "hot_coffee",
     name: "হট কফি",
     category: "পদ্মা স্পেশাল",
-    price: 50,
-    image: "https://loremflickr.com/640/480/hot-coffee-cappuccino?lock=98723"
+    price: 50
   },
   {
     id: "malai_cha",
@@ -189,8 +189,7 @@ const MENU = [
     id: "malai_cha_roti",
     name: "মালাই চা + পোড়া রুটি",
     category: "পদ্মা স্পেশাল",
-    price: 50,
-    image: "https://loremflickr.com/640/480/milk-tea-flatbread-roti?lock=18237"
+    price: 50
   },
   {
     id: "chotpoti",
@@ -217,15 +216,13 @@ const MENU = [
     id: "doi_fuchka",
     name: "দই ফুচকা",
     category: "পদ্মা স্পেশাল",
-    price: 90,
-    image: "https://loremflickr.com/640/480/yogurt-fuchka-chaat?lock=40296"
+    price: 90
   },
   {
     id: "doi_chira",
     name: "দই চিড়া",
     category: "পদ্মা স্পেশাল",
-    price: 80,
-    image: "https://loremflickr.com/640/480/yogurt-flattened-rice-dessert?lock=16834"
+    price: 80
   },
 
   // BURGER — 2
@@ -233,15 +230,13 @@ const MENU = [
     id: "chicken_tikka_burger",
     name: "চিকেন টিক্কা বার্গার",
     category: "বার্গার",
-    price: 80,
-    image: "https://loremflickr.com/640/480/chicken-tikka-burger?lock=27859"
+    price: 80
   },
   {
     id: "beef_burger",
     name: "বিফ বার্গার",
     category: "বার্গার",
-    price: 130,
-    image: "https://loremflickr.com/640/480/beef-burger?lock=34523"
+    price: 130
   },
 
   // STARTER — 5
@@ -249,36 +244,31 @@ const MENU = [
     id: "kolija_singara",
     name: "কলিজা সিঙ্গারা",
     category: "স্টাটার",
-    price: 25,
-    image: "https://loremflickr.com/640/480/singara-samosa-fried-pastry?lock=9668"
+    price: 25
   },
   {
     id: "french_fries",
     name: "ফ্রেন্স ফ্রাই",
     category: "স্টাটার",
-    price: 50,
-    image: "https://loremflickr.com/640/480/french-fries?lock=62988"
+    price: 50
   },
   {
     id: "chicken_spring_roll",
     name: "চিকেন স্প্রিং রোল",
     category: "স্টাটার",
-    price: 80,
-    image: "https://loremflickr.com/640/480/chicken-spring-roll?lock=42868"
+    price: 80
   },
   {
     id: "chicken_momos",
     name: "চিকেন মমস",
     category: "স্টাটার",
-    price: 100,
-    image: "https://loremflickr.com/640/480/chicken-momos-dumplings?lock=55631"
+    price: 100
   },
   {
     id: "chicken_fry_3pcs",
     name: "চিকেন ফ্রাই (৩ পিস)",
     category: "স্টাটার",
-    price: 120,
-    image: "https://loremflickr.com/640/480/fried-chicken-pieces?lock=95653"
+    price: 120
   },
 
   // SHAKES — 6
@@ -286,68 +276,61 @@ const MENU = [
     id: "cold_coffee",
     name: "কোল্ড কফি",
     category: "শেক",
-    price: 80,
-    image: "https://loremflickr.com/640/480/iced-coffee?lock=62087"
+    price: 80
   },
   {
     id: "chocolate_shake",
     name: "চকলেট শেক",
     category: "শেক",
-    price: 90,
-    image: "https://loremflickr.com/640/480/chocolate-milkshake?lock=50066"
+    price: 90
   },
   {
     id: "vanilla_shake",
     name: "ভ্যানিলা শেক",
     category: "শেক",
-    price: 99,
-    image: "https://loremflickr.com/640/480/vanilla-milkshake?lock=77001"
+    price: 99
   },
   {
     id: "oreo_shake",
     name: "অরিও শেক",
     category: "শেক",
-    price: 110,
-    image: "https://loremflickr.com/640/480/oreo-milkshake?lock=61220"
+    price: 110
   },
   {
     id: "kitkat_shake",
     name: "কিটক্যাট শেক",
     category: "শেক",
-    price: 110,
-    image: "https://loremflickr.com/640/480/chocolate-wafer-milkshake?lock=89014"
+    price: 110
   },
   {
     id: "butterscotch_shake",
     name: "বাটারস্কচ শেক (Padma Special)",
     category: "শেক",
-    price: 110,
-    image: "https://loremflickr.com/640/480/butterscotch-milkshake?lock=39012"
+    price: 110
   },
 
   // SOFT DRINKS — 2
   {
     id: "water",
     name: "পানি",
-    category: "সফট ড্রিংকস",
-    price: 20,
-    image: "https://loremflickr.com/640/480/bottled-water-glass?lock=11223"
+    category: "সফট ড্রিঙ্কস",
+    price: 20
   },
   {
     id: "mojo",
     name: "মজো",
-    category: "সফট ড্রিংকস",
-    price: 20,
-    image: "https://loremflickr.com/640/480/cola-soft-drink-glass?lock=22334"
+    category: "সফট ড্রিঙ্কস",
+    price: 20
   }
 ];
+
 const CATEGORIES = [
   "সব খাবার",
   "পদ্মা স্পেশাল",
   "বার্গার",
   "স্টাটার",
   "শেক",
-  "সফট ড্রিংকস"
+  "সফট ড্রিঙ্কস"
 ];
 
 let selectedCategory = "সব খাবার";
@@ -363,15 +346,15 @@ let authMode = "login";
 let authRole = "customer";
 let phoneInput = null;
 let liveChannel = null;
-let currentApproval = null;
 let currentReceipt = null;
 let audioCtx = null;
 let reportDate = dhakaDate(new Date());
+let reportType = "daily";
 let offlineCart = {};
 let orderTimerInterval = null;
 
 // ------------------------------------------------------
-// MODAL EVENTS
+// MODAL CLOSE EVENTS
 // ------------------------------------------------------
 
 document.querySelectorAll("[data-close]").forEach(button => {
@@ -386,8 +369,18 @@ document.querySelectorAll(".modal").forEach(modal => {
   });
 });
 
+document.addEventListener("keydown", event => {
+  if (event.key !== "Escape") return;
+
+  document.querySelectorAll(".modal.show").forEach(modal => {
+    modal.classList.remove("show");
+  });
+
+  document.body.classList.remove("modal-open");
+});
+
 // ------------------------------------------------------
-// MENU DISPLAY
+// MENU DISPLAY & SEARCH
 // ------------------------------------------------------
 
 function renderCategories() {
@@ -405,15 +398,8 @@ function renderCategories() {
   `).join("");
 }
 
-function renderMenu() {
-  const container = $("menuGrid");
-  if (!container) return;
-
-  const items = selectedCategory === "সব খাবার"
-    ? MENU
-    : MENU.filter(item => item.category === selectedCategory);
-
-  container.innerHTML = items.map(item => `
+function menuCardHTML(item) {
+  return `
     <article class="menu-card">
       ${
         item.image
@@ -449,7 +435,31 @@ function renderMenu() {
         </div>
       </div>
     </article>
-  `).join("");
+  `;
+}
+
+function renderMenu() {
+  const container = $("menuGrid");
+  if (!container) return;
+
+  const query = ($("menuSearch")?.value || "").trim().toLowerCase();
+
+  const items = MENU.filter(item => {
+    const matchesCategory =
+      selectedCategory === "সব খাবার" || item.category === selectedCategory;
+
+    if (!matchesCategory) return false;
+    if (!query) return true;
+
+    return (
+      item.name.toLowerCase().includes(query) ||
+      item.category.toLowerCase().includes(query)
+    );
+  });
+
+  container.innerHTML = items.length
+    ? items.map(menuCardHTML).join("")
+    : `<p class="empty-state">কোনো খাবার পাওয়া যায়নি।</p>`;
 }
 
 $("menuCategories")?.addEventListener("click", event => {
@@ -460,6 +470,8 @@ $("menuCategories")?.addEventListener("click", event => {
   renderCategories();
   renderMenu();
 });
+
+$("menuSearch")?.addEventListener("input", renderMenu);
 
 $("menuGrid")?.addEventListener("click", event => {
   const button = event.target.closest("[data-add]");
@@ -506,10 +518,7 @@ function cartRows() {
 }
 
 function cartTotal() {
-  return cartRows().reduce(
-    (sum, item) => sum + item.subtotal,
-    0
-  );
+  return cartRows().reduce((sum, item) => sum + item.subtotal, 0);
 }
 
 function renderCart() {
@@ -529,9 +538,9 @@ function renderCart() {
           </div>
 
           <div class="quantity-controls">
-            <button type="button" data-cart-change="${item.id}" data-diff="-1">−</button>
+            <button type="button" data-cart-change="${escapeHTML(item.id)}" data-diff="-1">−</button>
             <span>${numberBN(item.qty)}</span>
-            <button type="button" data-cart-change="${item.id}" data-diff="1">+</button>
+            <button type="button" data-cart-change="${escapeHTML(item.id)}" data-diff="1">+</button>
           </div>
         </div>
       `).join("")
@@ -553,6 +562,34 @@ $("cartBtn").onclick = () => {
   show("cartModal");
 };
 
+$("continueShoppingBtn")?.addEventListener("click", () => {
+  hide("cartModal");
+  $("menuSection")?.scrollIntoView({ behavior: "smooth" });
+});
+
+// ------------------------------------------------------
+// PASSWORD SHOW / HIDE
+// ------------------------------------------------------
+
+document.querySelectorAll("[data-toggle-password]").forEach(button => {
+  button.addEventListener("click", () => {
+    const input = $(button.dataset.togglePassword);
+    if (!input) return;
+
+    const isPassword = input.type === "password";
+    input.type = isPassword ? "text" : "password";
+
+    button.innerHTML = isPassword
+      ? '<i class="fa-solid fa-eye-slash"></i>'
+      : '<i class="fa-solid fa-eye"></i>';
+
+    button.setAttribute(
+      "aria-label",
+      isPassword ? "পাসওয়ার্ড লুকান" : "পাসওয়ার্ড দেখুন"
+    );
+  });
+});
+
 // ------------------------------------------------------
 // INTERNATIONAL PHONE INPUT
 // ------------------------------------------------------
@@ -568,10 +605,10 @@ function initializePhoneInput() {
     autoPlaceholder: "polite",
     formatOnDisplay: true,
     countrySearch: true,
-    preferredCountries: ["bd", "in"],
-    loadUtils: () => import(
-      "https://cdn.jsdelivr.net/npm/intl-tel-input@25.3.1/build/js/utils.js"
-    )
+    loadUtils: () =>
+      import(
+        "https://cdn.jsdelivr.net/npm/intl-tel-input@25.3.1/build/js/utils.js"
+      )
   });
 }
 
@@ -588,6 +625,11 @@ $("adminLoginBtn").onclick = () => {
   authRole = "admin";
   openAuth("login");
 };
+
+$("heroLoginBtn")?.addEventListener("click", () => {
+  authRole = "customer";
+  openAuth("login");
+});
 
 $("accountBtn").onclick = () => {
   if (user) {
@@ -678,10 +720,12 @@ $("authForm").onsubmit = async event => {
       }
 
       if (!phoneInput) {
-        throw new Error("মোবাইল নম্বরের Country Code নির্বাচন করুন।");
+        throw new Error("মোবাইল নম্বরের কান্ট্রি কোড নির্বাচন করুন।");
       }
 
-      if (phoneInput.promise) await phoneInput.promise;
+      if (phoneInput.promise) {
+        await phoneInput.promise;
+      }
 
       if (!phoneInput.isValidNumber()) {
         throw new Error("সঠিক মোবাইল নম্বর দিন।");
@@ -713,7 +757,6 @@ $("authForm").onsubmit = async event => {
       } else {
         toast("রেজিস্ট্রেশন হয়েছে। ইমেইল ইনবক্সে ভেরিফিকেশন লিংক দেখুন।");
       }
-
     } else {
       const { data, error } = await db.auth.signInWithPassword({
         email,
@@ -729,7 +772,6 @@ $("authForm").onsubmit = async event => {
         await db.auth.signOut();
         user = null;
         profile = null;
-
         throw new Error("এই অ্যাকাউন্টের অ্যাডমিন অনুমতি নেই।");
       }
 
@@ -737,7 +779,6 @@ $("authForm").onsubmit = async event => {
         await db.auth.signOut();
         user = null;
         profile = null;
-
         throw new Error("এই অ্যাকাউন্টটি অ্যাডমিন। অ্যাডমিন লগইন ব্যবহার করুন।");
       }
 
@@ -745,7 +786,6 @@ $("authForm").onsubmit = async event => {
       await openDashboard();
       toast("লগইন সফল হয়েছে।");
     }
-
   } catch (error) {
     showError(error);
   } finally {
@@ -754,7 +794,7 @@ $("authForm").onsubmit = async event => {
 };
 
 // ------------------------------------------------------
-// FORGOT PASSWORD
+// FORGOT & RESET PASSWORD
 // ------------------------------------------------------
 
 $("forgotPasswordBtn").onclick = async () => {
@@ -774,14 +814,10 @@ $("forgotPasswordBtn").onclick = async () => {
     if (error) throw error;
 
     toast("পাসওয়ার্ড রিসেট লিংক ইমেইলে পাঠানো হয়েছে।");
-
   } catch (error) {
     showError(error);
   }
 };
-// ------------------------------------------------------
-// RESET PASSWORD
-// ------------------------------------------------------
 
 $("resetPasswordForm").onsubmit = async event => {
   event.preventDefault();
@@ -801,12 +837,10 @@ $("resetPasswordForm").onsubmit = async event => {
 
   try {
     const { error } = await db.auth.updateUser({ password });
-
     if (error) throw error;
 
     hide("resetPasswordModal");
     toast("নতুন পাসওয়ার্ড সেট হয়েছে।");
-
   } catch (error) {
     showError(error);
   }
@@ -878,7 +912,7 @@ $("checkoutBtn").onclick = async () => {
       quantity: item.qty
     }));
 
-    const { data, error } = await db.rpc(
+    const { error } = await db.rpc(
       "place_customer_order",
       { p_items: items }
     );
@@ -891,7 +925,6 @@ $("checkoutBtn").onclick = async () => {
 
     toast("আপনার অর্ডার সফলভাবে পাঠানো হয়েছে।");
     await openDashboard();
-
   } catch (error) {
     showError(error);
   } finally {
@@ -900,7 +933,7 @@ $("checkoutBtn").onclick = async () => {
 };
 
 // ------------------------------------------------------
-// STATUS LABELS
+// STATUS & TIMERS
 // ------------------------------------------------------
 
 function statusLabel(status) {
@@ -947,10 +980,6 @@ function timerMarkup(label, endAt, id) {
     </div>
   `;
 }
-
-// ------------------------------------------------------
-// DELIVERY TRACKING
-// ------------------------------------------------------
 
 function deliveryTrackingMarkup(order, prefix = "customer") {
   if (order.status !== "out_for_delivery") return "";
@@ -1003,10 +1032,6 @@ function deliveryTrackingMarkup(order, prefix = "customer") {
   `;
 }
 
-// ------------------------------------------------------
-// LIVE COUNTDOWN
-// ------------------------------------------------------
-
 function startOrderTimerTicker() {
   if (orderTimerInterval) {
     clearInterval(orderTimerInterval);
@@ -1015,7 +1040,6 @@ function startOrderTimerTicker() {
   const tick = () => {
     document.querySelectorAll("[data-countdown]").forEach(element => {
       const value = countdownText(element.dataset.end);
-
       element.textContent = value;
 
       if (value === "সময় শেষ") {
@@ -1065,7 +1089,6 @@ async function openDashboard() {
 
     await renderDashboard();
     subscribeLive();
-
   } catch (error) {
     showError(error);
   }
@@ -1092,19 +1115,20 @@ async function fetchItems(orderId) {
 
   return data || [];
 }
+
 // ------------------------------------------------------
 // CUSTOMER DASHBOARD
 // ------------------------------------------------------
 
 async function renderCustomer() {
   const container = $("dashboardContent");
-
   container.innerHTML = `<p class="loading">আপনার অর্ডার লোড হচ্ছে...</p>`;
 
   const { data, error } = await db
     .from("orders")
     .select("*")
     .eq("customer_id", user.id)
+    .neq("sale_type", "offline")
     .order("created_at", { ascending: false });
 
   if (error) throw error;
@@ -1174,7 +1198,7 @@ async function renderCustomer() {
             ? `<button
                  class="gold-btn wide"
                  type="button"
-                 data-approval="${order.id}"
+                 data-approval="${escapeHTML(order.id)}"
                >
                  পরিবর্তিত অর্ডার দেখুন
                </button>`
@@ -1184,7 +1208,7 @@ async function renderCustomer() {
         <button
           class="outline wide"
           type="button"
-          data-receipt="${order.id}"
+          data-receipt="${escapeHTML(order.id)}"
         >
           <i class="fa-solid fa-receipt"></i>
           রসিদ দেখুন
@@ -1203,12 +1227,12 @@ async function renderCustomer() {
 
 async function renderAdmin() {
   const container = $("dashboardContent");
-
   container.innerHTML = `<p class="loading">অ্যাডমিন ড্যাশবোর্ড লোড হচ্ছে...</p>`;
 
   const { data, error } = await db
     .from("orders")
     .select("*")
+    .neq("sale_type", "offline")
     .order("created_at", { ascending: false })
     .limit(100);
 
@@ -1234,7 +1258,7 @@ async function renderAdmin() {
     </div>
 
     <div class="dashboard-panel">
-      <h3>অর্ডার ব্যবস্থাপনা</h3>
+      <h3>অনলাইন অর্ডার ব্যবস্থাপনা</h3>
       <p>মোট প্রদর্শিত অর্ডার: ${numberBN(orders.length)}</p>
     </div>
 
@@ -1289,7 +1313,7 @@ async function renderAdmin() {
                     ? `<button
                          class="outline"
                          type="button"
-                         data-unavailable="${item.id}"
+                         data-unavailable="${escapeHTML(item.id)}"
                        >স্টক নেই</button>`
                     : ""
                 }
@@ -1326,30 +1350,30 @@ async function renderAdmin() {
             order.status === "pending"
               ? `
                 <div class="preparation-timer">
-                  <label for="prep-min-${order.id}">খাবার তৈরির সময় (মিনিট)</label>
+                  <label for="prep-min-${escapeHTML(order.id)}">খাবার তৈরির সময় (মিনিট)</label>
                   <div class="timer-controls">
                     <button type="button"
-                      data-minute-adjust="prep-min-${order.id}"
+                      data-minute-adjust="prep-min-${escapeHTML(order.id)}"
                       data-diff="-1">−</button>
 
-                    <input id="prep-min-${order.id}"
+                    <input id="prep-min-${escapeHTML(order.id)}"
                       type="number" min="1" max="180" value="15">
 
                     <button type="button"
-                      data-minute-adjust="prep-min-${order.id}"
+                      data-minute-adjust="prep-min-${escapeHTML(order.id)}"
                       data-diff="1">+</button>
                   </div>
                 </div>
 
                 <button class="gold-btn"
-                  data-order-status="${order.id}"
+                  data-order-status="${escapeHTML(order.id)}"
                   data-status="confirmed">
                   <i class="fa-solid fa-check"></i>
                   অর্ডার কনফার্ম ও কাউন্টডাউন শুরু
                 </button>
 
                 <button class="danger-btn"
-                  data-order-status="${order.id}"
+                  data-order-status="${escapeHTML(order.id)}"
                   data-status="cancelled">
                   বাতিল
                 </button>
@@ -1361,26 +1385,26 @@ async function renderAdmin() {
             ["confirmed", "preparing"].includes(order.status)
               ? `
                 <div class="preparation-timer">
-                  <label for="delivery-min-${order.id}">
+                  <label for="delivery-min-${escapeHTML(order.id)}">
                     ডেলিভারির আনুমানিক সময় (মিনিট)
                   </label>
 
                   <div class="timer-controls">
                     <button type="button"
-                      data-minute-adjust="delivery-min-${order.id}"
+                      data-minute-adjust="delivery-min-${escapeHTML(order.id)}"
                       data-diff="-1">−</button>
 
-                    <input id="delivery-min-${order.id}"
+                    <input id="delivery-min-${escapeHTML(order.id)}"
                       type="number" min="1" max="180" value="15">
 
                     <button type="button"
-                      data-minute-adjust="delivery-min-${order.id}"
+                      data-minute-adjust="delivery-min-${escapeHTML(order.id)}"
                       data-diff="1">+</button>
                   </div>
                 </div>
 
                 <button class="gold-btn delivery-btn"
-                  data-order-status="${order.id}"
+                  data-order-status="${escapeHTML(order.id)}"
                   data-status="out_for_delivery">
                   <i class="fa-solid fa-motorcycle"></i>
                   খাবার তৈরি হয়েছে — ডেলিভারি শুরু
@@ -1392,7 +1416,7 @@ async function renderAdmin() {
           ${
             order.status === "out_for_delivery"
               ? `<button class="gold-btn complete-delivery-btn"
-                   data-order-status="${order.id}"
+                   data-order-status="${escapeHTML(order.id)}"
                    data-status="completed">
                    <i class="fa-solid fa-check-double"></i>
                    ডেলিভারি সম্পন্ন
@@ -1400,7 +1424,7 @@ async function renderAdmin() {
               : ""
           }
 
-          <button class="outline" data-receipt="${order.id}">
+          <button class="outline" data-receipt="${escapeHTML(order.id)}">
             রসিদ
           </button>
         </div>
@@ -1436,7 +1460,6 @@ $("dashboardContent").addEventListener("click", async event => {
           )
         );
       }
-
       return;
     }
 
@@ -1458,14 +1481,13 @@ $("dashboardContent").addEventListener("click", async event => {
     if (approvalButton) {
       await openApproval(approvalButton.dataset.approval);
     }
-
   } catch (error) {
     showError(error);
   }
 });
 
 // ------------------------------------------------------
-// ADMIN ORDER STATUS
+// ADMIN ORDER STATUS & UNAVAILABLE ITEM
 // ------------------------------------------------------
 
 async function adminStatus(orderId, status) {
@@ -1487,21 +1509,15 @@ async function adminStatus(orderId, status) {
   let deliveryMinutes = null;
 
   if (status === "confirmed") {
-    preparationMinutes = readMinutesInput(
-      `prep-min-${orderId}`,
-      15
-    );
+    preparationMinutes = readMinutesInput(`prep-min-${orderId}`, 15);
   }
 
   if (status === "out_for_delivery") {
-    deliveryMinutes = readMinutesInput(
-      `delivery-min-${orderId}`,
-      15
-    );
+    deliveryMinutes = readMinutesInput(`delivery-min-${orderId}`, 15);
 
-    if (!confirm(
-      "খাবার তৈরি হয়েছে এবং ডেলিভারি ম্যান খাবার নিয়ে বের হয়েছেন?"
-    )) return;
+    if (!confirm("খাবার তৈরি হয়েছে এবং ডেলিভারি ম্যান খাবার নিয়ে বের হয়েছেন?")) {
+      return;
+    }
   }
 
   if (status === "completed") {
@@ -1530,10 +1546,6 @@ async function adminStatus(orderId, status) {
   await renderDashboard();
 }
 
-// ------------------------------------------------------
-// ADMIN MARK ITEM UNAVAILABLE
-// ------------------------------------------------------
-
 async function markUnavailable(itemId) {
   if (!ensureAdmin()) return;
 
@@ -1546,6 +1558,7 @@ async function markUnavailable(itemId) {
   toast("কাস্টমারের অনুমতির জন্য পরিবর্তন পাঠানো হয়েছে।");
   await renderDashboard();
 }
+
 // ------------------------------------------------------
 // CUSTOMER APPROVAL FOR CHANGED ORDER
 // ------------------------------------------------------
@@ -1584,18 +1597,13 @@ async function openApproval(orderId) {
 
   $("approvalContent").innerHTML = `
     <div class="approval-box">
-      <h3>আপনার অর্ডারে পরিবর্তন হয়েছে</h3>
-
-      <p>
-        দুঃখিত! নিচের কিছু খাবার বর্তমানে পাওয়া যাচ্ছে না।
-      </p>
+      <p>দুঃখিত! নিচের কিছু খাবার বর্তমানে পাওয়া যাচ্ছে না।</p>
 
       <h4>পাওয়া যাচ্ছে না</h4>
-
       ${
         unavailableItems.length
           ? unavailableItems.map(item => `
-              <div class="cart-line unavailable-item">
+              <div class="approval-line unavailable-item">
                 <span>${escapeHTML(item.item_name)}</span>
                 <b>স্টক নেই</b>
               </div>
@@ -1604,15 +1612,11 @@ async function openApproval(orderId) {
       }
 
       <h4>যেসব খাবার পাওয়া যাবে</h4>
-
       ${
         availableItems.length
           ? availableItems.map(item => `
-              <div class="cart-line">
-                <span>
-                  ${escapeHTML(item.item_name)}
-                  × ${numberBN(item.quantity)}
-                </span>
+              <div class="approval-line">
+                <span>${escapeHTML(item.item_name)} × ${numberBN(item.quantity)}</span>
                 <b>${money(item.line_total)}</b>
               </div>
             `).join("")
@@ -1624,38 +1628,29 @@ async function openApproval(orderId) {
         <strong>${money(availableTotal)}</strong>
       </div>
 
-      <p>
-        আপনি অবশিষ্ট খাবার নিতে পারেন অথবা সম্পূর্ণ অর্ডার বাতিল করতে পারেন।
-      </p>
+      <p>আপনি অবশিষ্ট খাবার নিতে পারেন অথবা সম্পূর্ণ অর্ডার বাতিল করতে পারেন।</p>
 
-      <div class="order-actions">
-        <button
-          type="button"
-          class="gold-btn"
-          id="acceptChangedOrder"
-          ${availableItems.length ? "" : "disabled"}
-        >
-          অবশিষ্ট খাবার গ্রহণ করুন
-        </button>
+      <button
+        type="button"
+        class="gold-btn wide"
+        id="acceptChangedOrder"
+        ${availableItems.length ? "" : "disabled"}
+      >
+        অবশিষ্ট খাবার গ্রহণ করুন
+      </button>
 
-        <button
-          type="button"
-          class="danger-btn"
-          id="rejectChangedOrder"
-        >
-          সম্পূর্ণ অর্ডার বাতিল করুন
-        </button>
-      </div>
+      <button
+        type="button"
+        class="danger-btn wide"
+        id="rejectChangedOrder"
+      >
+        সম্পূর্ণ অর্ডার বাতিল করুন
+      </button>
     </div>
   `;
 
-  $("acceptChangedOrder").onclick = async () => {
-    await respondToChangedOrder(orderId, true);
-  };
-
-  $("rejectChangedOrder").onclick = async () => {
-    await respondToChangedOrder(orderId, false);
-  };
+  $("acceptChangedOrder").onclick = () => respondToChangedOrder(orderId, true);
+  $("rejectChangedOrder").onclick = () => respondToChangedOrder(orderId, false);
 
   show("approvalModal");
 }
@@ -1689,7 +1684,6 @@ async function respondToChangedOrder(orderId, accepted) {
     );
 
     await renderDashboard();
-
   } catch (error) {
     showError(error);
   } finally {
@@ -1698,7 +1692,7 @@ async function respondToChangedOrder(orderId, accepted) {
 }
 
 // ------------------------------------------------------
-// RECEIPT
+// RECEIPT & PRINT
 // ------------------------------------------------------
 
 async function getOrderForReceipt(orderId) {
@@ -1710,19 +1704,17 @@ async function getOrderForReceipt(orderId) {
 
   if (error) throw error;
 
-  if (
-    profile.role !== "admin" &&
-    order.customer_id !== user.id
-  ) {
+  if (profile.role !== "admin" && order.customer_id !== user.id) {
     throw new Error("এই রসিদ দেখার অনুমতি আপনার নেই।");
   }
 
   const items = await fetchItems(orderId);
-
   return { order, items };
 }
 
 function receiptHTML(order, items) {
+  const isOffline = order.sale_type === "offline";
+
   const rows = items.map(item => `
     <tr>
       <td>
@@ -1742,19 +1734,24 @@ function receiptHTML(order, items) {
           src="https://i.ibb.co/4nW7J6d0/IMG-20261121-WA0000.jpg"
           alt="Padma Cafe"
         >
-
         <h2>PADMA CAFE</h2>
         <p>স্বাদে ও আতিথেয়তায় আপনাদের পাশে</p>
-        <p>অর্ডার রসিদ</p>
+        <p>${isOffline ? "অফলাইন বিক্রির রসিদ" : "অনলাইন অর্ডার রসিদ"}</p>
       </div>
 
       <div class="receipt-info">
-        <p>রসিদ: ${escapeHTML(order.id)}</p>
+        <p>রসিদ: ${escapeHTML(order.id.slice(0, 8))}</p>
         <p>তারিখ: ${dateTime(order.created_at)}</p>
-        <p>কাস্টমার: ${escapeHTML(order.customer_name || "কাস্টমার")}</p>
-        <p>ফোন: ${escapeHTML(order.customer_phone || "—")}</p>
-        <p>ঠিকানা: ${escapeHTML(order.customer_address || "—")}</p>
-        <p>অবস্থা: ${statusLabel(order.status)}</p>
+        ${
+          isOffline
+            ? `<p>বিক্রির ধরন: অফলাইন</p>`
+            : `
+              <p>কাস্টমার: ${escapeHTML(order.customer_name || "কাস্টমার")}</p>
+              <p>ফোন: ${escapeHTML(order.customer_phone || "—")}</p>
+              <p>ঠিকানা: ${escapeHTML(order.customer_address || "—")}</p>
+              <p>অবস্থা: ${statusLabel(order.status)}</p>
+            `
+        }
       </div>
 
       <table class="receipt-table">
@@ -1766,7 +1763,6 @@ function receiptHTML(order, items) {
             <th>মোট</th>
           </tr>
         </thead>
-
         <tbody>${rows}</tbody>
       </table>
 
@@ -1776,8 +1772,7 @@ function receiptHTML(order, items) {
       </div>
 
       <div class="receipt-footer">
-        <p>আপনাকে ধন্যবাদ!</p>
-        <p>আবার আসবেন ❤️</p>
+        <p>আপনাকে ধন্যবাদ! আবার আসবেন।</p>
         <small>Powered by Padma Cafe</small>
       </div>
     </div>
@@ -1787,13 +1782,9 @@ function receiptHTML(order, items) {
 async function showReceipt(orderId) {
   try {
     const { order, items } = await getOrderForReceipt(orderId);
-
     currentReceipt = { order, items };
-
     $("receiptContent").innerHTML = receiptHTML(order, items);
-
     show("receiptModal");
-
   } catch (error) {
     showError(error);
   }
@@ -1819,12 +1810,8 @@ $("printReceiptBtn").onclick = () => {
     <head>
       <meta charset="UTF-8">
       <title>Padma Cafe Receipt</title>
-
       <style>
-        * {
-          box-sizing: border-box;
-        }
-
+        * { box-sizing: border-box; }
         body {
           margin: 0;
           padding: 8px;
@@ -1832,7 +1819,6 @@ $("printReceiptBtn").onclick = () => {
           background: #fff;
           font-family: Arial, sans-serif;
         }
-
         .receipt-paper {
           width: 100%;
           max-width: 320px;
@@ -1840,54 +1826,48 @@ $("printReceiptBtn").onclick = () => {
           padding: 8px;
           font-size: 12px;
         }
-
         .receipt-header {
           text-align: center;
           border-bottom: 1px dashed #555;
           padding-bottom: 10px;
         }
-
         .receipt-header img {
           width: 65px;
           height: 65px;
-          object-fit: contain;
+          object-fit: cover;
+          border-radius: 50%;
+          display: block;
+          margin: 0 auto 8px;
         }
-
         .receipt-header h2 {
           margin: 5px 0;
           font-size: 20px;
         }
-
         .receipt-header p,
         .receipt-info p {
           margin: 4px 0;
         }
-
         .receipt-info {
           padding: 8px 0;
           border-bottom: 1px dashed #555;
           overflow-wrap: anywhere;
         }
-
         .receipt-table {
           width: 100%;
           border-collapse: collapse;
           margin-top: 8px;
-          font-size: 10px;
+          font-size: 11px;
         }
-
         .receipt-table th,
         .receipt-table td {
           padding: 5px 2px;
           text-align: left;
           border-bottom: 1px dotted #aaa;
         }
-
         .receipt-table th:last-child,
         .receipt-table td:last-child {
           text-align: right;
         }
-
         .receipt-total {
           display: flex;
           justify-content: space-between;
@@ -1896,39 +1876,25 @@ $("printReceiptBtn").onclick = () => {
           padding-top: 8px;
           font-size: 15px;
         }
-
         .receipt-footer {
           text-align: center;
           margin-top: 20px;
           border-top: 1px dashed #555;
           padding-top: 8px;
         }
-
         @page {
           size: 80mm auto;
           margin: 2mm;
         }
-
-        @media print {
-          body {
-            padding: 0;
-          }
-
-          .receipt-paper {
-            max-width: 100%;
-          }
-        }
       </style>
     </head>
-
     <body>
       ${content}
-
       <script>
         window.onload = function() {
           setTimeout(function() {
             window.print();
-          }, 500);
+          }, 300);
         };
       <\/script>
     </body>
@@ -1957,10 +1923,9 @@ function openOfflineSale() {
 
   $("offlineSaleContent").innerHTML = `
     <div class="offline-sale">
-      <h3>অফলাইন বিক্রি</h3>
+      <p class="field-hint">কাস্টমারের কোনো তথ্য লাগবে না। শুধু খাবার ও পরিমাণ দিন।</p>
 
       <label for="offlineCategory">ক্যাটাগরি</label>
-
       <select id="offlineCategory">
         <option value="সব খাবার">সব খাবার</option>
         ${categoryOptions}
@@ -1968,19 +1933,19 @@ function openOfflineSale() {
 
       <div id="offlineMenuList"></div>
 
-      <hr>
+      <div class="dashboard-panel">
+        <h3>বিক্রির তালিকা</h3>
+        <div id="offlineCartList"></div>
 
-      <h3>বিক্রির তালিকা</h3>
-      <div id="offlineCartList"></div>
-
-      <div class="total-line">
-        <strong>মোট</strong>
-        <strong id="offlineTotal">${money(0)}</strong>
+        <div class="total-line">
+          <strong>মোট</strong>
+          <strong id="offlineTotal">${money(0)}</strong>
+        </div>
       </div>
 
-      <button class="gold-btn wide" id="saveOfflineSaleBtn">
+      <button class="gold-btn wide" id="saveOfflineSaleBtn" type="button">
         <i class="fa-solid fa-print"></i>
-        বিক্রি সংরক্ষণ ও রসিদ প্রিন্ট
+        বিক্রি সংরক্ষণ ও রসিদ তৈরি
       </button>
     </div>
   `;
@@ -1996,7 +1961,6 @@ function openOfflineSale() {
 
     const id = button.dataset.offlineAdd;
     offlineCart[id] = (offlineCart[id] || 0) + 1;
-
     renderOfflineCart();
   };
 
@@ -2007,11 +1971,7 @@ function openOfflineSale() {
     const id = button.dataset.offlineChange;
     const diff = Number(button.dataset.diff);
 
-    offlineCart[id] = Math.max(
-      0,
-      (offlineCart[id] || 0) + diff
-    );
-
+    offlineCart[id] = Math.max(0, (offlineCart[id] || 0) + diff);
     if (!offlineCart[id]) delete offlineCart[id];
 
     renderOfflineCart();
@@ -2027,13 +1987,12 @@ function renderOfflineMenu() {
   if (!container) return;
 
   const category = $("offlineCategory").value;
-
   const items = category === "সব খাবার"
     ? MENU
     : MENU.filter(item => item.category === category);
 
   container.innerHTML = items.map(item => `
-    <div class="cart-line">
+    <div class="offline-line">
       <div class="cart-line-info">
         <strong>${escapeHTML(item.name)}</strong>
         <small>${money(item.price)}</small>
@@ -2054,7 +2013,6 @@ function offlineRows() {
   return Object.entries(offlineCart)
     .map(([id, qty]) => {
       const item = MENU.find(product => product.id === id);
-
       if (!item || qty < 1) return null;
 
       return {
@@ -2071,7 +2029,7 @@ function renderOfflineCart() {
 
   $("offlineCartList").innerHTML = rows.length
     ? rows.map(item => `
-        <div class="cart-line">
+        <div class="offline-line">
           <div class="cart-line-info">
             <strong>${escapeHTML(item.name)}</strong>
             <small>${money(item.price)} × ${numberBN(item.qty)}</small>
@@ -2080,7 +2038,7 @@ function renderOfflineCart() {
           <div class="quantity-controls">
             <button
               type="button"
-              data-offline-change="${item.id}"
+              data-offline-change="${escapeHTML(item.id)}"
               data-diff="-1"
             >−</button>
 
@@ -2088,7 +2046,7 @@ function renderOfflineCart() {
 
             <button
               type="button"
-              data-offline-change="${item.id}"
+              data-offline-change="${escapeHTML(item.id)}"
               data-diff="1"
             >+</button>
           </div>
@@ -2107,7 +2065,6 @@ async function saveOfflineSale() {
   if (!ensureAdmin()) return;
 
   const rows = offlineRows();
-
   if (!rows.length) {
     toast("প্রথমে খাবার যোগ করুন।");
     return;
@@ -2144,10 +2101,8 @@ async function saveOfflineSale() {
       customer_phone: "",
       customer_address: "",
       status: "completed",
-      total_amount: rows.reduce(
-        (sum, item) => sum + item.subtotal,
-        0
-      )
+      sale_type: "offline",
+      total_amount: rows.reduce((sum, item) => sum + item.subtotal, 0)
     };
 
     const receiptItems = rows.map(item => ({
@@ -2158,27 +2113,21 @@ async function saveOfflineSale() {
       item_status: "active"
     }));
 
-    currentReceipt = {
-      order: sale,
-      items: receiptItems
-    };
-
-    $("receiptContent").innerHTML =
-      receiptHTML(sale, receiptItems);
+    currentReceipt = { order: sale, items: receiptItems };
+    $("receiptContent").innerHTML = receiptHTML(sale, receiptItems);
 
     offlineCart = {};
-
     hide("offlineSaleModal");
     show("receiptModal");
 
     toast("অফলাইন বিক্রি সংরক্ষণ হয়েছে।");
-
   } catch (error) {
     showError(error);
   } finally {
     setLoading(button, false);
   }
 }
+
 // ------------------------------------------------------
 // SALES REPORT
 // ------------------------------------------------------
@@ -2186,18 +2135,18 @@ async function saveOfflineSale() {
 async function openSalesReport() {
   if (!ensureAdmin()) return;
 
-  $("reportDate").value = reportDate;
-
-  $("reportContent").innerHTML = `
+  $("salesReportContent").innerHTML = `
     <div class="report-panel">
-      <h3>বিক্রির রিপোর্ট</h3>
-
-      <label for="reportDate">তারিখ নির্বাচন করুন</label>
-      <input
-        type="date"
-        id="reportDate"
-        value="${reportDate}"
-      >
+      <div class="report-filters">
+        <label for="reportDate">
+          তারিখ নির্বাচন করুন
+          <input
+            type="date"
+            id="reportDate"
+            value="${escapeHTML(reportDate)}"
+          >
+        </label>
+      </div>
 
       <div class="report-actions">
         <button type="button" id="dailyReportBtn" class="gold-btn">
@@ -2219,18 +2168,22 @@ async function openSalesReport() {
     </div>
   `;
 
+  $("reportDate").onchange = event => {
+    reportDate = event.target.value || dhakaDate(new Date());
+  };
+
   $("dailyReportBtn").onclick = () => loadSalesReport("daily");
   $("monthlyReportBtn").onclick = () => loadSalesReport("monthly");
   $("allTimeReportBtn").onclick = () => loadSalesReport("all");
 
-  await loadSalesReport("daily");
-
-  show("reportModal");
+  show("salesReportModal");
+  await loadSalesReport(reportType);
 }
 
 async function loadSalesReport(type) {
   if (!ensureAdmin()) return;
 
+  reportType = type;
   const date = $("reportDate")?.value || reportDate;
 
   if (type !== "all" && !date) {
@@ -2239,7 +2192,6 @@ async function loadSalesReport(type) {
   }
 
   const result = $("reportResults");
-
   result.innerHTML = `<p class="loading">রিপোর্ট তৈরি হচ্ছে...</p>`;
 
   try {
@@ -2251,32 +2203,19 @@ async function loadSalesReport(type) {
 
     if (type === "daily") {
       const range = dhakaDayRange(date);
-
-      query = query
-        .gte("created_at", range.start)
-        .lt("created_at", range.end);
-
+      query = query.gte("created_at", range.start).lt("created_at", range.end);
     } else if (type === "monthly") {
       const range = dhakaMonthRange(date);
-
-      query = query
-        .gte("created_at", range.start)
-        .lt("created_at", range.end);
+      query = query.gte("created_at", range.start).lt("created_at", range.end);
     }
 
     const { data, error } = await query;
-
     if (error) throw error;
 
     const orders = data || [];
 
-    const onlineOrders = orders.filter(
-      order => order.sale_type !== "offline"
-    );
-
-    const offlineOrders = orders.filter(
-      order => order.sale_type === "offline"
-    );
+    const onlineOrders = orders.filter(order => order.sale_type !== "offline");
+    const offlineOrders = orders.filter(order => order.sale_type === "offline");
 
     const onlineTotal = onlineOrders.reduce(
       (sum, order) => sum + Number(order.total_amount || 0),
@@ -2290,32 +2229,39 @@ async function loadSalesReport(type) {
 
     const total = onlineTotal + offlineTotal;
 
-    const { data: cancelledData, error: cancelledError } = await db
+    let cancelledQuery = db
       .from("orders")
       .select("id,status,created_at")
-      .eq("status", "cancelled")
-      .gte(
-        "created_at",
-        type === "all"
-          ? "2000-01-01T00:00:00.000Z"
-          : type === "daily"
-            ? dhakaDayRange(date).start
-            : dhakaMonthRange(date).start
-      )
-      .lt(
-        "created_at",
-        type === "all"
-          ? new Date(Date.now() + 86400000).toISOString()
-          : type === "daily"
-            ? dhakaDayRange(date).end
-            : dhakaMonthRange(date).end
-      );
+      .eq("status", "cancelled");
 
+    if (type === "daily") {
+      const range = dhakaDayRange(date);
+      cancelledQuery = cancelledQuery
+        .gte("created_at", range.start)
+        .lt("created_at", range.end);
+    } else if (type === "monthly") {
+      const range = dhakaMonthRange(date);
+      cancelledQuery = cancelledQuery
+        .gte("created_at", range.start)
+        .lt("created_at", range.end);
+    }
+
+    const { data: cancelledData, error: cancelledError } = await cancelledQuery;
     if (cancelledError) throw cancelledError;
 
     const cancelledCount = (cancelledData || []).length;
 
+    const periodTitle = type === "daily"
+      ? `দৈনিক রিপোর্ট (${escapeHTML(date)})`
+      : type === "monthly"
+        ? `মাসিক রিপোর্ট (${escapeHTML(date.slice(0, 7))})`
+        : "সর্বমোট রিপোর্ট";
+
     result.innerHTML = `
+      <div class="dashboard-panel">
+        <h3>${periodTitle}</h3>
+      </div>
+
       <div class="report-summary">
         <div class="report-card">
           <span>সর্বমোট বিক্রি</span>
@@ -2353,7 +2299,7 @@ async function loadSalesReport(type) {
               <div class="cart-line report-order">
                 <div class="cart-line-info">
                   <strong>
-                    ${escapeHTML(order.customer_name || "অফলাইন বিক্রি")}
+                    ${escapeHTML(order.customer_name || (order.sale_type === "offline" ? "অফলাইন বিক্রি" : "কাস্টমার"))}
                   </strong>
 
                   <small>
@@ -2368,21 +2314,120 @@ async function loadSalesReport(type) {
           : `<p class="empty-state">এই সময়ে কোনো সম্পন্ন বিক্রি নেই।</p>`
       }
     `;
-
   } catch (error) {
     result.innerHTML = `
-      <p class="error-message">
+      <p class="empty-state">
         রিপোর্ট তৈরি করা যায়নি: ${escapeHTML(error.message)}
       </p>
     `;
-
     showError(error);
   }
 }
 
+$("printSalesReport").onclick = () => {
+  const results = $("reportResults");
+  if (!results) return;
+
+  const printWindow = window.open("", "_blank", "width=700,height=800");
+  if (!printWindow) {
+    toast("পপ-আপ অনুমতি দিন, তারপর আবার চেষ্টা করুন।");
+    return;
+  }
+
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html lang="bn">
+    <head>
+      <meta charset="UTF-8">
+      <title>Padma Cafe Sales Report</title>
+      <style>
+        body {
+          font-family: Arial, sans-serif;
+          padding: 24px;
+          color: #111;
+        }
+        h1, h2, h3 {
+          color: #8b6824;
+        }
+        .report-summary {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 12px;
+          margin: 16px 0;
+        }
+        .report-card {
+          border: 1px solid #bbb;
+          padding: 12px;
+        }
+        .report-card strong {
+          display: block;
+          font-size: 20px;
+          margin-top: 6px;
+        }
+        .cart-line {
+          display: flex;
+          justify-content: space-between;
+          padding: 8px;
+          border-bottom: 1px solid #ddd;
+        }
+      </style>
+    </head>
+    <body>
+      <h1>PADMA CAFE</h1>
+      <h2>বিক্রির রিপোর্ট</h2>
+      ${results.innerHTML}
+      <script>
+        window.onload = function() {
+          window.print();
+        };
+      <\/script>
+    </body>
+    </html>
+  `);
+
+  printWindow.document.close();
+};
+
 // ------------------------------------------------------
-// REALTIME SUBSCRIPTION
+// REALTIME, SOUND ALERT & AUTH
 // ------------------------------------------------------
+
+function playAlert() {
+  try {
+    audioCtx = audioCtx || new (
+      window.AudioContext || window.webkitAudioContext
+    )();
+
+    if (audioCtx.state === "suspended") {
+      audioCtx.resume();
+    }
+
+    [0, 0.22, 0.44].forEach(time => {
+      const oscillator = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      oscillator.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      oscillator.frequency.value = 880;
+
+      gain.gain.setValueAtTime(0.001, audioCtx.currentTime + time);
+      gain.gain.exponentialRampToValueAtTime(
+        0.18,
+        audioCtx.currentTime + time + 0.02
+      );
+      gain.gain.exponentialRampToValueAtTime(
+        0.001,
+        audioCtx.currentTime + time + 0.16
+      );
+
+      oscillator.start(audioCtx.currentTime + time);
+      oscillator.stop(audioCtx.currentTime + time + 0.17);
+    });
+  } catch (error) {
+    console.info("Sound requires browser interaction.", error);
+  }
+}
 
 function subscribeLive() {
   if (!user || !profile) return;
@@ -2392,10 +2437,8 @@ function subscribeLive() {
     liveChannel = null;
   }
 
-  const channelName = `padma-live-${user.id}`;
-
   liveChannel = db
-    .channel(channelName)
+    .channel(`padma-live-${user.id}`)
     .on(
       "postgres_changes",
       {
@@ -2404,13 +2447,36 @@ function subscribeLive() {
         table: "orders"
       },
       async payload => {
-        const order = payload.new || payload.old;
+        const order = payload.new || payload.old || {};
 
         if (
           profile.role === "customer" &&
           order.customer_id !== user.id
         ) {
           return;
+        }
+
+        if (
+          profile.role === "admin" &&
+          payload.eventType === "INSERT" &&
+          order.sale_type !== "offline"
+        ) {
+          playAlert();
+          toast("নতুন অনলাইন অর্ডার এসেছে!");
+        }
+
+        if (
+          profile.role === "customer" &&
+          order.approval_status === "awaiting_customer"
+        ) {
+          toast("আপনার অর্ডারে পরিবর্তন হয়েছে। ড্যাশবোর্ড দেখুন।");
+        }
+
+        if (
+          profile.role === "customer" &&
+          order.status === "out_for_delivery"
+        ) {
+          toast("আপনার খাবার ডেলিভারির পথে!");
         }
 
         if ($("dashboardModal")?.classList.contains("show")) {
@@ -2420,20 +2486,46 @@ function subscribeLive() {
             console.error("Live dashboard update failed:", error);
           }
         }
-
-        if (order.status === "out_for_delivery") {
-          toast("আপনার খাবার ডেলিভারির পথে!");
-        }
       }
     )
-    .subscribe(status => {
-      console.log("Padma Cafe realtime:", status);
-    });
+    .subscribe();
 }
 
-// ------------------------------------------------------
-// AUTH SESSION CHANGES
-// ------------------------------------------------------
+$("refreshDashboardBtn")?.addEventListener("click", async () => {
+  try {
+    await renderDashboard();
+    toast("ড্যাশবোর্ড আপডেট হয়েছে।");
+  } catch (error) {
+    showError(error);
+  }
+});
+
+$("logoutBtn").onclick = async () => {
+  if (!user) return;
+
+  try {
+    const { error } = await db.auth.signOut();
+    if (error) throw error;
+
+    user = null;
+    profile = null;
+    currentReceipt = null;
+
+    if (liveChannel) {
+      await db.removeChannel(liveChannel);
+      liveChannel = null;
+    }
+
+    $("accountBtn").textContent = "আমার অ্যাকাউন্ট";
+    $("accountBtn").classList.add("hidden");
+
+    hide("dashboardModal");
+    hide("approvalModal");
+    toast("আপনি লগআউট হয়েছেন।");
+  } catch (error) {
+    showError(error);
+  }
+};
 
 db.auth.onAuthStateChange(async (event, session) => {
   if (event === "PASSWORD_RECOVERY") {
@@ -2444,324 +2536,32 @@ db.auth.onAuthStateChange(async (event, session) => {
   if (event === "SIGNED_OUT") {
     user = null;
     profile = null;
-    cart = {};
 
     if (liveChannel) {
-      db.removeChannel(liveChannel);
+      await db.removeChannel(liveChannel);
       liveChannel = null;
     }
 
-    $("accountBtn").textContent = "লগইন";
-    renderCart();
-
-    hide("dashboardModal");
+    $("accountBtn").textContent = "আমার অ্যাকাউন্ট";
+    $("accountBtn").classList.add("hidden");
     return;
   }
 
-  if (event === "SIGNED_IN" && session?.user) {
+  if (session?.user && !user) {
     user = session.user;
 
-    try {
-      await loadProfile();
-    } catch (error) {
-      console.error("Profile loading error:", error);
-    }
+    setTimeout(async () => {
+      try {
+        await loadProfile();
+      } catch (error) {
+        console.error("Profile loading error:", error);
+      }
+    }, 0);
   }
 });
 
 // ------------------------------------------------------
-// SIGN OUT
-// ------------------------------------------------------
-
-$("logoutBtn").onclick = async () => {
-  if (!user) return;
-
-  if (!confirm("আপনি কি লগআউট করতে চান?")) return;
-
-  try {
-    const { error } = await db.auth.signOut();
-
-    if (error) throw error;
-
-    hide("dashboardModal");
-    toast("আপনি লগআউট হয়েছেন।");
-
-  } catch (error) {
-    showError(error);
-  }
-};
-
-// ------------------------------------------------------
-// REFRESH DASHBOARD
-// ------------------------------------------------------
-
-$("refreshDashboardBtn")?.addEventListener("click", async () => {
-  try {
-    await renderDashboard();
-    toast("ড্যাশবোর্ড আপডেট হয়েছে।");
-  } catch (error) {
-    showError(error);
-  }
-});
-// ------------------------------------------------------
-// PASSWORD SHOW / HIDE
-// ------------------------------------------------------
-
-document.querySelectorAll("[data-password-toggle]").forEach(button => {
-  button.addEventListener("click", () => {
-    const targetId = button.dataset.passwordToggle;
-    const input = $(targetId);
-
-    if (!input) return;
-
-    const isPassword = input.type === "password";
-
-    input.type = isPassword ? "text" : "password";
-
-    button.innerHTML = isPassword
-      ? '<i class="fa-solid fa-eye-slash"></i>'
-      : '<i class="fa-solid fa-eye"></i>';
-
-    button.setAttribute(
-      "aria-label",
-      isPassword ? "পাসওয়ার্ড লুকান" : "পাসওয়ার্ড দেখান"
-    );
-  });
-});
-
-// ------------------------------------------------------
-// PASSWORD TOGGLE FALLBACK
-// ------------------------------------------------------
-
-[
-  "authPassword",
-  "authConfirmPassword",
-  "newPassword",
-  "confirmNewPassword"
-].forEach(id => {
-  const input = $(id);
-  if (!input) return;
-
-  const wrapper = input.parentElement;
-
-  if (
-    wrapper &&
-    !wrapper.querySelector(`[data-password-toggle="${id}"]`)
-  ) {
-    const button = document.createElement("button");
-
-    button.type = "button";
-    button.className = "password-toggle";
-    button.dataset.passwordToggle = id;
-    button.setAttribute("aria-label", "পাসওয়ার্ড দেখান");
-    button.innerHTML = '<i class="fa-solid fa-eye"></i>';
-
-    wrapper.appendChild(button);
-
-    button.addEventListener("click", () => {
-      const isPassword = input.type === "password";
-
-      input.type = isPassword ? "text" : "password";
-
-      button.innerHTML = isPassword
-        ? '<i class="fa-solid fa-eye-slash"></i>'
-        : '<i class="fa-solid fa-eye"></i>';
-    });
-  }
-});
-
-// ------------------------------------------------------
-// MOBILE NAVIGATION
-// ------------------------------------------------------
-
-const mobileMenuButton = $("mobileMenuBtn");
-const mobileNavigation = $("mobileNav");
-
-mobileMenuButton?.addEventListener("click", () => {
-  mobileNavigation?.classList.toggle("active");
-
-  const expanded =
-    mobileNavigation?.classList.contains("active") || false;
-
-  mobileMenuButton.setAttribute(
-    "aria-expanded",
-    String(expanded)
-  );
-});
-
-mobileNavigation?.querySelectorAll("a").forEach(link => {
-  link.addEventListener("click", () => {
-    mobileNavigation.classList.remove("active");
-    mobileMenuButton?.setAttribute("aria-expanded", "false");
-  });
-});
-
-// ------------------------------------------------------
-// NAVIGATION SCROLL
-// ------------------------------------------------------
-
-document.querySelectorAll("[data-scroll]").forEach(button => {
-  button.addEventListener("click", () => {
-    const target = $(button.dataset.scroll);
-
-    target?.scrollIntoView({
-      behavior: "smooth",
-      block: "start"
-    });
-  });
-});
-
-document.querySelectorAll('a[href^="#"]').forEach(link => {
-  link.addEventListener("click", event => {
-    const selector = link.getAttribute("href");
-
-    if (!selector || selector === "#") return;
-
-    const target = document.querySelector(selector);
-
-    if (!target) return;
-
-    event.preventDefault();
-
-    target.scrollIntoView({
-      behavior: "smooth",
-      block: "start"
-    });
-  });
-});
-
-// ------------------------------------------------------
-// MENU SEARCH
-// ------------------------------------------------------
-
-function setupMenuSearch() {
-  const searchInput = $("menuSearch");
-  if (!searchInput) return;
-
-  searchInput.addEventListener("input", () => {
-    const query = searchInput.value.trim().toLowerCase();
-
-    const filtered = MENU.filter(item => {
-      const name = item.name.toLowerCase();
-      const category = item.category.toLowerCase();
-
-      const matchesCategory =
-        selectedCategory === "সব খাবার" ||
-        item.category === selectedCategory;
-
-      return (
-        matchesCategory &&
-        (name.includes(query) || category.includes(query))
-      );
-    });
-
-    const container = $("menuGrid");
-    if (!container) return;
-
-    container.innerHTML = filtered.length
-      ? filtered.map(item => `
-          <article class="menu-card">
-            <img
-              src="${escapeHTML(item.image)}"
-              alt="${escapeHTML(item.name)}"
-              loading="lazy"
-            >
-
-            <div class="menu-card-body">
-              <span class="menu-category-label">
-                ${escapeHTML(item.category)}
-              </span>
-
-              <h3>${escapeHTML(item.name)}</h3>
-
-              <div class="menu-card-bottom">
-                <span class="menu-price">${money(item.price)}</span>
-
-                <button
-                  class="add-cart-btn"
-                  type="button"
-                  data-add="${escapeHTML(item.id)}"
-                >
-                  <i class="fa-solid fa-plus"></i>
-                  কার্টে যোগ
-                </button>
-              </div>
-            </div>
-          </article>
-        `).join("")
-      : `<p class="empty-state">কোনো খাবার পাওয়া যায়নি।</p>`;
-  });
-}
-
-// ------------------------------------------------------
-// CART CLOSE
-// ------------------------------------------------------
-
-$("closeCartBtn")?.addEventListener("click", () => {
-  hide("cartModal");
-});
-
-$("continueShoppingBtn")?.addEventListener("click", () => {
-  hide("cartModal");
-
-  $("menuSection")?.scrollIntoView({
-    behavior: "smooth"
-  });
-});
-
-// ------------------------------------------------------
-// DASHBOARD CLOSE
-// ------------------------------------------------------
-
-$("closeDashboardBtn")?.addEventListener("click", () => {
-  hide("dashboardModal");
-});
-
-$("closeAuthBtn")?.addEventListener("click", () => {
-  hide("authModal");
-});
-
-$("closeReceiptBtn")?.addEventListener("click", () => {
-  hide("receiptModal");
-});
-
-$("closeApprovalBtn")?.addEventListener("click", () => {
-  hide("approvalModal");
-});
-
-$("closeReportBtn")?.addEventListener("click", () => {
-  hide("reportModal");
-});
-
-$("closeOfflineSaleBtn")?.addEventListener("click", () => {
-  hide("offlineSaleModal");
-});
-
-// ------------------------------------------------------
-// HERO BUTTONS
-// ------------------------------------------------------
-
-$("heroOrderBtn")?.addEventListener("click", () => {
-  $("menuSection")?.scrollIntoView({
-    behavior: "smooth"
-  });
-});
-
-$("heroLoginBtn")?.addEventListener("click", () => {
-  authRole = "customer";
-  openAuth("login");
-});
-
-// ------------------------------------------------------
-// FOOTER YEAR
-// ------------------------------------------------------
-
-if ($("currentYear")) {
-  $("currentYear").textContent = new Date().getFullYear();
-}
-
-// ------------------------------------------------------
-// ONLINE / OFFLINE STATUS
+// CONNECTION STATUS, BACK TO TOP & INITIALIZATION
 // ------------------------------------------------------
 
 function updateConnectionStatus() {
@@ -2782,288 +2582,41 @@ function updateConnectionStatus() {
 window.addEventListener("online", updateConnectionStatus);
 window.addEventListener("offline", updateConnectionStatus);
 
-// ------------------------------------------------------
-// INITIAL MENU RENDER
-// ------------------------------------------------------
-
-function initializeWebsite() {
-  renderCategories();
-  renderMenu();
-  renderCart();
-  setupMenuSearch();
-  updateConnectionStatus();
-
-  startOrderTimerTicker();
-
-  console.log("Padma Cafe website initialized.");
-}
-
-// ------------------------------------------------------
-// RESTORE EXISTING SESSION
-// ------------------------------------------------------
-
-async function restoreSession() {
-  try {
-    const {
-      data: { session },
-      error
-    } = await db.auth.getSession();
-
-    if (error) throw error;
-
-    if (!session?.user) {
-      user = null;
-      profile = null;
-      return;
-    }
-
-    user = session.user;
-
-    await loadProfile();
-
-    console.log("Padma Cafe session restored.");
-
-  } catch (error) {
-    console.error("Session restore failed:", error);
-  }
-}
-
-// ------------------------------------------------------
-// PAGE INITIALIZATION
-// ------------------------------------------------------
-
-document.addEventListener("DOMContentLoaded", async () => {
-  initializeWebsite();
-
-  await restoreSession();
-
-  console.log("Padma Cafe is ready.");
-});
-
-// ------------------------------------------------------
-// BACK TO TOP
-// ------------------------------------------------------
-
 $("backToTopBtn")?.addEventListener("click", () => {
-  window.scrollTo({
-    top: 0,
-    behavior: "smooth"
-  });
+  window.scrollTo({ top: 0, behavior: "smooth" });
 });
 
 window.addEventListener("scroll", () => {
-  const button = $("backToTopBtn");
-
-  if (!button) return;
-
-  button.classList.toggle(
-    "visible",
-    window.scrollY > 400
-  );
+  $("backToTopBtn")?.classList.toggle("visible", window.scrollY > 400);
 });
 
-// ------------------------------------------------------
-// ESCAPE KEY CLOSE MODALS
-// ------------------------------------------------------
-
-document.addEventListener("keydown", event => {
-  if (event.key !== "Escape") return;
-
-  document.querySelectorAll(".modal.show").forEach(modal => {
-    modal.classList.remove("show");
-  });
-
-  document.body.classList.remove("modal-open");
-});
-
-// ------------------------------------------------------
-// PADMA CAFE SCRIPT END — PART 7
-// ------------------------------------------------------
-// ======================================================
-// PADMA CAFE — PART 8/8
-// FINAL VALIDATION AND ERROR HANDLING
-// ======================================================
-
-// ------------------------------------------------------
-// CHECK REQUIRED HTML ELEMENTS
-// ------------------------------------------------------
-
-function validateWebsiteElements() {
-  const requiredElements = [
-    "menuGrid",
-    "menuCategories",
-    "cartCount",
-    "cartLines",
-    "cartTotal",
-    "checkoutBtn",
-    "authForm",
-    "authEmail",
-    "authPassword",
-    "authSubmitBtn",
-    "dashboardContent",
-    "dashTitle",
-    "approvalContent",
-    "receiptContent",
-    "printReceiptBtn",
-    "offlineSaleContent",
-    "reportContent"
-  ];
-
-  const missing = requiredElements.filter(id => !$(id));
-
-  if (missing.length) {
-    console.warn(
-      "Padma Cafe: Missing HTML elements:",
-      missing
-    );
-  } else {
-    console.log("Padma Cafe: HTML elements verified.");
+(async function initializeWebsite() {
+  if ($("footerYear")) {
+    $("footerYear").textContent = new Date().getFullYear();
   }
 
-  return missing;
-}
+  renderCategories();
+  renderMenu();
+  renderCart();
+  initializePhoneInput();
+  updateConnectionStatus();
+  startOrderTimerTicker();
 
-// ------------------------------------------------------
-// CHECK MENU
-// ------------------------------------------------------
-
-function validateMenu() {
-  const ids = MENU.map(item => item.id);
-  const duplicateIds = ids.filter(
-    (id, index) => ids.indexOf(id) !== index
-  );
-
-  if (MENU.length !== 26) {
-    console.warn("Menu item count is not 26:", MENU.length);
-  }
-
-  if (duplicateIds.length) {
-    console.error("Duplicate menu IDs:", duplicateIds);
-  }
-
-  MENU.forEach(item => {
-    if (!item.name || !item.price || !item.image) {
-      console.warn("Incomplete menu item:", item);
-    }
-  });
-
-  console.log(
-    `Padma Cafe: ${MENU.length} menu items checked.`
-  );
-
-  return {
-    count: MENU.length,
-    duplicateIds
-  };
-}
-
-// ------------------------------------------------------
-// GLOBAL ERROR HANDLING
-// ------------------------------------------------------
-
-window.addEventListener("error", event => {
-  console.error(
-    "Padma Cafe JavaScript error:",
-    event.message,
-    event.filename,
-    event.lineno
-  );
-});
-
-window.addEventListener("unhandledrejection", event => {
-  console.error(
-    "Padma Cafe async error:",
-    event.reason
-  );
-});
-
-// ------------------------------------------------------
-// CHECK SUPABASE CONNECTION
-// ------------------------------------------------------
-
-async function checkSupabaseConnection() {
   try {
-    const { error } = await db
-      .from("profiles")
-      .select("id")
-      .limit(1);
-
+    const { data, error } = await db.auth.getSession();
     if (error) throw error;
 
-    console.log("Padma Cafe: Supabase connection successful.");
+    if (data.session) {
+      user = data.session.user;
 
-    return true;
-
-  } catch (error) {
-    console.error(
-      "Padma Cafe: Supabase connection failed:",
-      error
-    );
-
-    return false;
-  }
-}
-
-// ------------------------------------------------------
-// PUBLIC APP HELPERS
-// ------------------------------------------------------
-
-window.PadmaCafe = {
-  menu: MENU,
-
-  getCart: () => cartRows(),
-
-  getCartTotal: () => cartTotal(),
-
-  getCurrentUser: () => user,
-
-  getCurrentProfile: () => profile,
-
-  refresh: async () => {
-    renderCategories();
-    renderMenu();
-    renderCart();
-
-    if (user && profile) {
-      await renderDashboard();
+      try {
+        await loadProfile();
+      } catch (profileError) {
+        console.warn("Profile load error:", profileError);
+      }
     }
-  },
-
-  validate: () => ({
-    html: validateWebsiteElements(),
-    menu: validateMenu()
-  }),
-
-  checkConnection: checkSupabaseConnection
-};
-
-// ------------------------------------------------------
-// FINAL INITIALIZATION CHECK
-// ------------------------------------------------------
-
-function finalPadmaCafeCheck() {
-  console.log("--------------------------------");
-  console.log("PADMA CAFE WEBSITE");
-  console.log("JavaScript loaded successfully.");
-  console.log("Menu items:", MENU.length);
-  console.log("Currency: BDT");
-  console.log("Timezone: Asia/Dhaka");
-  console.log("--------------------------------");
-
-  validateMenu();
-  validateWebsiteElements();
-}
-
-if (document.readyState === "loading") {
-  document.addEventListener(
-    "DOMContentLoaded",
-    finalPadmaCafeCheck,
-    { once: true }
-  );
-} else {
-  finalPadmaCafeCheck();
-}
-
-// ======================================================
-// END OF PADMA CAFE SCRIPT — PART 8/8
-// ======================================================
+  } catch (error) {
+    console.error("Initialization error:", error);
+    toast("ওয়েবসাইট সংযোগে সমস্যা হয়েছে।");
+  }
+})();
