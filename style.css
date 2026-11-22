@@ -993,6 +993,12 @@ select option {
   transition: 0.2s ease;
 }
 
+.order-actions .verify-paid-btn {
+  background: rgba(72, 168, 120, 0.22);
+  color: #8debb6;
+  border: 1px solid #48a878;
+}
+
 .order-actions .delivery-btn {
   background: rgba(72, 168, 120, 0.15);
   color: #78dba6;
@@ -1015,9 +1021,11 @@ select option {
   font-weight: 700;
 }
 
-.status.pending {
+.status.pending,
+.status.pending_verification {
   color: #f2c66e;
-  background: rgba(242, 198, 110, 0.13);
+  background: rgba(242, 198, 110, 0.15);
+  border: 1px solid rgba(242, 198, 110, 0.4);
 }
 
 .status.confirmed,
@@ -1370,6 +1378,18 @@ select option {
   font-weight: 800;
   letter-spacing: 2px;
   transform: rotate(-3deg);
+}
+
+.pending-stamp {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 4px 12px;
+  border: 2px solid #b57c16;
+  border-radius: 6px;
+  color: #966309;
+  background: rgba(214, 173, 85, 0.14);
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .receipt-info {
