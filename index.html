@@ -1,491 +1,385 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Padma Cafe | Premium Restaurant & Online Ordering</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Hind+Siliguri:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
-    rel="stylesheet"
-  />
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-  />
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#080808">
+  <meta name="description" content="Padma Cafe - বাংলার ঐতিহ্যবাহী খাবার ও পানীয়।">
+  <title>Padma Cafe | Premium Bengali Taste</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@25.3.1/build/css/intlTelInput.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@25.3.1/build/js/intlTelInput.min.js"></script>
+  <script defer src="script.js"></script>
 </head>
+
 <body>
-  <div class="ambient-bg" aria-hidden="true"></div>
 
-  <!-- Top Header -->
-  <header class="site-header" id="topHeader">
-    <div class="container header-inner">
-      <a href="#hero" class="brand" aria-label="Padma Cafe Home">
-        <span class="brand-crest"><i class="fa-solid fa-crown"></i></span>
-        <span class="brand-text">
-          <strong>PADMA CAFE</strong>
-          <small>ROYAL DINING &amp; KITCHEN</small>
-        </span>
-      </a>
+<header class="header">
+  <a class="brand" href="#home">
+    <img src="https://i.ibb.co/4nW7J6d0/IMG-20261121-WA0000.jpg" alt="Padma Cafe Logo">
+    <span>
+      PADMA <b>CAFE</b>
+      <small>AUTHENTIC BENGALI TASTE</small>
+    </span>
+  </a>
 
-      <nav class="main-nav" aria-label="Primary Navigation">
-        <a href="#menuSection" class="nav-link">মেনু</a>
-        <a href="#aboutSection" class="nav-link">আমাদের সম্পর্কে</a>
-        <a href="#contactSection" class="nav-link">যোগাযোগ</a>
-      </nav>
+  <nav id="mainNav">
+    <a href="#home">হোম</a>
+    <a href="#menuSection">মেনু</a>
+  </nav>
 
-      <div class="header-actions">
-        <!-- Restaurant Online/Offline Control / Single Status Badge -->
-        <button
-          id="storeStatusBtn"
-          class="store-status-btn is-online"
-          type="button"
-          title="রেস্টুরেন্ট স্ট্যাটাস"
-        >
-          <span class="status-dot"></span>
-          <span id="storeStatusLabel">অনলাইন</span>
-        </button>
+  <div class="head-actions">
+    <button id="customerLoginBtn" class="outline" type="button">কাস্টমার লগইন</button>
+    <button id="adminLoginBtn" class="outline" type="button">অ্যাডমিন লগইন</button>
+    <button id="accountBtn" class="outline hidden" type="button">আমার অ্যাকাউন্ট</button>
 
-        <!-- Dedicated Orders Button -->
-        <button id="allOrdersBtn" class="ghost-btn" type="button">
-          <i class="fa-solid fa-receipt"></i>
-          <span>সকল অর্ডার</span>
-        </button>
+    <button id="cartBtn" class="gold-btn" type="button">
+      <i class="fa-solid fa-bag-shopping"></i>
+      কার্ট <span id="cartCount">০</span>
+    </button>
+  </div>
+</header>
 
-        <!-- Customer Login / Profile Trigger -->
-        <button id="customerLoginBtn" class="ghost-btn profile-trigger-btn" type="button">
-          <span id="customerHeaderAvatar" class="header-avatar-placeholder">
-            <i class="fa-regular fa-user"></i>
-          </span>
-          <span id="customerLoginLabel">কাস্টমার লগইন</span>
-        </button>
-
-        <!-- Admin Login / Name Trigger -->
-        <button id="adminLoginBtn" class="ghost-btn" type="button">
-          <i class="fa-solid fa-user-shield"></i>
-          <span id="adminLoginLabel">অ্যাডমিন লগইন</span>
-        </button>
-
-        <!-- Order List (Cart) Button -->
-        <button id="cartBtn" class="gold-btn" type="button">
-          <i class="fa-solid fa-bag-shopping"></i>
-          <span>অর্ডার তালিকা</span>
-          <span id="cartCount">০</span>
-        </button>
-      </div>
-    </div>
-  </header>
-
-  <!-- Hero Section -->
-  <section class="hero" id="hero">
-    <div class="container hero-grid">
-      <div class="hero-copy">
-        <span class="hero-kicker">
-          <i class="fa-solid fa-sparkles"></i> AUTHENTIC FLAVORS OF PADMA
-        </span>
-        <h1>
-          রাজকীয় স্বাদ, আধুনিক আভিজাত্য—
-          <span>পদ্মা ক্যাফে</span>
-        </h1>
-        <p>
-          টাটকা উপকরণ, নিখুঁত রেসিপি এবং দ্রুত ডেলিভারিতে আপনার পছন্দের খাবার পৌঁছে যাবে আপনার দরজায়।
-        </p>
-        <div class="hero-cta">
-          <a href="#menuSection" class="gold-btn hero-menu-btn">
-            <i class="fa-solid fa-utensils"></i>
-            <span>মেনু দেখুন</span>
-          </a>
-        </div>
-        <div class="hero-highlights">
-          <div class="highlight-box">
-            <strong>২৫+</strong>
-            <span>সিগনেচার ডিশ</span>
-          </div>
-          <div class="highlight-box">
-            <strong>লাইভ</strong>
-            <span>অর্ডার ট্র্যাকিং</span>
-          </div>
-          <div class="highlight-box">
-            <strong>দ্রুত</strong>
-            <span>হোম ডেলিভারি</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="hero-visual">
-        <div class="showcase-card">
-          <div class="showcase-badge">CHEF'S SPECIAL</div>
-          <img
-            src="https://i.ibb.co/yB758d7H/images-2026-03-04-T003950-108.jpg"
-            alt="Padma Cafe Signature Dish"
-          />
-          <div class="showcase-caption">
-            <span>হাঁস+খিচুড়ি (স্পেশাল)</span>
-            <strong>২৭০৳</strong>
-          </div>
-        </div>
+<main id="home">
+  <section class="hero">
+    <div class="hero-content">
+      <p class="eyebrow">WELCOME TO PADMA CAFE</p>
+      <h1>স্বাদের প্রতিটি মুহূর্তে<br><em>বাংলার ঐতিহ্য</em></h1>
+      <p>ঘরোয়া স্বাদ, ভালোবাসা আর যত্নে তৈরি প্রতিটি খাবার।</p>
+      <div class="hero-actions">
+        <a id="heroOrderBtn" class="gold-btn" href="#menuSection">মেনু দেখুন</a>
       </div>
     </div>
   </section>
 
-  <!-- Menu Section -->
-  <section class="menu-section" id="menuSection">
-    <div class="container">
-      <div class="section-head">
-        <span class="eyebrow">CURATED MENU</span>
-        <h2>আমাদের বিশেষ খাবারের মেনু</h2>
-        <p>ক্যাটাগরি অনুযায়ী খাবার বেছে নিন অথবা পছন্দের আইটেম সার্চ করুন।</p>
-      </div>
+  <section id="menuSection" class="section">
+    <div class="section-head">
+      <p class="eyebrow">OUR MENU</p>
+      <h2>আমাদের <em>মেনু</em></h2>
+      <p>আপনার পছন্দের খাবার বেছে নিন</p>
+    </div>
 
-      <div class="menu-toolbar">
-        <div class="category-tabs" id="categoryTabs" role="tablist"></div>
-        <div class="search-box">
-          <i class="fa-solid fa-magnifying-glass"></i>
-          <input
-            type="search"
-            id="menuSearch"
-            placeholder="খাবারের নাম দিয়ে খুঁজুন..."
-            aria-label="খাবারের নাম দিয়ে খুঁজুন"
-          />
+    <div class="menu-toolbar">
+      <input
+        id="menuSearch"
+        type="search"
+        placeholder="খাবারের নাম বা ক্যাটাগরি দিয়ে খুঁজুন..."
+        aria-label="মেনু খুঁজুন"
+      >
+    </div>
+
+    <div id="menuCategories" class="menu-categories"></div>
+    <div id="menuGrid" class="menu-grid"></div>
+  </section>
+</main>
+
+<footer class="footer">
+  <p class="footer-brand">PADMA CAFE</p>
+  <small>বাংলার স্বাদ, হৃদয়ের কাছে</small>
+
+  <a class="facebook-link"
+     href="https://www.facebook.com/share/18QXKsYN8H/?mibextid=wwXIfr"
+     target="_blank"
+     rel="noopener noreferrer">
+    <i class="fa-brands fa-facebook"></i>
+    Facebook
+  </a>
+
+  <p id="connectionStatus" class="connection-status online">অনলাইন</p>
+
+  <p class="copyright">
+    © <span id="footerYear"></span> Padma Cafe. All rights reserved.
+  </p>
+</footer>
+
+<button id="backToTopBtn" class="back-to-top" type="button" aria-label="উপরে যান">
+  <i class="fa-solid fa-arrow-up"></i>
+</button>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<!-- CART MODAL -->
+<div id="cartModal" class="modal">
+  <div class="modal-card">
+    <button id="closeCartBtn" class="x" data-close="cartModal" type="button">×</button>
+
+    <p class="eyebrow">YOUR SELECTION</p>
+    <h2>আপনার কার্ট</h2>
+
+    <div id="cartLines"></div>
+
+    <div class="total-line">
+      <b>সর্বমোট</b>
+      <b id="cartTotal">৳০</b>
+    </div>
+
+    <button id="checkoutBtn" class="gold-btn wide" type="button">
+      অর্ডার করুন
+    </button>
+
+    <button id="continueShoppingBtn" class="outline wide" type="button">
+      আরও খাবার দেখুন
+    </button>
+  </div>
+</div>
+
+<!-- AUTH MODAL -->
+<div id="authModal" class="modal">
+  <div class="modal-card">
+    <button id="closeAuthBtn" class="x" data-close="authModal" type="button">×</button>
+
+    <p class="eyebrow" id="authRoleLabel">CUSTOMER ACCOUNT</p>
+    <h2 id="authTitle">কাস্টমার লগইন</h2>
+
+    <form id="authForm">
+      <label id="nameWrap" class="hidden">
+        আপনার নাম
+        <input id="authName" type="text"
+               autocomplete="name"
+               placeholder="আপনার সম্পূর্ণ নাম">
+      </label>
+
+      <label>
+        ইমেইল / Gmail
+        <input id="authEmail" type="email" required
+               autocomplete="email"
+               placeholder="example@gmail.com">
+      </label>
+
+      <label id="phoneWrap" class="hidden">
+        মোবাইল নম্বর
+        <input id="authPhone" type="tel"
+               autocomplete="tel"
+               placeholder="মোবাইল নম্বর">
+        <small class="field-hint">
+          দেশের পতাকা ও কান্ট্রি কোড নির্বাচন করুন।
+        </small>
+      </label>
+
+      <label id="addressWrap" class="hidden">
+        আপনার ঠিকানা
+        <textarea id="authAddress" rows="2"
+                  autocomplete="street-address"
+                  placeholder="সম্পূর্ণ ঠিকানা লিখুন"></textarea>
+      </label>
+
+      <label>
+        পাসওয়ার্ড
+        <div class="password-field">
+          <input id="authPassword" type="password"
+                 minlength="6" required
+                 autocomplete="current-password"
+                 placeholder="পাসওয়ার্ড লিখুন">
+          <button type="button" class="password-toggle"
+                  data-toggle-password="authPassword"
+                  aria-label="পাসওয়ার্ড দেখুন">
+            <i class="fa-solid fa-eye"></i>
+          </button>
         </div>
+      </label>
+
+      <label id="confirmPasswordWrap" class="hidden">
+        পাসওয়ার্ড নিশ্চিত করুন
+        <div class="password-field">
+          <input id="authConfirmPassword" type="password"
+                 minlength="6"
+                 autocomplete="new-password"
+                 placeholder="আবার পাসওয়ার্ড লিখুন">
+          <button type="button" class="password-toggle"
+                  data-toggle-password="authConfirmPassword"
+                  aria-label="পাসওয়ার্ড দেখুন">
+            <i class="fa-solid fa-eye"></i>
+          </button>
+        </div>
+      </label>
+
+      <div id="forgotPasswordWrap" class="forgot-wrap">
+        <button id="forgotPasswordBtn" type="button" class="text-btn">
+          পাসওয়ার্ড ভুলে গেছেন?
+        </button>
       </div>
 
-      <div class="menu-grid" id="menuGrid"></div>
-    </div>
-  </section>
-
-  <!-- About Section -->
-  <section class="info-section" id="aboutSection">
-    <div class="container info-grid">
-      <div class="info-card">
-        <i class="fa-solid fa-bowl-food"></i>
-        <h3>স্বাস্থ্যসম্মত ও মানসম্মত রান্না</h3>
-        <p>প্রতিদিন তাজা বাজার থেকে সংগ্রহ করা উপকরণে অভিজ্ঞ শেফদের তত্ত্বাবধানে প্রতিটি পদ প্রস্তুত করা হয়।</p>
-      </div>
-      <div class="info-card">
-        <i class="fa-solid fa-motorcycle"></i>
-        <h3>রিয়েল-টাইম ডেলিভারি ট্র্যাকিং</h3>
-        <p>কখন খাবার রান্না হচ্ছে এবং কখন রাইডার আপনার ঠিকানার পথে রওনা দিয়েছে—সবকিছু লাইভ দেখতে পারবেন।</p>
-      </div>
-      <div class="info-card">
-        <i class="fa-solid fa-file-invoice"></i>
-        <h3>সহজ অর্ডার ও ডিজিটাল রসিদ</h3>
-        <p>অনলাইন অর্ডার এবং অফলাইন শপ সেল—উভয়ের জন্যই রয়েছে পরিচ্ছন্ন হিসাব ও প্রিন্টযোগ্য রসিদ।</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- Contact / Footer -->
-  <footer class="site-footer" id="contactSection">
-    <div class="container footer-inner">
-      <div>
-        <strong>PADMA CAFE</strong>
-        <p>উন্নত স্বাদ, আন্তরিক সেবা ও নির্ভরযোগ্য ডেলিভারি।</p>
-      </div>
-      <div class="footer-meta">
-        <span><i class="fa-solid fa-phone"></i> +880 1700-000000</span>
-        <span><i class="fa-solid fa-location-dot"></i> পদ্মা ক্যাফে মূল শাখা</span>
-      </div>
-    </div>
-  </footer>
-
-  <!-- Customer Profile Slide-Over Drawer -->
-  <div class="drawer-backdrop" id="customerDrawerBackdrop" hidden></div>
-  <aside class="profile-drawer" id="customerDrawer" aria-hidden="true">
-    <div class="drawer-header">
-      <div>
-        <span class="eyebrow">CUSTOMER ACCOUNT</span>
-        <h3>কাস্টমার প্রোফাইল</h3>
-      </div>
-      <button class="icon-close-btn" id="closeCustomerDrawerBtn" type="button" aria-label="বন্ধ করুন">
-        <i class="fa-solid fa-xmark"></i>
+      <button id="authSubmitBtn" class="gold-btn wide" type="submit">
+        লগইন করুন
       </button>
-    </div>
+    </form>
 
-    <div class="drawer-body">
-      <div class="avatar-upload-box">
-        <div class="avatar-preview-wrap">
-          <img id="drawerAvatarPreview" src="" alt="Customer Avatar" hidden />
-          <div id="drawerAvatarFallback" class="avatar-fallback">
-            <i class="fa-regular fa-user"></i>
-          </div>
-        </div>
-        <label for="customerAvatarInput" class="ghost-btn small-btn">
-          <i class="fa-solid fa-camera"></i>
-          <span>ছবি পরিবর্তন করুন</span>
-        </label>
-        <input type="file" id="customerAvatarInput" accept="image/*" hidden />
-        <small class="hint-text">JPG, PNG বা WEBP ছবি নির্বাচন করুন</small>
-      </div>
+    <p id="switchAuthWrap" class="switch-auth">
+      <span id="authSwitchText">নতুন কাস্টমার?</span>
+      <button id="authSwitch" type="button">রেজিস্টার করুন</button>
+    </p>
 
-      <div class="form-group">
-        <label for="customerProfileNameInput">আপনার নাম</label>
+    <p id="authHint" class="hint">
+      কাস্টমার অ্যাকাউন্ট দিয়ে অর্ডার করুন ও অর্ডারের অবস্থা দেখুন।
+    </p>
+  </div>
+</div>
+
+<!-- 6-DIGIT OTP VERIFICATION MODAL -->
+<div id="otpVerifyModal" class="modal">
+  <div class="modal-card">
+    <button class="x" data-close="otpVerifyModal" type="button">×</button>
+
+    <p class="eyebrow">EMAIL VERIFICATION</p>
+    <h2>৬ সংখ্যার কোড দিন</h2>
+
+    <p class="field-hint" style="margin-bottom: 14px;">
+      আপনার ইমেইল (<strong id="otpEmailDisplay">—</strong>)-এ পাঠানো ৬ সংখ্যার ভেরিফিকেশন কোডটি নিচে লিখুন। ইনবক্সে না পেলে Spam ফোল্ডার দেখুন।
+    </p>
+
+    <form id="otpVerifyForm">
+      <label>
+        ভেরিফিকেশন কোড (৬ সংখ্যা)
         <input
+          id="otpCodeInput"
           type="text"
-          id="customerProfileNameInput"
-          placeholder="আপনার নাম লিখুন"
-        />
-      </div>
+          inputmode="numeric"
+          pattern="[0-9]{6}"
+          maxlength="6"
+          required
+          autocomplete="one-time-code"
+          placeholder="১২৩৪৫৬"
+          class="otp-input"
+        >
+      </label>
 
-      <div class="form-group">
-        <label for="customerProfileEmailInput">ইমেইল ঠিকানা</label>
-        <input type="email" id="customerProfileEmailInput" readonly />
-      </div>
+      <button id="verifyOtpBtn" class="gold-btn wide" type="submit">
+        কোড যাচাই করুন
+      </button>
 
-      <div class="drawer-actions">
-        <button type="button" id="saveCustomerProfileBtn" class="gold-btn full-width">
-          <i class="fa-solid fa-check"></i>
-          <span>সেভ</span>
-        </button>
-        <button type="button" id="drawerLogoutBtn" class="danger-btn full-width">
-          <i class="fa-solid fa-right-from-bracket"></i>
-          <span>লগআউট</span>
-        </button>
-      </div>
-    </div>
-  </aside>
-
-  <!-- Order List (Cart) Modal -->
-  <div class="modal" id="cartModal" aria-hidden="true">
-    <div class="modal-backdrop" data-close-modal="cartModal"></div>
-    <div class="modal-dialog">
-      <div class="modal-head">
-        <div>
-          <p class="eyebrow">YOUR ORDER LIST</p>
-          <h2>আপনার অর্ডার তালিকা</h2>
-        </div>
-        <button class="icon-close-btn" type="button" data-close-modal="cartModal" aria-label="বন্ধ করুন">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-      </div>
-
-      <div class="modal-body" id="cartLines"></div>
-
-      <div class="modal-foot">
-        <div class="total-row">
-          <span>সর্বমোট</span>
-          <strong id="cartTotal">০৳</strong>
-        </div>
-        <button id="checkoutBtn" class="gold-btn full-width" type="button">
-          <i class="fa-solid fa-bag-shopping"></i>
-          <span id="checkoutBtnLabel">অর্ডার করুন</span>
-        </button>
-        <button class="ghost-btn full-width" type="button" data-close-modal="cartModal">
-          আরও খাবার দেখুন
-        </button>
-      </div>
-    </div>
+      <button id="resendOtpBtn" class="outline wide" type="button">
+        আবার কোড পাঠান
+      </button>
+    </form>
   </div>
+</div>
 
-  <!-- Auth Modal (Customer & Admin 6-Digit OTP) -->
-  <div class="modal" id="authModal" aria-hidden="true">
-    <div class="modal-backdrop" data-close-modal="authModal"></div>
-    <div class="modal-dialog">
-      <div class="modal-head">
-        <div>
-          <p class="eyebrow" id="authEyebrow">ACCOUNT VERIFICATION</p>
-          <h2 id="authTitle">লগইন করুন</h2>
-        </div>
-        <button class="icon-close-btn" type="button" data-close-modal="authModal" aria-label="বন্ধ করুন">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-      </div>
+<!-- PASSWORD RESET MODAL -->
+<div id="resetPasswordModal" class="modal">
+  <div class="modal-card">
+    <button class="x" data-close="resetPasswordModal" type="button">×</button>
 
-      <div class="modal-body">
-        <div id="authStepEmail">
-          <div class="form-group">
-            <label for="authEmailInput">ইমেইল ঠিকানা</label>
-            <input type="email" id="authEmailInput" placeholder="example@gmail.com" />
-          </div>
-          <div class="form-group" id="authNameGroup">
-            <label for="authNameInput">আপনার নাম</label>
-            <input type="text" id="authNameInput" placeholder="আপনার পূর্ণ নাম লিখুন" />
-          </div>
-          <button id="sendOtpBtn" class="gold-btn full-width" type="button">
-            <i class="fa-solid fa-paper-plane"></i>
-            <span>৬ সংখ্যার OTP পাঠান</span>
+    <p class="eyebrow">ACCOUNT SECURITY</p>
+    <h2>নতুন পাসওয়ার্ড দিন</h2>
+
+    <form id="resetPasswordForm">
+      <label>
+        নতুন পাসওয়ার্ড
+        <div class="password-field">
+          <input id="newPassword" type="password" minlength="6" required>
+          <button type="button" class="password-toggle"
+                  data-toggle-password="newPassword"
+                  aria-label="পাসওয়ার্ড দেখুন">
+            <i class="fa-solid fa-eye"></i>
           </button>
         </div>
+      </label>
 
-        <div id="authStepOtp" hidden>
-          <p class="otp-notice">
-            আপনার ইমেইলে পাঠানো <strong>৬ সংখ্যার OTP কোড</strong> নিচে লিখুন:
-          </p>
-          <div class="form-group">
-            <label for="otpCodeInput">৬ ডিজিট OTP কোড</label>
-            <input
-              type="text"
-              id="otpCodeInput"
-              maxlength="6"
-              inputmode="numeric"
-              placeholder="123456"
-            />
-          </div>
-          <button id="verifyOtpBtn" class="gold-btn full-width" type="button">
-            <i class="fa-solid fa-shield-check"></i>
-            <span>OTP ভেরিফাই করুন</span>
-          </button>
-          <button id="backToEmailBtn" class="ghost-btn full-width" type="button">
-            ইমেইল পরিবর্তন করুন
+      <label>
+        পাসওয়ার্ড নিশ্চিত করুন
+        <div class="password-field">
+          <input id="confirmNewPassword" type="password"
+                 minlength="6" required>
+          <button type="button" class="password-toggle"
+                  data-toggle-password="confirmNewPassword"
+                  aria-label="পাসওয়ার্ড দেখুন">
+            <i class="fa-solid fa-eye"></i>
           </button>
         </div>
-      </div>
-    </div>
+      </label>
+
+      <button class="gold-btn wide" type="submit">
+        পাসওয়ার্ড পরিবর্তন করুন
+      </button>
+    </form>
   </div>
+</div>
 
-  <!-- Checkout Modal (Customer Delivery Details) -->
-  <div class="modal" id="checkoutModal" aria-hidden="true">
-    <div class="modal-backdrop" data-close-modal="checkoutModal"></div>
-    <div class="modal-dialog">
-      <div class="modal-head">
-        <div>
-          <p class="eyebrow">DELIVERY DETAILS</p>
-          <h2>অর্ডার নিশ্চিত করুন</h2>
-        </div>
-        <button class="icon-close-btn" type="button" data-close-modal="checkoutModal" aria-label="বন্ধ করুন">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
+<!-- CUSTOMER / ADMIN DASHBOARD -->
+<div id="dashboardModal" class="modal">
+  <div class="modal-card dashboard">
+    <button id="closeDashboardBtn" class="x" data-close="dashboardModal" type="button">×</button>
+
+    <div class="dash-top">
+      <div>
+        <p class="eyebrow">PADMA CAFE</p>
+        <h2 id="dashTitle">ড্যাশবোর্ড</h2>
       </div>
 
-      <div class="modal-body">
-        <div class="form-group">
-          <label for="custNameInput">কাস্টমারের নাম</label>
-          <input type="text" id="custNameInput" placeholder="আপনার নাম" />
-        </div>
-        <div class="form-group">
-          <label for="custPhoneInput">ফোন নম্বর</label>
-          <input type="tel" id="custPhoneInput" placeholder="+8801XXXXXXXXX" />
-        </div>
-        <div class="form-group">
-          <label for="custAddressInput">ডেলিভারি ঠিকানা</label>
-          <textarea id="custAddressInput" rows="3" placeholder="বিস্তারিত ঠিকানা লিখুন"></textarea>
-        </div>
-        <div class="form-group">
-          <label for="custNoteInput">নোট (ঐচ্ছিক)</label>
-          <input type="text" id="custNoteInput" placeholder="ঝাল কম/বেশি বা বিশেষ নির্দেশনা" />
-        </div>
-        <button id="confirmOrderBtn" class="gold-btn full-width" type="button">
-          <i class="fa-solid fa-check-circle"></i>
-          <span>অর্ডার প্লেস করুন</span>
+      <div class="dash-top-actions">
+        <button id="refreshDashboardBtn" class="outline" type="button">
+          <i class="fa-solid fa-rotate"></i>
+          রিফ্রেশ
         </button>
       </div>
     </div>
+
+    <div id="dashboardContent"></div>
   </div>
+</div>
 
-  <!-- Orders & Admin Dashboard Modal -->
-  <div class="modal modal-wide" id="ordersModal" aria-hidden="true">
-    <div class="modal-backdrop" data-close-modal="ordersModal"></div>
-    <div class="modal-dialog modal-dialog-wide">
-      <div class="modal-head">
-        <div>
-          <p class="eyebrow" id="ordersEyebrow">ORDERS &amp; SALES</p>
-          <h2 id="ordersTitle">সকল অর্ডার</h2>
-        </div>
-        <button class="icon-close-btn" type="button" data-close-modal="ordersModal" aria-label="বন্ধ করুন">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-      </div>
+<!-- PARTIAL ORDER APPROVAL MODAL -->
+<div id="approvalModal" class="modal">
+  <div class="modal-card">
+    <button id="closeApprovalBtn" class="x" data-close="approvalModal" type="button">×</button>
 
-      <div class="modal-body" id="ordersModalBody">
-        <!-- Delivery Bike Road Tracker -->
-        <div class="tracker-card" id="deliveryTrackerCard">
-          <div class="tracker-top">
-            <div>
-              <span class="eyebrow">LIVE DELIVERY ROAD</span>
-              <h3 id="trackerStatusTitle">অর্ডার অপেক্ষমাণ</h3>
-            </div>
-            <div class="tracker-timer-box">
-              <small id="trackerTimerLabel">অবশিষ্ট সময়</small>
-              <strong id="trackerTimerValue">--:--</strong>
-            </div>
-          </div>
+    <p class="eyebrow">ORDER UPDATE</p>
+    <h2>আপনার অর্ডারে পরিবর্তন</h2>
 
-          <div class="road-track">
-            <div class="road-endpoints">
-              <span><i class="fa-solid fa-store"></i> পদ্মা ক্যাফে</span>
-              <span><i class="fa-solid fa-location-dot"></i> আপনার ঠিকানা</span>
-            </div>
-            <div class="road-line">
-              <div class="road-progress" id="roadProgressFill"></div>
-              <div class="delivery-bike" id="deliveryBike">
-                <i class="fa-solid fa-motorcycle"></i>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Admin Daily Summary + Monthly Report & History -->
-        <div id="adminReportsPanel" class="admin-reports-panel" hidden>
-          <div class="report-header-row">
-            <div>
-              <span class="eyebrow">TODAY'S SUMMARY (AUTO RESETS AT 12:00 AM)</span>
-              <h3>আজকের হিসাব</h3>
-            </div>
-            <div class="month-picker-group">
-              <label for="monthlyReportInput">মাসিক হিসাব ও হিস্টোরি:</label>
-              <input type="month" id="monthlyReportInput" />
-            </div>
-          </div>
-
-          <div class="summary-cards">
-            <div class="summary-card">
-              <span>আজকের অনলাইন সেল</span>
-              <strong id="todayOnlineTotal">০৳</strong>
-            </div>
-            <div class="summary-card">
-              <span>আজকের অফলাইন সেল</span>
-              <strong id="todayOfflineTotal">০৳</strong>
-            </div>
-            <div class="summary-card">
-              <span>আজকের মোট সেল</span>
-              <strong id="todayGrandTotal">০৳</strong>
-            </div>
-          </div>
-
-          <div class="monthly-box" id="monthlyReportBox">
-            <div class="monthly-box-head">
-              <h4 id="monthlyReportTitle">নির্বাচিত মাসের হিসাব</h4>
-              <div class="monthly-totals" id="monthlyReportTotals"></div>
-            </div>
-            <div class="monthly-history-list" id="monthlyHistoryList"></div>
-          </div>
-        </div>
-
-        <!-- Orders List Container -->
-        <div id="ordersListContainer" class="orders-list"></div>
-      </div>
-    </div>
+    <div id="approvalContent"></div>
   </div>
+</div>
 
-  <!-- Receipt Modal -->
-  <div class="modal" id="receiptModal" aria-hidden="true">
-    <div class="modal-backdrop" data-close-modal="receiptModal"></div>
-    <div class="modal-dialog receipt-dialog">
-      <div class="modal-head no-print">
-        <div>
-          <p class="eyebrow">OFFICIAL INVOICE</p>
-          <h2>অর্ডার রসিদ</h2>
-        </div>
-        <button class="icon-close-btn" type="button" data-close-modal="receiptModal" aria-label="বন্ধ করুন">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-      </div>
-      <div class="modal-body" id="receiptContent"></div>
-      <div class="modal-foot no-print">
-        <button type="button" id="printReceiptBtn" class="gold-btn full-width">
-          <i class="fa-solid fa-print"></i>
-          <span>রসিদ প্রিন্ট করুন</span>
-        </button>
-      </div>
-    </div>
+<!-- RECEIPT MODAL -->
+<div id="receiptModal" class="modal">
+  <div class="modal-card receipt-card">
+    <button id="closeReceiptBtn" class="x no-print" data-close="receiptModal" type="button">×</button>
+
+    <div id="receiptContent"></div>
+
+    <button id="printReceiptBtn" class="gold-btn wide no-print" type="button">
+      <i class="fa-solid fa-print"></i>
+      রসিদ প্রিন্ট করুন
+    </button>
   </div>
+</div>
 
-  <!-- Toast Notification -->
-  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+<!-- OFFLINE SALE MODAL -->
+<div id="offlineSaleModal" class="modal">
+  <div class="modal-card dashboard">
+    <button id="closeOfflineSaleBtn" class="x" data-close="offlineSaleModal" type="button">×</button>
 
-  <script src="script.js"></script>
+    <p class="eyebrow">PADMA CAFE ADMIN</p>
+    <h2>নতুন অফলাইন বিক্রি</h2>
+
+    <div id="offlineSaleContent"></div>
+  </div>
+</div>
+
+<!-- SALES REPORT MODAL -->
+<div id="salesReportModal" class="modal">
+  <div class="modal-card dashboard">
+    <button id="closeReportBtn" class="x" data-close="salesReportModal" type="button">×</button>
+
+    <p class="eyebrow">BUSINESS REPORT</p>
+    <h2>বিক্রির রিপোর্ট</h2>
+
+    <div id="salesReportContent"></div>
+
+    <button id="printSalesReport" class="gold-btn wide no-print" type="button">
+      <i class="fa-solid fa-print"></i>
+      রিপোর্ট প্রিন্ট করুন
+    </button>
+  </div>
+</div>
+
 </body>
 </html>
