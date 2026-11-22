@@ -106,7 +106,7 @@ alter table public.orders
 
 alter table public.orders
   add constraint orders_payment_status_check
-  check (payment_status in ('unpaid', 'paid'));
+  check (payment_status in ('unpaid', 'pending_verification', 'paid'));
 
 -- ---------------------------------------------------------
 -- 2. CUSTOMER ORDER CREATION (WITH RECIPIENT & PAYMENT INFO)
@@ -218,7 +218,7 @@ begin
   end;
 
   v_final_pay_status := case
-    when v_final_pay_method = 'online_qr' and p_payment_status = 'paid' then 'paid'
+    when v_final_pay_method = 'online_qr' then 'pending_verification'
     else 'unpaid'
   end;
 
@@ -303,7 +303,36 @@ end;
 $$;
 
 -- ---------------------------------------------------------
--- 3. ADMIN UPDATE ORDER STATUS AND TIMERS
+-- 3. ADMIN VERIFY ONLINE PAYMENT AS PAID
+-- ---------------------------------------------------------
+
+create or replace function public.admin_mark_payment_paid(
+  p_order_id uuid
+)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not public.is_admin() then
+    raise exception 'শুধু অ্যাডমিন পেমেন্ট ভেরিফাই করতে পারবেন';
+  end if;
+
+  update public.orders
+  set payment_status = 'paid',
+      updated_at = now()
+  where id = p_order_id
+    and sale_type = 'online';
+
+  if not found then
+    raise exception 'অর্ডারটি পাওয়া যায়নি';
+  end if;
+end;
+$$;
+
+-- ---------------------------------------------------------
+-- 4. ADMIN UPDATE ORDER STATUS AND TIMERS
 -- ---------------------------------------------------------
 
 create or replace function public.admin_update_order_status(
@@ -404,7 +433,7 @@ end;
 $$;
 
 -- ---------------------------------------------------------
--- 4. CUSTOMER ACCEPT OR REJECT CHANGED ORDER
+-- 5. CUSTOMER ACCEPT OR REJECT CHANGED ORDER
 -- ---------------------------------------------------------
 
 create or replace function public.customer_respond_to_order_change(
@@ -448,7 +477,7 @@ end;
 $$;
 
 -- ---------------------------------------------------------
--- 5. OFFLINE SALE
+-- 6. OFFLINE SALE
 -- ---------------------------------------------------------
 
 create or replace function public.admin_create_offline_sale(
@@ -589,11 +618,15 @@ end;
 $$;
 
 -- ---------------------------------------------------------
--- 6. FUNCTION PERMISSIONS
+-- 7. FUNCTION PERMISSIONS
 -- ---------------------------------------------------------
 
 grant execute on function public.place_customer_order(
   jsonb, text, text, text, text, text, text
+) to authenticated;
+
+grant execute on function public.admin_mark_payment_paid(
+  uuid
 ) to authenticated;
 
 grant execute on function public.admin_update_order_status(
