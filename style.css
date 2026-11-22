@@ -584,7 +584,7 @@ img {
   color: #171109;
 }
 
-/* SIDE SLIDE DRAWER (CUSTOMER PROFILE) */
+/* SIDE SLIDE DRAWER */
 
 .side-drawer {
   display: none;
@@ -690,6 +690,63 @@ img {
   color: var(--cream);
   font-size: 25px;
   margin-bottom: 20px;
+}
+
+/* BANGLA QR PAYMENT BOX */
+
+.qr-payment-box {
+  text-align: center;
+  padding: 18px 14px;
+  border-radius: 12px;
+  background: #101010;
+  border: 1px solid var(--border);
+}
+
+.qr-merchant-title {
+  font-family: "Playfair Display", serif;
+  color: var(--gold-light);
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.qr-merchant-sub {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+
+.qr-canvas-wrap {
+  width: 210px;
+  height: 210px;
+  margin: 0 auto 12px;
+  padding: 10px;
+  border-radius: 12px;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--gold);
+}
+
+.qr-canvas-wrap canvas,
+.qr-canvas-wrap img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain;
+}
+
+.qr-amount-label {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.qr-exact-amount {
+  display: block;
+  color: var(--gold-light);
+  font-size: 28px;
+  font-weight: 700;
+  margin: 2px 0 6px;
 }
 
 /* FORMS */
@@ -916,6 +973,13 @@ select option {
   font-size: 14px;
 }
 
+.order-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 6px 0 8px;
+}
+
 .order-actions {
   display: flex;
   flex-wrap: wrap;
@@ -941,7 +1005,7 @@ select option {
   border: 1px solid #48a878;
 }
 
-/* STATUS LABELS */
+/* STATUS & PAID BADGES */
 
 .status {
   display: inline-block;
@@ -960,9 +1024,18 @@ select option {
 .status.preparing,
 .status.out_for_delivery,
 .status.completed,
-.status.delivered {
+.status.delivered,
+.status.paid {
   color: #78dba6;
-  background: rgba(72, 168, 120, 0.15);
+  background: rgba(72, 168, 120, 0.16);
+  border: 1px solid rgba(72, 168, 120, 0.45);
+}
+
+.status.unpaid,
+.status.cod {
+  color: #e5c16f;
+  background: rgba(214, 173, 85, 0.14);
+  border: 1px solid rgba(214, 173, 85, 0.35);
 }
 
 .status.cancelled,
@@ -977,7 +1050,7 @@ select option {
   background: rgba(80, 150, 220, 0.15);
 }
 
-/* DELIVERY TRACKING PANEL (ONE-WAY PROGRESS, BIKE FACING RIGHT) */
+/* DELIVERY TRACKING PANEL */
 
 .delivery-tracking {
   position: relative;
@@ -1272,6 +1345,7 @@ select option {
 }
 
 .receipt-header {
+  position: relative;
   text-align: center;
   border-bottom: 2px dashed #777;
   padding-bottom: 15px;
@@ -1281,6 +1355,21 @@ select option {
 .receipt-header h2 {
   color: #111;
   margin: 0;
+}
+
+.paid-stamp {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 4px 14px;
+  border: 2px solid #1b7a46;
+  border-radius: 6px;
+  color: #1b7a46;
+  background: rgba(27, 122, 70, 0.08);
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  transform: rotate(-3deg);
 }
 
 .receipt-info {
