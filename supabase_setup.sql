@@ -6,6 +6,8 @@
 
 begin;
 
+drop function if exists public.place_customer_order(jsonb);
+
 -- ---------------------------------------------------------
 -- 1. ADD NEW ORDER COLUMNS & CONSTRAINTS
 -- ---------------------------------------------------------
