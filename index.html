@@ -13,14 +13,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="style.css">
-
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@25.3.1/build/css/intlTelInput.css">
-
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@25.3.1/build/js/intlTelInput.min.js"></script>
-
   <script defer src="script.js"></script>
 </head>
 
@@ -44,6 +41,7 @@
     <button id="customerLoginBtn" class="outline" type="button">কাস্টমার লগইন</button>
     <button id="adminLoginBtn" class="outline" type="button">অ্যাডমিন লগইন</button>
     <button id="accountBtn" class="outline hidden" type="button">আমার অ্যাকাউন্ট</button>
+
     <button id="cartBtn" class="gold-btn" type="button">
       <i class="fa-solid fa-bag-shopping"></i>
       কার্ট <span id="cartCount">০</span>
@@ -52,7 +50,6 @@
 </header>
 
 <main id="home">
-
   <section class="hero">
     <div class="hero-content">
       <p class="eyebrow">WELCOME TO PADMA CAFE</p>
@@ -72,24 +69,23 @@
     <div id="menuCategories" class="menu-categories"></div>
     <div id="menuGrid" class="menu-grid"></div>
   </section>
-
 </main>
 
 <footer class="footer">
   <p class="footer-brand">PADMA CAFE</p>
   <small>বাংলার স্বাদ, হৃদয়ের কাছে</small>
 
-  <a
-    class="facebook-link"
-    href="https://www.facebook.com/share/18QXKsYN8H/?mibextid=wwXIfr"
-    target="_blank"
-    rel="noopener noreferrer"
-  >
+  <a class="facebook-link"
+     href="https://www.facebook.com/share/18QXKsYN8H/?mibextid=wwXIfr"
+     target="_blank"
+     rel="noopener noreferrer">
     <i class="fa-brands fa-facebook"></i>
     Facebook
   </a>
 
-  <p class="copyright">© <span id="footerYear"></span> Padma Cafe. All rights reserved.</p>
+  <p class="copyright">
+    © <span id="footerYear"></span> Padma Cafe. All rights reserved.
+  </p>
 </footer>
 
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
@@ -124,36 +120,25 @@
     <h2 id="authTitle">কাস্টমার লগইন</h2>
 
     <form id="authForm">
-
       <label id="nameWrap" class="hidden">
         আপনার নাম
-        <input
-          id="authName"
-          type="text"
-          autocomplete="name"
-          placeholder="আপনার সম্পূর্ণ নাম"
-        >
+        <input id="authName" type="text"
+               autocomplete="name"
+               placeholder="আপনার সম্পূর্ণ নাম">
       </label>
 
       <label>
         ইমেইল / Gmail
-        <input
-          id="authEmail"
-          type="email"
-          required
-          autocomplete="email"
-          placeholder="example@gmail.com"
-        >
+        <input id="authEmail" type="email" required
+               autocomplete="email"
+               placeholder="example@gmail.com">
       </label>
 
       <label id="phoneWrap" class="hidden">
         মোবাইল নম্বর
-        <input
-          id="authPhone"
-          type="tel"
-          autocomplete="tel"
-          placeholder="মোবাইল নম্বর"
-        >
+        <input id="authPhone" type="tel"
+               autocomplete="tel"
+               placeholder="মোবাইল নম্বর">
         <small class="field-hint">
           দেশের পতাকা ও কান্ট্রি কোড নির্বাচন করুন।
         </small>
@@ -161,35 +146,39 @@
 
       <label id="addressWrap" class="hidden">
         আপনার ঠিকানা
-        <textarea
-          id="authAddress"
-          rows="2"
-          autocomplete="street-address"
-          placeholder="সম্পূর্ণ ঠিকানা লিখুন"
-        ></textarea>
+        <textarea id="authAddress" rows="2"
+                  autocomplete="street-address"
+                  placeholder="সম্পূর্ণ ঠিকানা লিখুন"></textarea>
       </label>
 
       <label>
         পাসওয়ার্ড
-        <input
-          id="authPassword"
-          type="password"
-          minlength="6"
-          required
-          autocomplete="current-password"
-          placeholder="পাসওয়ার্ড লিখুন"
-        >
+        <div class="password-field">
+          <input id="authPassword" type="password"
+                 minlength="6" required
+                 autocomplete="current-password"
+                 placeholder="পাসওয়ার্ড লিখুন">
+          <button type="button" class="password-toggle"
+                  data-toggle-password="authPassword"
+                  aria-label="পাসওয়ার্ড দেখুন">
+            <i class="fa-solid fa-eye"></i>
+          </button>
+        </div>
       </label>
 
       <label id="confirmPasswordWrap" class="hidden">
         পাসওয়ার্ড নিশ্চিত করুন
-        <input
-          id="authConfirmPassword"
-          type="password"
-          minlength="6"
-          autocomplete="new-password"
-          placeholder="আবার পাসওয়ার্ড লিখুন"
-        >
+        <div class="password-field">
+          <input id="authConfirmPassword" type="password"
+                 minlength="6"
+                 autocomplete="new-password"
+                 placeholder="আবার পাসওয়ার্ড লিখুন">
+          <button type="button" class="password-toggle"
+                  data-toggle-password="authConfirmPassword"
+                  aria-label="পাসওয়ার্ড দেখুন">
+            <i class="fa-solid fa-eye"></i>
+          </button>
+        </div>
       </label>
 
       <div id="forgotPasswordWrap" class="forgot-wrap">
@@ -201,7 +190,6 @@
       <button id="authSubmitBtn" class="gold-btn wide" type="submit">
         লগইন করুন
       </button>
-
     </form>
 
     <p id="switchAuthWrap" class="switch-auth">
@@ -226,12 +214,25 @@
     <form id="resetPasswordForm">
       <label>
         নতুন পাসওয়ার্ড
-        <input id="newPassword" type="password" minlength="6" required>
+        <div class="password-field">
+          <input id="newPassword" type="password" minlength="6" required>
+          <button type="button" class="password-toggle"
+                  data-toggle-password="newPassword">
+            <i class="fa-solid fa-eye"></i>
+          </button>
+        </div>
       </label>
 
       <label>
         পাসওয়ার্ড নিশ্চিত করুন
-        <input id="confirmNewPassword" type="password" minlength="6" required>
+        <div class="password-field">
+          <input id="confirmNewPassword" type="password"
+                 minlength="6" required>
+          <button type="button" class="password-toggle"
+                  data-toggle-password="confirmNewPassword">
+            <i class="fa-solid fa-eye"></i>
+          </button>
+        </div>
       </label>
 
       <button class="gold-btn wide" type="submit">
