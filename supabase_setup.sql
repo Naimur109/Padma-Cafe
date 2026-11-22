@@ -7,6 +7,9 @@
 begin;
 
 drop function if exists public.place_customer_order(jsonb);
+drop function if exists public.place_customer_order(
+  jsonb, text, text, text, text, text, text
+);
 
 -- ---------------------------------------------------------
 -- 1. ADD NEW ORDER & PROFILE COLUMNS, STORE SETTINGS & POLICIES
@@ -15,6 +18,9 @@ drop function if exists public.place_customer_order(jsonb);
 alter table public.orders
   add column if not exists customer_email text default '',
   add column if not exists sale_type text not null default 'online',
+  add column if not exists payment_method text not null default 'cod',
+  add column if not exists payment_status text not null default 'unpaid',
+  add column if not exists payment_reference text default '',
   add column if not exists preparation_minutes integer,
   add column if not exists preparation_started_at timestamptz,
   add column if not exists preparation_ends_at timestamptz,
@@ -88,12 +94,32 @@ alter table public.orders
   add constraint orders_sale_type_check
   check (sale_type in ('online', 'offline'));
 
+alter table public.orders
+  drop constraint if exists orders_payment_method_check;
+
+alter table public.orders
+  add constraint orders_payment_method_check
+  check (payment_method in ('cod', 'online_qr'));
+
+alter table public.orders
+  drop constraint if exists orders_payment_status_check;
+
+alter table public.orders
+  add constraint orders_payment_status_check
+  check (payment_status in ('unpaid', 'paid'));
+
 -- ---------------------------------------------------------
--- 2. CUSTOMER ORDER CREATION
+-- 2. CUSTOMER ORDER CREATION (WITH RECIPIENT & PAYMENT INFO)
 -- ---------------------------------------------------------
 
 create or replace function public.place_customer_order(
-  p_items jsonb
+  p_items jsonb,
+  p_delivery_name text default null,
+  p_delivery_phone text default null,
+  p_delivery_address text default null,
+  p_payment_method text default 'cod',
+  p_payment_status text default 'unpaid',
+  p_payment_reference text default ''
 )
 returns uuid
 language plpgsql
@@ -140,10 +166,16 @@ declare
     {"id":"combo_hash_khichuri_special","name":"হাঁস+খিচুড়ি (স্পেশাল)","price":270}
   ]'::jsonb;
 
-  v_user_name text;
+  v_profile_name text;
   v_user_email text;
-  v_phone text;
-  v_address text;
+  v_profile_phone text;
+  v_profile_address text;
+
+  v_final_name text;
+  v_final_phone text;
+  v_final_address text;
+  v_final_pay_method text;
+  v_final_pay_status text;
 begin
   if auth.uid() is null then
     raise exception 'লগইন করে অর্ডার করুন';
@@ -167,10 +199,28 @@ begin
     coalesce(nullif(p.email, ''), u.email, ''),
     coalesce(p.phone, ''),
     coalesce(p.address, '')
-  into v_user_name, v_user_email, v_phone, v_address
+  into v_profile_name, v_user_email, v_profile_phone, v_profile_address
   from public.profiles p
   left join auth.users u on u.id = p.id
   where p.id = auth.uid();
+
+  v_final_name := coalesce(nullif(trim(coalesce(p_delivery_name, '')), ''), v_profile_name);
+  v_final_phone := coalesce(nullif(trim(coalesce(p_delivery_phone, '')), ''), v_profile_phone);
+  v_final_address := coalesce(nullif(trim(coalesce(p_delivery_address, '')), ''), v_profile_address);
+
+  if v_final_name = '' or v_final_phone = '' or v_final_address = '' then
+    raise exception 'ডেলিভারির নাম, মোবাইল নম্বর এবং ঠিকানা দিন';
+  end if;
+
+  v_final_pay_method := case
+    when p_payment_method in ('cod', 'online_qr') then p_payment_method
+    else 'cod'
+  end;
+
+  v_final_pay_status := case
+    when v_final_pay_method = 'online_qr' and p_payment_status = 'paid' then 'paid'
+    else 'unpaid'
+  end;
 
   insert into public.orders (
     customer_id,
@@ -181,18 +231,24 @@ begin
     total_amount,
     status,
     approval_status,
-    sale_type
+    sale_type,
+    payment_method,
+    payment_status,
+    payment_reference
   )
   values (
     auth.uid(),
-    v_user_name,
+    v_final_name,
     v_user_email,
-    v_phone,
-    v_address,
+    v_final_phone,
+    v_final_address,
     0,
     'pending',
     'not_required',
-    'online'
+    'online',
+    v_final_pay_method,
+    v_final_pay_status,
+    coalesce(trim(p_payment_reference), '')
   )
   returning id into v_order_id;
 
@@ -326,6 +382,7 @@ begin
 
     update public.orders
     set status = 'completed',
+        payment_status = 'paid',
         completed_at = coalesce(completed_at, now()),
         updated_at = now()
     where id = p_order_id
@@ -461,6 +518,8 @@ begin
     status,
     approval_status,
     sale_type,
+    payment_method,
+    payment_status,
     completed_at
   )
   values (
@@ -473,6 +532,8 @@ begin
     'completed',
     'not_required',
     'offline',
+    'cod',
+    'paid',
     now()
   )
   returning id into v_order_id;
@@ -531,8 +592,9 @@ $$;
 -- 6. FUNCTION PERMISSIONS
 -- ---------------------------------------------------------
 
-grant execute on function public.place_customer_order(jsonb)
-  to authenticated;
+grant execute on function public.place_customer_order(
+  jsonb, text, text, text, text, text, text
+) to authenticated;
 
 grant execute on function public.admin_update_order_status(
   uuid, text, integer, integer
