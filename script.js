@@ -8,6 +8,13 @@
 const SUPABASE_URL = "https://qeoxoujxdptjiwgxhvbb.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_mjf3B4SkF1kOXwhVxy_veA_oTHLPNLU";
 
+// ONLINE CUSTOMER ORDER RECEIPT ONLY (replace with your cafe phone number)
+const CAFE_CONTACT_PHONE = "+8801XXXXXXXXX";
+
+// SONALI BANK BANGLA QR BASE EMVCO STRING (PADMA CAFE, KUSHTIA)
+const BANGLA_QR_BASE_PAYLOAD =
+  "00020101021126570017sonalibank.com.bd0102000204020003189020028089304039945204581253030505802BD5911PADMA  CAFE6007KUSHTIA6104704062290211017608703920310QR31777678630418AC";
+
 const db = window.supabase.createClient(
   SUPABASE_URL,
   SUPABASE_ANON_KEY
@@ -146,15 +153,77 @@ function showError(error) {
 }
 
 // ------------------------------------------------------
-// MENU
-// - Original 7 i.ibb.co image URLs preserved unchanged
-// - Chicken Spring Roll image updated to a reliable photo URL
-// - Combo Package has ONLY the two requested packages with changeable image URLs
+// EMVCo BANGLA QR PAYLOAD & CRC16 HELPER
 // ------------------------------------------------------
 
-const COMBO_REGULAR_IMAGE_URL = "https://images.unsplash.com/photo-1589302168068-964664d93dc0?auto=format&fit=crop&w=640&q=80";
-const COMBO_SPECIAL_IMAGE_URL = "https://images.unsplash.com/photo-1633945274405-b6c8069047b0?auto=format&fit=crop&w=640&q=80";
-const SPRING_ROLL_IMAGE_URL = "https://images.unsplash.com/photo-1606525437679-037474a119ae?auto=format&fit=crop&w=640&q=80";
+function crc16Ccitt(str) {
+  let crc = 0xffff;
+  for (let i = 0; i < str.length; i++) {
+    crc ^= str.charCodeAt(i) << 8;
+    for (let bit = 0; bit < 8; bit++) {
+      if ((crc & 0x8000) !== 0) {
+        crc = ((crc << 1) ^ 0x1021) & 0xffff;
+      } else {
+        crc = (crc << 1) & 0xffff;
+      }
+    }
+  }
+  return crc.toString(16).toUpperCase().padStart(4, "0");
+}
+
+function buildDynamicBanglaQrPayload(basePayload, amount) {
+  const numericAmount = Number(amount || 0);
+  const amountStr = Number.isInteger(numericAmount)
+    ? String(numericAmount)
+    : numericAmount.toFixed(2).replace(/\.?0+$/, "");
+
+  const rawWithoutCrc = basePayload.includes("6304")
+    ? basePayload.slice(0, basePayload.indexOf("6304"))
+    : basePayload;
+
+  // Switch Point of Initiation Method (Tag 01) from static (11) to dynamic (12) if present
+  let updated = rawWithoutCrc.replace("010211", "010212");
+
+  // Insert Tag 54 (Transaction Amount) right before Tag 58 (Country Code) or Tag 59 (Merchant Name)
+  const amountTag = `54${String(amountStr.length).padStart(2, "0")}${amountStr}`;
+  const countryIdx = updated.indexOf("5802BD");
+  if (countryIdx !== -1) {
+    updated = updated.slice(0, countryIdx) + amountTag + updated.slice(countryIdx);
+  } else {
+    updated = updated + amountTag;
+  }
+
+  const prefixWithCrcHeader = `${updated}6304`;
+  const checksum = crc16Ccitt(prefixWithCrcHeader);
+  return `${prefixWithCrcHeader}${checksum}`;
+}
+
+async function renderBanglaQrCode(amount) {
+  const wrap = $("banglaQrCanvasWrap");
+  if (!wrap) return;
+
+  wrap.innerHTML = "";
+  const payload = buildDynamicBanglaQrPayload(BANGLA_QR_BASE_PAYLOAD, amount);
+
+  if (window.QRCode && typeof window.QRCode.toCanvas === "function") {
+    const canvas = document.createElement("canvas");
+    wrap.appendChild(canvas);
+    await window.QRCode.toCanvas(canvas, payload, {
+      width: 190,
+      margin: 1,
+      errorCorrectionLevel: "M"
+    });
+  } else {
+    const img = document.createElement("img");
+    img.alt = "Bangla QR Code";
+    img.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(payload)}`;
+    wrap.appendChild(img);
+  }
+}
+
+// ------------------------------------------------------
+// MENU
+// ------------------------------------------------------
 
 const MENU = [
   // PADMA SPECIAL — 11
@@ -385,8 +454,12 @@ let selectedCategory = "সব খাবার";
 let user = null;
 let profile = null;
 let cart = {};
+let checkoutDeliveryDraft = {
+  recipient_name: "",
+  recipient_phone: "",
+  recipient_address: ""
+};
 let authMode = "login";
-let authRole = "customer";
 let pendingOtpEmail = "";
 let phoneInput = null;
 let liveChannel = null;
@@ -421,7 +494,8 @@ function openProfileSlide() {
   if (!user || !profile) return;
 
   draftPhotoDataUrl = "";
-  const currentAvatar = profile.avatar_url || "https://i.ibb.co/4nW7J6d0/IMG-20261121-WA0000.jpg";
+  const currentAvatar =
+    profile.avatar_url || "https://i.ibb.co/4nW7J6d0/IMG-20261121-WA0000.jpg";
   $("profileSlidePreview").src = currentAvatar;
   $("profilePhotoUrlInput").value = profile.avatar_url || "";
   $("profileNameInput").value = profile.full_name || "";
@@ -568,70 +642,45 @@ $("storeOnlineBtn")?.addEventListener("click", () => setStoreOnlineStatus(true))
 $("storeOfflineBtn")?.addEventListener("click", () => setStoreOnlineStatus(false));
 
 // ------------------------------------------------------
-// HEADER BUTTONS & PROFILE SLIDE
+// UNIFIED HEADER BUTTONS & PROFILE SLIDE
 // ------------------------------------------------------
 
 function updateHeaderAuthButtons() {
-  const custBtn = $("customerLoginBtn");
-  const custLabel = $("customerLoginLabel");
-  const custAvatar = $("customerHeaderAvatar");
-  const adminBtn = $("adminLoginBtn");
+  const accLabel = $("authAccountLabel");
+  const accAvatar = $("customerHeaderAvatar");
   const allOrdersBtn = $("allOrdersBtn");
 
   if (!user || !profile) {
-    custLabel.textContent = "কাস্টমার লগইন";
-    custAvatar.classList.add("hidden");
-    custAvatar.src = "";
-    adminBtn.textContent = "অ্যাডমিন লগইন";
+    accLabel.textContent = "লগইন / রেজিস্টার";
+    accAvatar.classList.add("hidden");
+    accAvatar.src = "";
     allOrdersBtn.classList.add("hidden");
     applyStoreStatusUI();
     return;
   }
 
-  if (profile.role === "admin") {
-    custLabel.textContent = "কাস্টমার লগইন";
-    custAvatar.classList.add("hidden");
-    custAvatar.src = "";
-    adminBtn.textContent = profile.full_name || user.email || "অ্যাডমিন";
-    allOrdersBtn.classList.remove("hidden");
+  accLabel.textContent = profile.full_name || user.email || "অ্যাকাউন্ট";
+  if (profile.avatar_url) {
+    accAvatar.src = profile.avatar_url;
+    accAvatar.classList.remove("hidden");
   } else {
-    custLabel.textContent = profile.full_name || user.email || "কাস্টমার";
-    if (profile.avatar_url) {
-      custAvatar.src = profile.avatar_url;
-      custAvatar.classList.remove("hidden");
-    } else {
-      custAvatar.classList.add("hidden");
-    }
-    adminBtn.textContent = "অ্যাডমিন লগইন";
-    allOrdersBtn.classList.remove("hidden");
+    accAvatar.classList.add("hidden");
   }
 
+  allOrdersBtn.classList.remove("hidden");
   applyStoreStatusUI();
 }
 
-// Name button opens Profile Side Slide (never Dashboard)
-$("customerLoginBtn").onclick = () => {
-  if (user && profile && profile.role !== "admin") {
+$("authAccountBtn").onclick = () => {
+  if (user && profile) {
     openProfileSlide();
     return;
   }
-  authRole = "customer";
   openAuth("login");
 };
 
-$("adminLoginBtn").onclick = () => {
-  if (user && profile && profile.role === "admin") {
-    openProfileSlide();
-    return;
-  }
-  authRole = "admin";
-  openAuth("login");
-};
-
-// "সকল অর্ডার" button opens Dashboard
 $("allOrdersBtn").onclick = async () => {
   if (!user) {
-    authRole = "customer";
     openAuth("login");
     return;
   }
@@ -947,23 +996,15 @@ function initializePhoneInput() {
 }
 
 // ------------------------------------------------------
-// AUTHENTICATION & 6-DIGIT OTP VERIFICATION
+// UNIFIED AUTHENTICATION & 6-DIGIT OTP VERIFICATION
 // ------------------------------------------------------
 
 function openAuth(mode) {
   authMode = mode;
+  const isSignup = mode === "signup";
 
-  const isAdmin = authRole === "admin";
-  const isSignup = mode === "signup" && !isAdmin;
-
-  $("authRoleLabel").textContent =
-    isAdmin ? "ADMIN ACCOUNT" : "CUSTOMER ACCOUNT";
-
-  $("authTitle").textContent = isAdmin
-    ? "অ্যাডমিন লগইন"
-    : isSignup
-      ? "কাস্টমার রেজিস্ট্রেশন"
-      : "কাস্টমার লগইন";
+  $("authRoleLabel").textContent = "PADMA CAFE ACCOUNT";
+  $("authTitle").textContent = isSignup ? "নতুন অ্যাকাউন্ট রেজিস্টার" : "লগইন করুন";
 
   ["nameWrap", "phoneWrap", "addressWrap", "confirmPasswordWrap"]
     .forEach(id => {
@@ -971,10 +1012,10 @@ function openAuth(mode) {
     });
 
   $("forgotPasswordWrap").classList.toggle("hidden", isSignup);
-  $("switchAuthWrap").classList.toggle("hidden", isAdmin);
+  $("switchAuthWrap").classList.remove("hidden");
 
   $("authSwitchText").textContent =
-    isSignup ? "আগে অ্যাকাউন্ট আছে?" : "নতুন কাস্টমার?";
+    isSignup ? "আগে অ্যাকাউন্ট আছে?" : "নতুন অ্যাকাউন্ট খুলতে চান?";
 
   $("authSwitch").textContent =
     isSignup ? "লগইন করুন" : "রেজিস্টার করুন";
@@ -982,9 +1023,9 @@ function openAuth(mode) {
   $("authSubmitBtn").textContent =
     isSignup ? "রেজিস্টার করুন" : "লগইন করুন";
 
-  $("authHint").textContent = isAdmin
-    ? "শুধু অনুমোদিত অ্যাডমিন অ্যাকাউন্ট দিয়ে প্রবেশ করা যাবে।"
-    : "রেজিস্ট্রেশনের পর ইমেইলে পাঠানো ৬ সংখ্যার কোড দিয়ে ভেরিফাই করুন।";
+  $("authHint").textContent = isSignup
+    ? "রেজিস্ট্রেশনের পর ইমেইলে পাঠানো ৬ সংখ্যার কোড দিয়ে ভেরিফাই করুন।"
+    : "আপনার জিমেইল ও পাসওয়ার্ড দিয়ে লগইন করুন। অ্যাডমিন নির্ধারিত জিমেইল হলে স্বয়ংক্রিয়ভাবে অ্যাডমিন প্যানেল খুলবে।";
 
   $("authPassword").autocomplete =
     isSignup ? "new-password" : "current-password";
@@ -1017,10 +1058,6 @@ $("authForm").onsubmit = async event => {
     const password = $("authPassword").value;
 
     if (authMode === "signup") {
-      if (authRole !== "customer") {
-        throw new Error("অ্যাডমিন রেজিস্ট্রেশন অনুমোদিত নয়।");
-      }
-
       const name = $("authName").value.trim();
       const address = $("authAddress").value.trim();
       const confirmPassword = $("authConfirmPassword").value;
@@ -1071,6 +1108,7 @@ $("authForm").onsubmit = async event => {
       if (data.session) {
         user = data.user;
         await loadProfile();
+        subscribeLive();
         toast("রেজিস্ট্রেশন সফল হয়েছে।");
       } else {
         openOtpModal(email);
@@ -1095,25 +1133,13 @@ $("authForm").onsubmit = async event => {
       user = data.user;
       await loadProfile();
 
-      if (authRole === "admin" && profile.role !== "admin") {
-        await db.auth.signOut();
-        user = null;
-        profile = null;
-        updateHeaderAuthButtons();
-        throw new Error("এই অ্যাকাউন্টের অ্যাডমিন অনুমতি নেই।");
-      }
-
-      if (authRole === "customer" && profile.role === "admin") {
-        await db.auth.signOut();
-        user = null;
-        profile = null;
-        updateHeaderAuthButtons();
-        throw new Error("এই অ্যাকাউন্টটি অ্যাডমিন। অ্যাডমিন লগইন ব্যবহার করুন।");
-      }
-
       hide("authModal");
       subscribeLive();
-      toast("লগইন সফল হয়েছে।");
+      toast(
+        profile?.role === "admin"
+          ? "অ্যাডমিন প্যানেলে স্বাগতম।"
+          : "লগইন সফল হয়েছে।"
+      );
     }
   } catch (error) {
     showError(error);
@@ -1254,7 +1280,9 @@ async function loadProfile() {
     ...data,
     full_name: data.full_name || user.user_metadata?.full_name || "",
     avatar_url: data.avatar_url || user.user_metadata?.avatar_url || "",
-    email: data.email || user.email || ""
+    email: data.email || user.email || "",
+    phone: data.phone || user.user_metadata?.phone || "",
+    address: data.address || user.user_metadata?.address || ""
   };
 
   if (profile.id) {
@@ -1292,7 +1320,6 @@ async function resolveCustomerEmail(order) {
 
 async function ensureCustomer() {
   if (!user || !profile) {
-    authRole = "customer";
     openAuth("login");
     return false;
   }
@@ -1315,7 +1342,7 @@ function ensureAdmin() {
 }
 
 // ------------------------------------------------------
-// PLACE ORDER (CUSTOMER OR ADMIN OFFLINE SALE FROM ORDER LIST)
+// MULTI-STEP ORDER CHECKOUT (DELIVERY -> PAYMENT -> COD / BANGLA QR)
 // ------------------------------------------------------
 
 $("checkoutBtn").onclick = async () => {
@@ -1324,6 +1351,7 @@ $("checkoutBtn").onclick = async () => {
 
   const isAdminLoggedIn = Boolean(user && profile && profile.role === "admin");
 
+  // Admin quick offline sale directly from cart modal
   if (isAdminLoggedIn) {
     const button = $("checkoutBtn");
     setLoading(button, true, "অফলাইন রসিদ তৈরি হচ্ছে...");
@@ -1356,6 +1384,8 @@ $("checkoutBtn").onclick = async () => {
         customer_address: "",
         status: "completed",
         sale_type: "offline",
+        payment_method: "cod",
+        payment_status: "paid",
         total_amount: totalAmt
       };
 
@@ -1390,8 +1420,147 @@ $("checkoutBtn").onclick = async () => {
 
   if (!(await ensureCustomer())) return;
 
-  const button = $("checkoutBtn");
-  setLoading(button, true, "অর্ডার পাঠানো হচ্ছে...");
+  hide("cartModal");
+  openCheckoutDetailsModal();
+};
+
+function openCheckoutDetailsModal() {
+  const defaultName =
+    checkoutDeliveryDraft.recipient_name || profile?.full_name || "";
+  const defaultPhone =
+    checkoutDeliveryDraft.recipient_phone || profile?.phone || "";
+  const defaultAddress =
+    checkoutDeliveryDraft.recipient_address || profile?.address || "";
+
+  $("deliveryNameInput").value = defaultName;
+  $("deliveryPhoneInput").value = defaultPhone;
+  $("deliveryAddressInput").value = defaultAddress;
+  $("checkoutDetailsTotal").textContent = money(cartTotal());
+
+  show("checkoutDetailsModal");
+}
+
+$("backToCartBtn")?.addEventListener("click", () => {
+  hide("checkoutDetailsModal");
+  renderCart();
+  show("cartModal");
+});
+
+$("checkoutDetailsForm")?.addEventListener("submit", event => {
+  event.preventDefault();
+
+  const name = $("deliveryNameInput").value.trim();
+  const phone = $("deliveryPhoneInput").value.trim();
+  const address = $("deliveryAddressInput").value.trim();
+
+  if (!name || !phone || !address) {
+    toast("নাম, মোবাইল নম্বর এবং ঠিকানা সঠিকভাবে পূরণ করুন।");
+    return;
+  }
+
+  // Saved strictly for this order; user's registered profile remains untouched
+  checkoutDeliveryDraft = {
+    recipient_name: name,
+    recipient_phone: phone,
+    recipient_address: address
+  };
+
+  $("summaryRecipientName").textContent = name;
+  $("summaryRecipientPhone").textContent = phone;
+  $("summaryRecipientAddress").textContent = address;
+  $("paymentMethodTotal").textContent = money(cartTotal());
+
+  hide("checkoutDetailsModal");
+  show("paymentMethodModal");
+}
+
+$("paymentMethodBackBtn")?.addEventListener("click", () => {
+  hide("paymentMethodModal");
+  openCheckoutDetailsModal();
+});
+
+$("selectCodBtn")?.addEventListener("click", () => {
+  $("codRecipientName").textContent = checkoutDeliveryDraft.recipient_name;
+  $("codRecipientPhone").textContent = checkoutDeliveryDraft.recipient_phone;
+  $("codRecipientAddress").textContent = checkoutDeliveryDraft.recipient_address;
+  $("codTotalAmount").textContent = money(cartTotal());
+
+  hide("paymentMethodModal");
+  show("codConfirmModal");
+});
+
+$("codBackBtn")?.addEventListener("click", () => {
+  hide("codConfirmModal");
+  show("paymentMethodModal");
+});
+
+$("selectOnlinePayBtn")?.addEventListener("click", async () => {
+  const total = cartTotal();
+  $("qrExactAmount").textContent = money(total);
+  $("qrReferenceInput").value = "";
+
+  hide("paymentMethodModal");
+  show("banglaQrModal");
+  await renderBanglaQrCode(total);
+});
+
+$("qrBackBtn")?.addEventListener("click", () => {
+  hide("banglaQrModal");
+  show("paymentMethodModal");
+});
+
+$("confirmCodOrderBtn")?.addEventListener("click", async () => {
+  await submitCustomerOrder({
+    paymentMethod: "cod",
+    paymentStatus: "unpaid",
+    paymentReference: "",
+    buttonEl: $("confirmCodOrderBtn"),
+    sourceModalId: "codConfirmModal"
+  });
+});
+
+$("banglaQrConfirmForm")?.addEventListener("submit", async event => {
+  event.preventDefault();
+  const refText = ($("qrReferenceInput")?.value || "").trim();
+
+  await submitCustomerOrder({
+    paymentMethod: "online_qr",
+    paymentStatus: "paid",
+    paymentReference: refText,
+    buttonEl: $("confirmQrPaidOrderBtn"),
+    sourceModalId: "banglaQrModal"
+  });
+});
+
+async function submitCustomerOrder({
+  paymentMethod,
+  paymentStatus,
+  paymentReference,
+  buttonEl,
+  sourceModalId
+}) {
+  const rows = cartRows();
+  if (!rows.length) {
+    toast("আপনার অর্ডার তালিকা খালি।");
+    return;
+  }
+
+  if (!storeOnline) {
+    toast("ক্যাফে/রেস্টুরেন্ট এখন বন্ধ আছে।");
+    return;
+  }
+
+  if (!(await ensureCustomer())) return;
+
+  const deliveryInfo = { ...checkoutDeliveryDraft };
+  if (!deliveryInfo.recipient_name || !deliveryInfo.recipient_phone || !deliveryInfo.recipient_address) {
+    hide(sourceModalId);
+    openCheckoutDetailsModal();
+    toast("আগে ডেলিভারির তথ্য দিন।");
+    return;
+  }
+
+  setLoading(buttonEl, true, "অর্ডার পাঠানো হচ্ছে...");
 
   try {
     const items = rows.map(item => ({
@@ -1399,25 +1568,72 @@ $("checkoutBtn").onclick = async () => {
       quantity: item.qty
     }));
 
-    const { error } = await db.rpc(
-      "place_customer_order",
-      { p_items: items }
-    );
+    const { data, error } = await db.rpc("place_customer_order", {
+      p_items: items,
+      p_delivery_name: deliveryInfo.recipient_name,
+      p_delivery_phone: deliveryInfo.recipient_phone,
+      p_delivery_address: deliveryInfo.recipient_address,
+      p_payment_method: paymentMethod,
+      p_payment_status: paymentStatus,
+      p_payment_reference: paymentReference
+    });
 
     if (error) throw error;
 
-    cart = {};
-    renderCart();
-    hide("cartModal");
+    const orderId = typeof data === "string"
+      ? data
+      : data?.id || data?.order_id || crypto.randomUUID();
 
-    toast("আপনার অর্ডার সফলভাবে পাঠানো হয়েছে।");
-    await openDashboard();
+    const totalAmt = rows.reduce((sum, item) => sum + item.subtotal, 0);
+
+    const createdOrder = {
+      id: orderId,
+      created_at: new Date().toISOString(),
+      customer_id: user.id,
+      customer_name: deliveryInfo.recipient_name,
+      customer_email: profile?.email || user.email || "",
+      customer_phone: deliveryInfo.recipient_phone,
+      customer_address: deliveryInfo.recipient_address,
+      status: "pending",
+      sale_type: "online",
+      payment_method: paymentMethod,
+      payment_status: paymentStatus,
+      payment_reference: paymentReference,
+      total_amount: totalAmt
+    };
+
+    const receiptItems = rows.map(item => ({
+      item_name: item.name,
+      quantity: item.qty,
+      unit_price: item.price,
+      line_total: item.subtotal,
+      item_status: "active"
+    }));
+
+    cart = {};
+    checkoutDeliveryDraft = {
+      recipient_name: "",
+      recipient_phone: "",
+      recipient_address: ""
+    };
+    renderCart();
+    hide(sourceModalId);
+
+    currentReceipt = { order: createdOrder, items: receiptItems };
+    $("receiptContent").innerHTML = receiptHTML(createdOrder, receiptItems);
+    show("receiptModal");
+
+    toast(
+      paymentStatus === "paid"
+        ? "অনলাইন পেমেন্ট সম্পন্ন ও PAID রসিদ তৈরি হয়েছে!"
+        : "আপনার অর্ডার সফলভাবে পাঠানো হয়েছে।"
+    );
   } catch (error) {
     showError(error);
   } finally {
-    setLoading(button, false);
+    setLoading(buttonEl, false);
   }
-};
+}
 
 // ------------------------------------------------------
 // STATUS, TIMERS & ONE-WAY DELIVERY PROGRESS
@@ -1436,6 +1652,21 @@ function statusLabel(status) {
     accepted: "গ্রহণ করা হয়েছে",
     rejected: "বাতিল করা হয়েছে"
   })[status] || status || "—";
+}
+
+function paymentMethodLabel(order) {
+  if (order.sale_type === "offline") return "অফলাইন সেল";
+  return order.payment_method === "online_qr"
+    ? "অনলাইন পেমেন্ট (Bangla QR)"
+    : "ক্যাশ অন ডেলিভারি";
+}
+
+function paymentBadgeHTML(order) {
+  if (order.sale_type === "offline") return "";
+  if (order.payment_status === "paid" || order.payment_method === "online_qr") {
+    return `<span class="status paid"><i class="fa-solid fa-circle-check"></i> PAID</span>`;
+  }
+  return `<span class="status cod">ক্যাশ অন ডেলিভারি</span>`;
 }
 
 function countdownText(endAt) {
@@ -1689,11 +1920,20 @@ async function renderCustomer() {
       <article class="order-card">
         <h3>অর্ডার #${escapeHTML(order.id.slice(0, 8))}</h3>
 
-        <span class="status ${escapeHTML(order.status)}">
-          ${statusLabel(order.status)}
-        </span>
+        <div class="order-badges">
+          <span class="status ${escapeHTML(order.status)}">
+            ${statusLabel(order.status)}
+          </span>
+          ${paymentBadgeHTML(order)}
+        </div>
 
-        <p>${dateTime(order.created_at)}</p>
+        <p>
+          প্রাপক: ${escapeHTML(order.customer_name || "কাস্টমার")}<br>
+          ফোন: ${escapeHTML(order.customer_phone || "—")}<br>
+          ঠিকানা: ${escapeHTML(order.customer_address || "—")}<br>
+          পেমেন্ট মাধ্যম: ${escapeHTML(paymentMethodLabel(order))}<br>
+          সময়: ${dateTime(order.created_at)}
+        </p>
 
         ${items.map(item => `
           <div class="cart-line">
@@ -1754,7 +1994,7 @@ async function renderCustomer() {
 }
 
 // ------------------------------------------------------
-// ADMIN DASHBOARD (6-STEP FRESH DAILY SUMMARY AFTER 12:00 AM + 3 CONTROLS)
+// ADMIN DASHBOARD
 // ------------------------------------------------------
 
 async function renderAdmin() {
@@ -1884,11 +2124,16 @@ async function renderAdmin() {
           · ${escapeHTML(order.customer_name || "কাস্টমার")}
         </h3>
 
-        <span class="status ${escapeHTML(order.status)}">
-          ${statusLabel(order.status)}
-        </span>
+        <div class="order-badges">
+          <span class="status ${escapeHTML(order.status)}">
+            ${statusLabel(order.status)}
+          </span>
+          ${paymentBadgeHTML(order)}
+        </div>
 
         <p>
+          পেমেন্ট মাধ্যম: ${escapeHTML(paymentMethodLabel(order))}<br>
+          ${order.payment_reference ? `রেফারেন্স: ${escapeHTML(order.payment_reference)}<br>` : ""}
           ইমেইল: ${escapeHTML(emailDisplay)}<br>
           ফোন: ${escapeHTML(order.customer_phone || "—")}<br>
           ঠিকানা: ${escapeHTML(order.customer_address || "—")}<br>
@@ -2089,7 +2334,7 @@ $("dashboardContent").addEventListener("click", async event => {
 });
 
 // ------------------------------------------------------
-// ADMIN ORDER STATUS & UNAVAILABLE ITEM (NO browser confirm() popups)
+// ADMIN ORDER STATUS & UNAVAILABLE ITEM
 // ------------------------------------------------------
 
 async function adminStatus(orderId, status) {
@@ -2307,6 +2552,9 @@ async function getOrderForReceipt(orderId) {
 
 function receiptHTML(order, items) {
   const isOffline = order.sale_type === "offline";
+  const isOnlinePaid =
+    !isOffline &&
+    (order.payment_status === "paid" || order.payment_method === "online_qr");
 
   const rows = items.map(item => `
     <tr>
@@ -2330,6 +2578,16 @@ function receiptHTML(order, items) {
         <h2>PADMA CAFE</h2>
         <p>স্বাদে ও আতিথেয়তায় আপনাদের পাশে</p>
         <p>${isOffline ? "অফলাইন বিক্রির রসিদ" : "অনলাইন অর্ডার রসিদ"}</p>
+        ${
+          !isOffline
+            ? `<p>ক্যাফে যোগাযোগ: ${escapeHTML(CAFE_CONTACT_PHONE)}</p>`
+            : ""
+        }
+        ${
+          isOnlinePaid
+            ? `<span class="paid-stamp">PAID</span>`
+            : ""
+        }
       </div>
 
       <div class="receipt-info">
@@ -2339,10 +2597,13 @@ function receiptHTML(order, items) {
           isOffline
             ? `<p>বিক্রির ধরন: অফলাইন</p>`
             : `
-              <p>কাস্টমার: ${escapeHTML(order.customer_name || "কাস্টমার")}</p>
+              <p>প্রাপক: ${escapeHTML(order.customer_name || "কাস্টমার")}</p>
               <p>ইমেইল: ${escapeHTML(order.customer_email || order.email || "—")}</p>
               <p>ফোন: ${escapeHTML(order.customer_phone || "—")}</p>
               <p>ঠিকানা: ${escapeHTML(order.customer_address || "—")}</p>
+              <p>পেমেন্ট মাধ্যম: ${escapeHTML(paymentMethodLabel(order))}</p>
+              <p>পেমেন্ট স্ট্যাটাস: ${isOnlinePaid ? "PAID" : "ক্যাশ অন ডেলিভারি"}</p>
+              ${order.payment_reference ? `<p>রেফারেন্স: ${escapeHTML(order.payment_reference)}</p>` : ""}
               <p>অবস্থা: ${statusLabel(order.status)}</p>
             `
         }
@@ -2441,6 +2702,15 @@ $("printReceiptBtn").onclick = () => {
         .receipt-info p {
           margin: 4px 0;
         }
+        .paid-stamp {
+          display: inline-block;
+          margin-top: 6px;
+          padding: 3px 10px;
+          border: 2px solid #1b7a46;
+          color: #1b7a46;
+          font-weight: 800;
+          letter-spacing: 2px;
+        }
         .receipt-info {
           padding: 8px 0;
           border-bottom: 1px dashed #555;
@@ -2499,7 +2769,7 @@ $("printReceiptBtn").onclick = () => {
 };
 
 // ------------------------------------------------------
-// OFFLINE SALE (AUTO-ADDS TO TODAY'S OFFLINE ORDERS & COMPLETED OFFLINE SALE)
+// OFFLINE SALE
 // ------------------------------------------------------
 
 function openOfflineSale() {
@@ -2692,6 +2962,8 @@ async function saveOfflineSale() {
       customer_address: "",
       status: "completed",
       sale_type: "offline",
+      payment_method: "cod",
+      payment_status: "paid",
       total_amount: rows.reduce((sum, item) => sum + item.subtotal, 0)
     };
 
@@ -2972,7 +3244,9 @@ $("printSalesReport").onclick = () => {
       ${results.innerHTML}
       <script>
         window.onload = function() {
-          window.print();
+          setTimeout(function() {
+            window.print();
+          }, 300);
         };
       <\/script>
     </body>
