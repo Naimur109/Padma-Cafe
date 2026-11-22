@@ -56,7 +56,6 @@
       <p>ঘরোয়া স্বাদ, ভালোবাসা আর যত্নে তৈরি প্রতিটি খাবার।</p>
       <div class="hero-actions">
         <a id="heroOrderBtn" class="gold-btn" href="#menuSection">মেনু দেখুন</a>
-        <button id="heroLoginBtn" class="outline" type="button">অ্যাকাউন্ট / লগইন</button>
       </div>
     </div>
   </section>
@@ -224,6 +223,45 @@
   </div>
 </div>
 
+<!-- 6-DIGIT OTP VERIFICATION MODAL -->
+<div id="otpVerifyModal" class="modal">
+  <div class="modal-card">
+    <button class="x" data-close="otpVerifyModal" type="button">×</button>
+
+    <p class="eyebrow">EMAIL VERIFICATION</p>
+    <h2>৬ সংখ্যার কোড দিন</h2>
+
+    <p class="field-hint" style="margin-bottom: 14px;">
+      আপনার ইমেইল (<strong id="otpEmailDisplay">—</strong>)-এ পাঠানো ৬ সংখ্যার ভেরিফিকেশন কোডটি নিচে লিখুন। ইনবক্সে না পেলে Spam ফোল্ডার দেখুন।
+    </p>
+
+    <form id="otpVerifyForm">
+      <label>
+        ভেরিফিকেশন কোড (৬ সংখ্যা)
+        <input
+          id="otpCodeInput"
+          type="text"
+          inputmode="numeric"
+          pattern="[0-9]{6}"
+          maxlength="6"
+          required
+          autocomplete="one-time-code"
+          placeholder="১২৩৪৫৬"
+          class="otp-input"
+        >
+      </label>
+
+      <button id="verifyOtpBtn" class="gold-btn wide" type="submit">
+        কোড যাচাই করুন
+      </button>
+
+      <button id="resendOtpBtn" class="outline wide" type="button">
+        আবার কোড পাঠান
+      </button>
+    </form>
+  </div>
+</div>
+
 <!-- PASSWORD RESET MODAL -->
 <div id="resetPasswordModal" class="modal">
   <div class="modal-card">
@@ -280,9 +318,6 @@
         <button id="refreshDashboardBtn" class="outline" type="button">
           <i class="fa-solid fa-rotate"></i>
           রিফ্রেশ
-        </button>
-        <button id="logoutBtn" class="outline dark" type="button">
-          লগআউট
         </button>
       </div>
     </div>
