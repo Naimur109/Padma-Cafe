@@ -1,4 +1,3 @@
-
 -- =========================================================
 -- PADMA CAFE - ADDITIVE DATABASE MIGRATION
 -- Existing tables and data will be preserved.
@@ -8,7 +7,7 @@
 begin;
 
 -- ---------------------------------------------------------
--- 1. ADD NEW ORDER COLUMNS
+-- 1. ADD NEW ORDER COLUMNS & CONSTRAINTS
 -- ---------------------------------------------------------
 
 alter table public.orders
@@ -18,7 +17,8 @@ alter table public.orders
   add column if not exists preparation_ends_at timestamptz,
   add column if not exists delivery_minutes integer,
   add column if not exists delivery_started_at timestamptz,
-  add column if not exists delivery_ends_at timestamptz;
+  add column if not exists delivery_ends_at timestamptz,
+  add column if not exists completed_at timestamptz;
 
 alter table public.orders
   drop constraint if exists orders_status_check;
@@ -270,6 +270,7 @@ begin
 
     update public.orders
     set status = 'completed',
+        completed_at = coalesce(completed_at, now()),
         updated_at = now()
     where id = p_order_id
       and status = 'out_for_delivery';
@@ -400,7 +401,8 @@ begin
     total_amount,
     status,
     approval_status,
-    sale_type
+    sale_type,
+    completed_at
   )
   values (
     auth.uid(),
@@ -410,7 +412,8 @@ begin
     0,
     'completed',
     'not_required',
-    'offline'
+    'offline',
+    now()
   )
   returning id into v_order_id;
 
@@ -483,7 +486,3 @@ grant execute on function public.admin_create_offline_sale(jsonb)
   to authenticated;
 
 commit;
-
--- =========================================================
--- END OF PADMA CAFE MIGRATION
--- =========================================================
