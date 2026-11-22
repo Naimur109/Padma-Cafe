@@ -78,13 +78,13 @@ img {
 .header {
   width: 100%;
   min-height: 82px;
-  padding: 12px 5%;
+  padding: 12px 4%;
   background: rgba(8, 8, 8, 0.96);
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 22px;
+  gap: 16px;
   position: sticky;
   top: 0;
   z-index: 100;
@@ -104,8 +104,8 @@ img {
 }
 
 .brand img {
-  width: 57px;
-  height: 57px;
+  width: 55px;
+  height: 55px;
   object-fit: cover;
   border-radius: 50%;
   border: 2px solid var(--gold);
@@ -127,7 +127,7 @@ img {
 .header nav {
   display: flex;
   align-items: center;
-  gap: 28px;
+  gap: 22px;
 }
 
 .header nav a {
@@ -143,7 +143,79 @@ img {
 .head-actions {
   display: flex;
   align-items: center;
-  gap: 9px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.header-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--gold);
+}
+
+/* STORE ONLINE / OFFLINE CONTROLS */
+
+.store-switch-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 8px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+}
+
+.status-pill {
+  border: none;
+  border-radius: 6px;
+  padding: 6px 11px;
+  font-size: 12px;
+  font-weight: 700;
+  transition: 0.2s ease;
+}
+
+.status-pill.online-btn {
+  background: rgba(72, 168, 120, 0.16);
+  color: #78dba6;
+}
+
+.status-pill.online-btn.active {
+  background: #2f8f5b;
+  color: #ffffff;
+}
+
+.status-pill.offline-btn {
+  background: rgba(217, 83, 79, 0.16);
+  color: #ff8a85;
+}
+
+.status-pill.offline-btn.active {
+  background: #c83e39;
+  color: #ffffff;
+}
+
+.customer-store-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.customer-store-badge.online {
+  background: rgba(72, 168, 120, 0.16);
+  color: #78dba6;
+  border: 1px solid rgba(72, 168, 120, 0.45);
+}
+
+.customer-store-badge.offline {
+  background: rgba(217, 83, 79, 0.18);
+  color: #ff8a85;
+  border: 1px solid rgba(217, 83, 79, 0.55);
 }
 
 /* BUTTONS */
@@ -153,13 +225,13 @@ img {
 .danger-btn {
   border: 1px solid var(--gold);
   border-radius: 7px;
-  padding: 10px 18px;
+  padding: 9px 15px;
   font-weight: 600;
   transition: 0.25s ease;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 7px;
 }
 
 .gold-btn {
@@ -512,6 +584,61 @@ img {
   color: #171109;
 }
 
+/* SIDE SLIDE DRAWER (CUSTOMER PROFILE) */
+
+.side-drawer {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 650;
+}
+
+.side-drawer.show {
+  display: block;
+}
+
+.side-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(4px);
+}
+
+.side-drawer-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: min(100%, 380px);
+  height: 100vh;
+  overflow-y: auto;
+  background: #141414;
+  border-left: 1px solid var(--gold-dark);
+  padding: 28px 22px;
+  z-index: 2;
+  box-shadow: var(--shadow);
+}
+
+.profile-avatar-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.profile-avatar-box img {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--gold);
+}
+
+.upload-photo-btn {
+  font-size: 13px;
+  padding: 7px 14px;
+}
+
 /* MODAL */
 
 .modal {
@@ -558,7 +685,8 @@ img {
   line-height: 1;
 }
 
-.modal-card h2 {
+.modal-card h2,
+.side-drawer-panel h2 {
   color: var(--cream);
   font-size: 25px;
   margin-bottom: 20px;
@@ -566,13 +694,13 @@ img {
 
 /* FORMS */
 
-.modal-card form {
+form {
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
 
-.modal-card label {
+label {
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -581,9 +709,9 @@ img {
   font-weight: 500;
 }
 
-.modal-card input,
-.modal-card textarea,
-.modal-card select {
+input,
+textarea,
+select {
   width: 100%;
   padding: 12px 13px;
   border: 1px solid #464039;
@@ -594,19 +722,19 @@ img {
   resize: vertical;
 }
 
-.modal-card input:focus,
-.modal-card textarea:focus,
-.modal-card select:focus {
+input:focus,
+textarea:focus,
+select:focus {
   border-color: var(--gold);
   box-shadow: 0 0 0 2px rgba(214, 173, 85, 0.12);
 }
 
-.modal-card input::placeholder,
-.modal-card textarea::placeholder {
+input::placeholder,
+textarea::placeholder {
   color: #777;
 }
 
-.modal-card select option {
+select option {
   background: #171717;
 }
 
@@ -849,7 +977,7 @@ img {
   background: rgba(80, 150, 220, 0.15);
 }
 
-/* DELIVERY TRACKING PANEL (ONE-WAY PROGRESS BASED ON DELIVERY TIME) */
+/* DELIVERY TRACKING PANEL (ONE-WAY PROGRESS, BIKE FACING RIGHT) */
 
 .delivery-tracking {
   position: relative;
@@ -977,9 +1105,10 @@ img {
   will-change: left, transform;
 }
 
+/* Facing straight right toward "আপনার ঠিকানা" */
 .delivery-bike i {
   display: inline-block;
-  transform: scaleX(-1);
+  transform: scaleX(1);
 }
 
 @keyframes padmaBikeEngine {
@@ -1513,7 +1642,8 @@ input:focus-visible {
   .x,
   .header,
   .footer,
-  .modal {
+  .modal,
+  .side-drawer {
     display: none !important;
   }
 }
