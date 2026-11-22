@@ -671,7 +671,7 @@ img {
 }
 
 .modal-card.dashboard {
-  width: min(100%, 900px);
+  width: min(100%, 920px);
 }
 
 .x {
@@ -1105,7 +1105,6 @@ select option {
   will-change: left, transform;
 }
 
-/* Facing straight right toward "আপনার ঠিকানা" */
 .delivery-bike i {
   display: inline-block;
   transform: scaleX(1);
