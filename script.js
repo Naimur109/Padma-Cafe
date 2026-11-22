@@ -315,7 +315,6 @@ const MENU = [
     name: "পানি",
     category: "সফট ড্রিঙ্কস",
     price: 20
-    image: "https://i.ibb.co/V01TCgLQ/file-000000003354820899f2e4c773b57782.png"
   },
   {
     id: "mojo",
