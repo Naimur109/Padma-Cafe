@@ -85,7 +85,7 @@
           <span id="customerStoreBadgeText" data-i18n="store_online">অনলাইন</span>
         </div>
 
-        <!-- Row 1 Right: Profile Button (moved to All Orders position when logged in) -->
+        <!-- Row 1 Right: Profile Button -->
         <button class="auth-btn" id="authAccountBtn" type="button">
           <img id="customerHeaderAvatar" class="header-avatar hidden" alt="Profile Photo">
           <i class="fa-solid fa-user"></i>
@@ -112,7 +112,7 @@
           <span id="onlineOrderDot" class="notify-dot hidden" aria-label="New Online Order"></span>
         </button>
 
-        <!-- Row 3 Slot 1: All Orders (placed in 3-column lower grid) -->
+        <!-- Row 3 Slot 1: All Orders -->
         <button class="outline hidden" id="allOrdersBtn" type="button">
           <i class="fa-solid fa-list-check"></i>
           <span data-i18n="all_orders">সকল অর্ডার</span>
@@ -736,7 +736,7 @@
   </div>
 
   <!-- ====================================================
-       RECEIPT & PRINT MODAL
+       RECEIPT & PRINT MODAL (2 SEPARATE PRINT BUTTONS)
        ==================================================== -->
   <div class="modal" id="receiptModal" role="dialog" aria-modal="true" aria-labelledby="receiptTitle">
     <div class="modal-box receipt-modal-box">
@@ -747,10 +747,17 @@
 
       <div id="receiptContent"></div>
 
-      <button class="gold-btn wide no-print" id="printReceiptBtn" type="button">
-        <i class="fa-solid fa-print"></i>
-        <span data-i18n="print_receipt">রসিদ প্রিন্ট করুন</span>
-      </button>
+      <div class="receipt-print-buttons no-print" id="receiptPrintButtonsWrap">
+        <button class="outline wide" id="printKitchenCopyBtn" type="button">
+          <i class="fa-solid fa-fire-burner"></i>
+          <span>কিচেন কপি প্রিন্ট</span>
+        </button>
+
+        <button class="gold-btn wide" id="printCustomerCopyBtn" type="button">
+          <i class="fa-solid fa-print"></i>
+          <span>কাস্টমার কপি প্রিন্ট</span>
+        </button>
+      </div>
     </div>
   </div>
 
