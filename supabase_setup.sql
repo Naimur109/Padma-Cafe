@@ -1,5 +1,5 @@
 -- =========================================================
--- PADMA CAFE - ADDITIVE DATABASE MIGRATION
+-- PADMA CAFE - COMPLETE DATABASE MIGRATION & LIVE MENU PRICING
 -- Existing tables and data will be preserved.
 -- Timezone: Asia/Dhaka | Currency: BDT
 -- =========================================================
@@ -12,9 +12,12 @@ drop function if exists public.place_customer_order(
 );
 drop function if exists public.admin_create_offline_sale(jsonb);
 drop function if exists public.admin_create_offline_sale(jsonb, text);
+drop function if exists public.admin_update_menu_item(text, numeric, numeric);
+drop function if exists public.admin_update_menu_item(text, numeric, numeric, numeric);
 
 -- ---------------------------------------------------------
--- 1. ADD NEW ORDER & PROFILE COLUMNS, STORE SETTINGS & POLICIES
+-- 1. ADD NEW ORDER & PROFILE COLUMNS, STORE SETTINGS,
+--    DAILY EXPENSES & LIVE MENU ITEMS WITH DISCOUNT & TIMER
 -- ---------------------------------------------------------
 
 alter table public.orders
@@ -60,7 +63,6 @@ for all
 using (public.is_admin())
 with check (public.is_admin());
 
--- Daily Expenses Table for Admin Dashboard Expense & Profit Tracking
 create table if not exists public.daily_expenses (
   expense_date date primary key,
   expense_amount numeric(12,2) not null default 0,
@@ -76,6 +78,67 @@ for all
 using (public.is_admin())
 with check (public.is_admin());
 
+create table if not exists public.menu_items (
+  id text primary key,
+  name text not null,
+  category text not null,
+  price numeric(12,2) not null check (price >= 0),
+  discount_percent numeric(5,2) not null default 0 check (discount_percent >= 0 and discount_percent <= 95),
+  offer_ends_at timestamptz null,
+  sort_order integer not null default 0,
+  updated_at timestamptz not null default now()
+);
+
+alter table public.menu_items
+  add column if not exists offer_ends_at timestamptz null;
+
+insert into public.menu_items (id, name, category, price, discount_percent, offer_ends_at, sort_order)
+values
+  ('hot_coffee', 'হট কফি', 'পদ্মা স্পেশাল', 50, 0, null, 1),
+  ('malai_cha', 'মালাই চা', 'পদ্মা স্পেশাল', 40, 0, null, 2),
+  ('dudh_cha', 'দুধ চা', 'পদ্মা স্পেশাল', 30, 0, null, 3),
+  ('pora_roti_10', 'পোড়া রুটি', 'পদ্মা স্পেশাল', 10, 0, null, 4),
+  ('pora_roti_15', 'পোড়া রুটি', 'পদ্মা স্পেশাল', 15, 0, null, 5),
+  ('malai_cha_roti', 'মালাই চা + পোড়া রুটি', 'পদ্মা স্পেশাল', 50, 0, null, 6),
+  ('chotpoti', 'চটপটি', 'পদ্মা স্পেশাল', 40, 0, null, 7),
+  ('chotpoti_egg', 'চটপটি (ডিম)', 'পদ্মা স্পেশাল', 60, 0, null, 8),
+  ('fuchka', 'ফুচকা', 'পদ্মা স্পেশাল', 50, 0, null, 9),
+  ('doi_fuchka', 'দই ফুচকা', 'পদ্মা স্পেশাল', 90, 0, null, 10),
+  ('doi_chira', 'দই চিড়া', 'পদ্মা স্পেশাল', 80, 0, null, 11),
+  ('chicken_tikka_burger', 'চিকেন টিক্কা বার্গার', 'বার্গার', 80, 0, null, 12),
+  ('beef_burger', 'বিফ বার্গার', 'বার্গার', 130, 0, null, 13),
+  ('kolija_singara', 'কলিজা সিঙ্গারা', 'স্টাটার', 25, 0, null, 14),
+  ('french_fries', 'ফ্রেন্স ফ্রাই', 'স্টাটার', 50, 0, null, 15),
+  ('chicken_spring_roll', 'চিকেন স্প্রিং রোল', 'স্টাটার', 80, 0, null, 16),
+  ('chicken_momos', 'চিকেন মমস', 'স্টাটার', 100, 0, null, 17),
+  ('chicken_fry_3pcs', 'চিকেন ফ্রাই (৩ পিস)', 'স্টাটার', 120, 0, null, 18),
+  ('cold_coffee', 'কোল্ড কফি', 'শেক', 80, 0, null, 19),
+  ('chocolate_shake', 'চকলেট শেক', 'শেক', 90, 0, null, 20),
+  ('vanilla_shake', 'ভ্যানিলা শেক', 'শেক', 99, 0, null, 21),
+  ('oreo_shake', 'অরিও শেক', 'শেক', 110, 0, null, 22),
+  ('kitkat_shake', 'কিটক্যাট শেক', 'শেক', 110, 0, null, 23),
+  ('butterscotch_shake', 'বাটারস্কচ শেক (Padma Special)', 'শেক', 110, 0, null, 24),
+  ('water', 'পানি', 'সফট ড্রিঙ্কস', 20, 0, null, 25),
+  ('mojo', 'মজো', 'সফট ড্রিঙ্কস', 20, 0, null, 26),
+  ('combo_hash_khichuri_regular', 'হাঁস+খিচুড়ি (রেগুলার)', 'কম্বো প্যাকেজ', 230, 0, null, 27),
+  ('combo_hash_khichuri_special', 'হাঁস+খিচুড়ি (স্পেশাল)', 'কম্বো প্যাকেজ', 270, 0, null, 28)
+on conflict (id) do nothing;
+
+alter table public.menu_items enable row level security;
+
+drop policy if exists "Anyone can read menu items" on public.menu_items;
+create policy "Anyone can read menu items"
+on public.menu_items
+for select
+using (true);
+
+drop policy if exists "Admins can update menu items" on public.menu_items;
+create policy "Admins can update menu items"
+on public.menu_items
+for all
+using (public.is_admin())
+with check (public.is_admin());
+
 do $$
 begin
   if not exists (
@@ -86,6 +149,16 @@ begin
       and tablename = 'store_settings'
   ) then
     alter publication supabase_realtime add table public.store_settings;
+  end if;
+
+  if not exists (
+    select 1
+    from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'menu_items'
+  ) then
+    alter publication supabase_realtime add table public.menu_items;
   end if;
 end $$;
 
@@ -127,7 +200,88 @@ alter table public.orders
   check (payment_status in ('unpaid', 'pending_verification', 'paid'));
 
 -- ---------------------------------------------------------
--- 2. CUSTOMER ORDER CREATION (WITH RECIPIENT & PAYMENT INFO)
+-- 2. ADMIN UPDATE MENU ITEM PRICE, DISCOUNT & OFFER TIMER
+-- ---------------------------------------------------------
+
+create or replace function public.admin_update_menu_item(
+  p_item_id text,
+  p_price numeric,
+  p_discount_percent numeric default 0,
+  p_offer_hours numeric default null
+)
+returns table (
+  id text,
+  name text,
+  category text,
+  price numeric,
+  discount_percent numeric,
+  offer_ends_at timestamptz,
+  final_price numeric
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_disc numeric(5,2);
+  v_offer_end timestamptz;
+  v_active_disc numeric(5,2);
+  v_final numeric(12,2);
+begin
+  if not public.is_admin() then
+    raise exception 'শুধু অ্যাডমিন খাবারের দাম বা ডিসকাউন্ট আপডেট করতে পারবেন';
+  end if;
+
+  if p_price is null or p_price < 0 then
+    raise exception 'সঠিক দাম লিখুন';
+  end if;
+
+  v_disc := coalesce(p_discount_percent, 0);
+  if v_disc < 0 or v_disc > 95 then
+    raise exception 'ডিসকাউন্ট ০ থেকে ৯৫ শতাংশের মধ্যে দিন';
+  end if;
+
+  if v_disc > 0 and p_offer_hours is not null and p_offer_hours > 0 then
+    v_offer_end := now() + make_interval(secs => (p_offer_hours * 3600)::integer);
+  else
+    v_offer_end := null;
+  end if;
+
+  v_active_disc := case
+    when v_disc > 0 and (v_offer_end is null or v_offer_end > now()) then v_disc
+    else 0
+  end;
+
+  v_final := round((p_price * (100 - v_active_disc)) / 100.0);
+
+  update public.menu_items
+  set
+    price = round(p_price, 2),
+    discount_percent = v_disc,
+    offer_ends_at = v_offer_end,
+    updated_at = now()
+  where public.menu_items.id = p_item_id;
+
+  if not found then
+    raise exception 'খাবারটি পাওয়া যায়নি: %', p_item_id;
+  end if;
+
+  return query
+  select
+    m.id,
+    m.name,
+    m.category,
+    m.price,
+    m.discount_percent,
+    m.offer_ends_at,
+    v_final as final_price
+  from public.menu_items m
+  where m.id = p_item_id;
+end;
+$$;
+
+-- ---------------------------------------------------------
+-- 3. CUSTOMER ORDER CREATION (LIVE MENU PRICE + OFFER)
 -- ---------------------------------------------------------
 
 create or replace function public.place_customer_order(
@@ -151,38 +305,11 @@ declare
   v_item_id text;
   v_qty integer;
   v_name text;
+  v_base_price numeric(12,2);
+  v_disc numeric(5,2);
+  v_offer_end timestamptz;
+  v_active_disc numeric(5,2);
   v_price numeric(12,2);
-
-  v_prices jsonb := '[
-    {"id":"hot_coffee","name":"হট কফি","price":50},
-    {"id":"malai_cha","name":"মালাই চা","price":40},
-    {"id":"dudh_cha","name":"দুধ চা","price":30},
-    {"id":"pora_roti_10","name":"পোড়া রুটি","price":10},
-    {"id":"pora_roti_15","name":"পোড়া রুটি","price":15},
-    {"id":"malai_cha_roti","name":"মালাই চা + পোড়া রুটি","price":50},
-    {"id":"chotpoti","name":"চটপটি","price":40},
-    {"id":"chotpoti_egg","name":"চটপটি (ডিম)","price":60},
-    {"id":"fuchka","name":"ফুচকা","price":50},
-    {"id":"doi_fuchka","name":"দই ফুচকা","price":90},
-    {"id":"doi_chira","name":"দই চিড়া","price":80},
-    {"id":"chicken_tikka_burger","name":"চিকেন টিক্কা বার্গার","price":80},
-    {"id":"beef_burger","name":"বিফ বার্গার","price":130},
-    {"id":"kolija_singara","name":"কলিজা সিঙ্গারা","price":25},
-    {"id":"french_fries","name":"ফ্রেন্স ফ্রাই","price":50},
-    {"id":"chicken_spring_roll","name":"চিকেন স্প্রিং রোল","price":80},
-    {"id":"chicken_momos","name":"চিকেন মমস","price":100},
-    {"id":"chicken_fry_3pcs","name":"চিকেন ফ্রাই (৩ পিস)","price":120},
-    {"id":"cold_coffee","name":"কোল্ড কফি","price":80},
-    {"id":"chocolate_shake","name":"চকলেট শেক","price":90},
-    {"id":"vanilla_shake","name":"ভ্যানিলা শেক","price":99},
-    {"id":"oreo_shake","name":"অরিও শেক","price":110},
-    {"id":"kitkat_shake","name":"কিটক্যাট শেক","price":110},
-    {"id":"butterscotch_shake","name":"বাটারস্কচ শেক (Padma Special)","price":110},
-    {"id":"water","name":"পানি","price":20},
-    {"id":"mojo","name":"মজো","price":20},
-    {"id":"combo_hash_khichuri_regular","name":"হাঁস+খিচুড়ি (রেগুলার)","price":230},
-    {"id":"combo_hash_khichuri_special","name":"হাঁস+খিচুড়ি (স্পেশাল)","price":270}
-  ]'::jsonb;
 
   v_profile_name text;
   v_user_email text;
@@ -280,15 +407,24 @@ begin
     end if;
 
     select
-      item->>'name',
-      (item->>'price')::numeric
-    into v_name, v_price
-    from jsonb_array_elements(v_prices) item
-    where item->>'id' = v_item_id;
+      m.name,
+      m.price,
+      coalesce(m.discount_percent, 0),
+      m.offer_ends_at
+    into v_name, v_base_price, v_disc, v_offer_end
+    from public.menu_items m
+    where m.id = v_item_id;
 
     if v_name is null then
       raise exception 'অজানা খাবার: %', v_item_id;
     end if;
+
+    v_active_disc := case
+      when v_disc > 0 and (v_offer_end is null or v_offer_end > now()) then v_disc
+      else 0
+    end;
+
+    v_price := round((v_base_price * (100 - v_active_disc)) / 100.0);
 
     insert into public.order_items (
       order_id,
@@ -321,7 +457,7 @@ end;
 $$;
 
 -- ---------------------------------------------------------
--- 3. ADMIN VERIFY ONLINE PAYMENT AS PAID
+-- 4. ADMIN VERIFY ONLINE PAYMENT AS PAID
 -- ---------------------------------------------------------
 
 create or replace function public.admin_mark_payment_paid(
@@ -350,7 +486,7 @@ end;
 $$;
 
 -- ---------------------------------------------------------
--- 4. ADMIN UPDATE ORDER STATUS AND TIMERS
+-- 5. ADMIN UPDATE ORDER STATUS AND TIMERS
 -- ---------------------------------------------------------
 
 create or replace function public.admin_update_order_status(
@@ -451,7 +587,7 @@ end;
 $$;
 
 -- ---------------------------------------------------------
--- 5. CUSTOMER ACCEPT OR REJECT CHANGED ORDER
+-- 6. CUSTOMER ACCEPT OR REJECT CHANGED ORDER
 -- ---------------------------------------------------------
 
 create or replace function public.customer_respond_to_order_change(
@@ -495,7 +631,7 @@ end;
 $$;
 
 -- ---------------------------------------------------------
--- 6. OFFLINE SALE (CASH = cod, ONLINE QR = online_qr, PAID)
+-- 7. OFFLINE SALE (LIVE MENU PRICE + OFFER, PAID)
 -- ---------------------------------------------------------
 
 create or replace function public.admin_create_offline_sale(
@@ -514,39 +650,12 @@ declare
   v_item_id text;
   v_qty integer;
   v_name text;
+  v_base_price numeric(12,2);
+  v_disc numeric(5,2);
+  v_offer_end timestamptz;
+  v_active_disc numeric(5,2);
   v_price numeric(12,2);
   v_pay_method text;
-
-  v_prices jsonb := '[
-    {"id":"hot_coffee","name":"হট কফি","price":50},
-    {"id":"malai_cha","name":"মালাই চা","price":40},
-    {"id":"dudh_cha","name":"দুধ চা","price":30},
-    {"id":"pora_roti_10","name":"পোড়া রুটি","price":10},
-    {"id":"pora_roti_15","name":"পোড়া রুটি","price":15},
-    {"id":"malai_cha_roti","name":"মালাই চা + পোড়া রুটি","price":50},
-    {"id":"chotpoti","name":"চটপটি","price":40},
-    {"id":"chotpoti_egg","name":"চটপটি (ডিম)","price":60},
-    {"id":"fuchka","name":"ফুচকা","price":50},
-    {"id":"doi_fuchka","name":"দই ফুচকা","price":90},
-    {"id":"doi_chira","name":"দই চিড়া","price":80},
-    {"id":"chicken_tikka_burger","name":"চিকেন টিক্কা বার্গার","price":80},
-    {"id":"beef_burger","name":"বিফ বার্গার","price":130},
-    {"id":"kolija_singara","name":"কলিজা সিঙ্গারা","price":25},
-    {"id":"french_fries","name":"ফ্রেন্স ফ্রাই","price":50},
-    {"id":"chicken_spring_roll","name":"চিকেন স্প্রিং রোল","price":80},
-    {"id":"chicken_momos","name":"চিকেন মমস","price":100},
-    {"id":"chicken_fry_3pcs","name":"চিকেন ফ্রাই (৩ পিস)","price":120},
-    {"id":"cold_coffee","name":"কোল্ড কফি","price":80},
-    {"id":"chocolate_shake","name":"চকলেট শেক","price":90},
-    {"id":"vanilla_shake","name":"ভ্যানিলা শেক","price":99},
-    {"id":"oreo_shake","name":"অরিও শেক","price":110},
-    {"id":"kitkat_shake","name":"কিটক্যাট শেক","price":110},
-    {"id":"butterscotch_shake","name":"বাটারস্কচ শেক (Padma Special)","price":110},
-    {"id":"water","name":"পানি","price":20},
-    {"id":"mojo","name":"মজো","price":20},
-    {"id":"combo_hash_khichuri_regular","name":"হাঁস+খিচুড়ি (রেগুলার)","price":230},
-    {"id":"combo_hash_khichuri_special","name":"হাঁস+খিচুড়ি (স্পেশাল)","price":270}
-  ]'::jsonb;
 begin
   if not public.is_admin() then
     raise exception 'শুধু অ্যাডমিন অফলাইন বিক্রি করতে পারবেন';
@@ -602,15 +711,24 @@ begin
     end if;
 
     select
-      item->>'name',
-      (item->>'price')::numeric
-    into v_name, v_price
-    from jsonb_array_elements(v_prices) item
-    where item->>'id' = v_item_id;
+      m.name,
+      m.price,
+      coalesce(m.discount_percent, 0),
+      m.offer_ends_at
+    into v_name, v_base_price, v_disc, v_offer_end
+    from public.menu_items m
+    where m.id = v_item_id;
 
     if v_name is null then
       raise exception 'অজানা খাবার: %', v_item_id;
     end if;
+
+    v_active_disc := case
+      when v_disc > 0 and (v_offer_end is null or v_offer_end > now()) then v_disc
+      else 0
+    end;
+
+    v_price := round((v_base_price * (100 - v_active_disc)) / 100.0);
 
     insert into public.order_items (
       order_id,
@@ -643,8 +761,12 @@ end;
 $$;
 
 -- ---------------------------------------------------------
--- 7. FUNCTION PERMISSIONS
+-- 8. FUNCTION PERMISSIONS
 -- ---------------------------------------------------------
+
+grant execute on function public.admin_update_menu_item(
+  text, numeric, numeric, numeric
+) to authenticated;
 
 grant execute on function public.place_customer_order(
   jsonb, text, text, text, text, text, text
@@ -666,3 +788,5 @@ grant execute on function public.admin_create_offline_sale(jsonb, text)
   to authenticated;
 
 commit;
+
+notify pgrst, 'reload schema';
