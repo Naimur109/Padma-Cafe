@@ -10,8 +10,6 @@ drop function if exists public.place_customer_order(jsonb);
 drop function if exists public.place_customer_order(
   jsonb, text, text, text, text, text, text
 );
-drop function if exists public.admin_create_offline_sale(jsonb);
-drop function if exists public.admin_create_offline_sale(jsonb, text);
 
 -- ---------------------------------------------------------
 -- 1. ADD NEW ORDER & PROFILE COLUMNS, STORE SETTINGS & POLICIES
@@ -479,12 +477,11 @@ end;
 $$;
 
 -- ---------------------------------------------------------
--- 6. OFFLINE SALE (CASH = cod, ONLINE QR = online_qr, PAID)
+-- 6. OFFLINE SALE
 -- ---------------------------------------------------------
 
 create or replace function public.admin_create_offline_sale(
-  p_items jsonb,
-  p_payment_method text default 'cod'
+  p_items jsonb
 )
 returns uuid
 language plpgsql
@@ -499,7 +496,6 @@ declare
   v_qty integer;
   v_name text;
   v_price numeric(12,2);
-  v_pay_method text;
 
   v_prices jsonb := '[
     {"id":"hot_coffee","name":"হট কফি","price":50},
@@ -541,11 +537,6 @@ begin
     raise exception 'বিক্রির জন্য খাবার যোগ করুন';
   end if;
 
-  v_pay_method := case
-    when p_payment_method in ('cod', 'online_qr') then p_payment_method
-    else 'cod'
-  end;
-
   insert into public.orders (
     customer_id,
     customer_name,
@@ -570,7 +561,7 @@ begin
     'completed',
     'not_required',
     'offline',
-    v_pay_method,
+    'cod',
     'paid',
     now()
   )
@@ -646,7 +637,7 @@ grant execute on function public.customer_respond_to_order_change(
   uuid, boolean
 ) to authenticated;
 
-grant execute on function public.admin_create_offline_sale(jsonb, text)
+grant execute on function public.admin_create_offline_sale(jsonb)
   to authenticated;
 
 commit;
