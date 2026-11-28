@@ -10,7 +10,6 @@ const SUPABASE_ANON_KEY = "sb_publishable_mjf3B4SkF1kOXwhVxy_veA_oTHLPNLU";
 
 // ONLINE CUSTOMER ORDER RECEIPT ONLY
 const CAFE_CONTACT_PHONE = "+8801304178943";
-const CAFE_LOGO_URL = "https://i.ibb.co/4nW7J6d0/IMG-20261121-WA0000.jpg";
 
 // SONALI BANK BANGLA QR BASE EMVCO STRING (PADMA CAFE, KUSHTIA)
 const BANGLA_QR_BASE_PAYLOAD =
@@ -138,12 +137,12 @@ function setLoading(button, loading, text = "অপেক্ষা করুন.
   if (!button) return;
 
   if (loading) {
-    button.dataset.originalText = button.innerHTML;
+    button.dataset.originalText = button.textContent;
     button.textContent = text;
     button.disabled = true;
   } else {
-    button.innerHTML =
-      button.dataset.originalText || button.innerHTML;
+    button.textContent =
+      button.dataset.originalText || button.textContent;
     button.disabled = false;
   }
 }
@@ -538,16 +537,6 @@ let audioCtx = null;
 let reportDate = dhakaDate(new Date());
 let reportType = "daily";
 let offlineCart = {};
-let offlineSelectedCategory = "সব খাবার";
-let offlinePaymentMethod = "cod"; // "cod" | "online_qr"
-let offlineQrActive = false;
-let hasUnprintedOfflineReceipt = false;
-let printerBridgeState = {
-  connected: false,
-  printerName: "POSIFLOW PSF-KP206",
-  paperWidth: "58mm",
-  devices: []
-};
 let orderTimerInterval = null;
 let storeOnline = true;
 let draftPhotoDataUrl = "";
@@ -574,7 +563,8 @@ function openProfileSlide() {
   if (!user || !profile) return;
 
   draftPhotoDataUrl = "";
-  const currentAvatar = profile.avatar_url || CAFE_LOGO_URL;
+  const currentAvatar =
+    profile.avatar_url || "https://i.ibb.co/4nW7J6d0/IMG-20261121-WA0000.jpg";
   $("profileSlidePreview").src = currentAvatar;
   $("profilePhotoUrlInput").value = profile.avatar_url || "";
   $("profileNameInput").value = profile.full_name || "";
@@ -609,24 +599,6 @@ document.addEventListener("keydown", event => {
 
   document.body.classList.remove("modal-open");
 });
-
-// ------------------------------------------------------
-// RECEIPT NOTIFICATION DOT & HEADER VISIBILITY
-// ------------------------------------------------------
-
-function setOfflineReceiptNotification(active) {
-  hasUnprintedOfflineReceipt = Boolean(active);
-  const dot = $("offlineReceiptDot");
-  if (dot) {
-    dot.classList.toggle("hidden", !hasUnprintedOfflineReceipt);
-  }
-}
-
-function updatePrinterHeaderBadge() {
-  const btn = $("adminPrinterBtn");
-  if (!btn) return;
-  btn.classList.toggle("connected", Boolean(printerBridgeState.connected));
-}
 
 // ------------------------------------------------------
 // STORE ONLINE / OFFLINE STATUS SYNC
@@ -746,24 +718,15 @@ function updateHeaderAuthButtons() {
   const accLabel = $("authAccountLabel");
   const accAvatar = $("customerHeaderAvatar");
   const allOrdersBtn = $("allOrdersBtn");
-  const printerBtn = $("adminPrinterBtn");
-  const offlineReceiptBtn = $("adminOfflineReceiptBtn");
-  const cartBtn = $("cartBtn");
 
   if (!user || !profile) {
     accLabel.textContent = "লগইন / রেজিস্টার";
     accAvatar.classList.add("hidden");
     accAvatar.src = "";
     allOrdersBtn.classList.add("hidden");
-    printerBtn?.classList.add("hidden");
-    offlineReceiptBtn?.classList.add("hidden");
-    cartBtn?.classList.remove("hidden");
-    setOfflineReceiptNotification(false);
     applyStoreStatusUI();
     return;
   }
-
-  const isAdmin = profile.role === "admin";
 
   accLabel.textContent = profile.full_name || user.email || "অ্যাকাউন্ট";
   if (profile.avatar_url) {
@@ -774,15 +737,6 @@ function updateHeaderAuthButtons() {
   }
 
   allOrdersBtn.classList.remove("hidden");
-  printerBtn?.classList.toggle("hidden", !isAdmin);
-  offlineReceiptBtn?.classList.toggle("hidden", !isAdmin);
-  cartBtn?.classList.toggle("hidden", isAdmin);
-
-  if (!isAdmin) {
-    setOfflineReceiptNotification(false);
-  }
-
-  updatePrinterHeaderBadge();
   applyStoreStatusUI();
 }
 
@@ -802,17 +756,6 @@ $("allOrdersBtn").onclick = async () => {
   await openDashboard();
 };
 
-$("adminPrinterBtn")?.addEventListener("click", async () => {
-  if (!ensureAdmin()) return;
-  await openPrinterModal();
-});
-
-$("adminOfflineReceiptBtn")?.addEventListener("click", () => {
-  if (!ensureAdmin()) return;
-  setOfflineReceiptNotification(false);
-  openOfflineSale();
-});
-
 $("profilePhotoInput")?.addEventListener("change", event => {
   const file = event.target.files?.[0];
   if (!file) return;
@@ -830,7 +773,7 @@ $("profilePhotoUrlInput")?.addEventListener("input", event => {
   const url = event.target.value.trim();
   draftPhotoDataUrl = "";
   $("profileSlidePreview").src =
-    url || profile?.avatar_url || CAFE_LOGO_URL;
+    url || profile?.avatar_url || "https://i.ibb.co/4nW7J6d0/IMG-20261121-WA0000.jpg";
 });
 
 $("profileSlideForm")?.addEventListener("submit", async event => {
@@ -1469,12 +1412,75 @@ function ensureAdmin() {
 }
 
 // ------------------------------------------------------
-// MULTI-STEP CUSTOMER ORDER CHECKOUT (DELIVERY -> PAYMENT -> COD / BANGLA QR)
+// MULTI-STEP ORDER CHECKOUT (DELIVERY -> PAYMENT -> COD / BANGLA QR)
 // ------------------------------------------------------
 
 $("checkoutBtn").onclick = async () => {
   const rows = cartRows();
   if (!rows.length) return;
+
+  const isAdminLoggedIn = Boolean(user && profile && profile.role === "admin");
+
+  if (isAdminLoggedIn) {
+    const button = $("checkoutBtn");
+    setLoading(button, true, "অফলাইন রসিদ তৈরি হচ্ছে...");
+
+    try {
+      const payload = rows.map(item => ({
+        id: item.id,
+        quantity: item.qty
+      }));
+
+      const { data, error } = await db.rpc(
+        "admin_create_offline_sale",
+        { p_items: payload }
+      );
+
+      if (error) throw error;
+
+      const saleId = typeof data === "string"
+        ? data
+        : data?.id || data?.sale_id || crypto.randomUUID();
+
+      const totalAmt = rows.reduce((sum, item) => sum + item.subtotal, 0);
+
+      const sale = {
+        id: saleId,
+        created_at: new Date().toISOString(),
+        customer_name: "অফলাইন বিক্রি",
+        customer_email: "",
+        customer_phone: "",
+        customer_address: "",
+        status: "completed",
+        sale_type: "offline",
+        payment_method: "cod",
+        payment_status: "paid",
+        total_amount: totalAmt
+      };
+
+      const receiptItems = rows.map(item => ({
+        item_name: item.name,
+        quantity: item.qty,
+        unit_price: item.price,
+        line_total: item.subtotal,
+        item_status: "active"
+      }));
+
+      currentReceipt = { order: sale, items: receiptItems };
+      $("receiptContent").innerHTML = receiptHTML(sale, receiptItems);
+
+      cart = {};
+      renderCart();
+      hide("cartModal");
+      show("receiptModal");
+      toast("অফলাইন বিক্রি সংরক্ষণ ও রসিদ তৈরি হয়েছে।");
+    } catch (error) {
+      showError(error);
+    } finally {
+      setLoading(button, false);
+    }
+    return;
+  }
 
   if (!storeOnline) {
     toast("ক্যাফে/রেস্টুরেন্ট এখন বন্ধ আছে। এই মুহূর্তে অর্ডার নেওয়া যাচ্ছে না।");
@@ -1483,7 +1489,6 @@ $("checkoutBtn").onclick = async () => {
 
   if (!(await ensureCustomer())) return;
 
-  offlineQrActive = false;
   hide("cartModal");
   openCheckoutDetailsModal();
 };
@@ -1558,16 +1563,9 @@ $("codBackBtn")?.addEventListener("click", () => {
 });
 
 $("selectOnlinePayBtn")?.addEventListener("click", async () => {
-  offlineQrActive = false;
   const total = cartTotal();
   $("qrExactAmount").textContent = money(total);
-  $("qrReferenceInput").required = true;
   $("qrReferenceInput").value = "";
-  $("qrRefFieldWrap")?.classList.remove("hidden");
-  $("banglaQrHintText").textContent =
-    "QR কোডটি স্ক্যান করলে আপনার পেমেন্ট অ্যাপে স্বয়ংক্রিয়ভাবে এই টাকা বসে যাবে; আলাদা করে টাকা লিখতে হবে না। পেমেন্ট শেষে Transaction ID দিয়ে ভেরিফিকেশনের জন্য পাঠান।";
-  $("confirmQrPaidOrderBtn").innerHTML =
-    '<i class="fa-solid fa-paper-plane"></i> ভেরিফিকেশনের জন্য পাঠান — অর্ডার করুন';
 
   hide("paymentMethodModal");
   show("banglaQrModal");
@@ -1576,12 +1574,6 @@ $("selectOnlinePayBtn")?.addEventListener("click", async () => {
 
 $("qrBackBtn")?.addEventListener("click", () => {
   hide("banglaQrModal");
-  if (offlineQrActive) {
-    offlineQrActive = false;
-    renderOfflineSaleView();
-    show("offlineSaleModal");
-    return;
-  }
   show("paymentMethodModal");
 });
 
@@ -1597,12 +1589,6 @@ $("confirmCodOrderBtn")?.addEventListener("click", async () => {
 
 $("banglaQrConfirmForm")?.addEventListener("submit", async event => {
   event.preventDefault();
-
-  if (offlineQrActive) {
-    await finalizeOfflineSale("online_qr");
-    return;
-  }
-
   const refText = ($("qrReferenceInput")?.value || "").trim();
 
   if (!refText) {
@@ -1744,20 +1730,14 @@ function statusLabel(status) {
 }
 
 function paymentMethodLabel(order) {
-  if (order.sale_type === "offline") {
-    return order.payment_method === "online_qr"
-      ? "অনলাইন QR (অফলাইন)"
-      : "ক্যাশ পেমেন্ট (অফলাইন)";
-  }
+  if (order.sale_type === "offline") return "অফলাইন সেল";
   return order.payment_method === "online_qr"
     ? "অনলাইন পেমেন্ট (Bangla QR)"
     : "ক্যাশ অন ডেলিভারি";
 }
 
 function paymentBadgeHTML(order) {
-  if (order.sale_type === "offline") {
-    return `<span class="status paid"><i class="fa-solid fa-cash-register"></i> ${escapeHTML(paymentMethodLabel(order))}</span>`;
-  }
+  if (order.sale_type === "offline") return "";
   if (order.payment_status === "paid") {
     return `<span class="status paid"><i class="fa-solid fa-circle-check"></i> PAID</span>`;
   }
@@ -2143,14 +2123,14 @@ async function renderAdmin() {
       <h3>অ্যাডমিন কন্ট্রোল</h3>
 
       <div class="order-actions">
-        <button id="openOfflineSale" class="gold-btn" type="button">
-          <i class="fa-solid fa-receipt"></i>
-          অফলাইন রিসিট
+        <button id="openNewOnlineSale" class="gold-btn" type="button">
+          <i class="fa-solid fa-cart-plus"></i>
+          নতুন অনলাইন বিক্রি
         </button>
 
-        <button id="openPrinterModalDash" class="outline" type="button">
-          <i class="fa-solid fa-print"></i>
-          Printer সেটআপ
+        <button id="openOfflineSale" class="gold-btn" type="button">
+          <i class="fa-solid fa-cash-register"></i>
+          নতুন অফলাইন বিক্রি
         </button>
 
         <button id="openSalesReport" class="outline" type="button">
@@ -2201,13 +2181,13 @@ async function renderAdmin() {
     </div>
   `;
 
-  $("openOfflineSale").onclick = () => {
-    setOfflineReceiptNotification(false);
-    openOfflineSale();
+  $("openNewOnlineSale").onclick = () => {
+    hide("dashboardModal");
+    $("menuSection")?.scrollIntoView({ behavior: "smooth" });
+    toast("মেনু থেকে খাবার নির্বাচন করে অর্ডার তালিকায় যোগ করুন।");
   };
-  $("openPrinterModalDash").onclick = async () => {
-    await openPrinterModal();
-  };
+
+  $("openOfflineSale").onclick = openOfflineSale;
   $("openSalesReport").onclick = openSalesReport;
 
   let output = "";
@@ -2660,236 +2640,6 @@ async function respondToChangedOrder(orderId, accepted) {
 }
 
 // ------------------------------------------------------
-// FLUTTER BLUETOOTH THERMAL BRIDGE (POSIFLOW PSF-KP206, 58mm)
-// ------------------------------------------------------
-
-window.onFlutterPrinterStatus = function(statusPayload) {
-  try {
-    const parsed = typeof statusPayload === "string"
-      ? JSON.parse(statusPayload)
-      : (statusPayload || {});
-
-    printerBridgeState = {
-      connected: Boolean(parsed.connected),
-      printerName: parsed.printerName || parsed.name || "POSIFLOW PSF-KP206",
-      paperWidth: parsed.paperWidth || "58mm",
-      devices: Array.isArray(parsed.devices) ? parsed.devices : printerBridgeState.devices
-    };
-    updatePrinterHeaderBadge();
-    if ($("printerModal")?.classList.contains("show")) {
-      renderPrinterModalContent();
-    }
-  } catch (_) {}
-};
-
-function sendFlutterBridgeCommand(action, payload = {}) {
-  const message = JSON.stringify({ action, ...payload });
-
-  if (window.PadmaPrinterBridge && typeof window.PadmaPrinterBridge.postMessage === "function") {
-    window.PadmaPrinterBridge.postMessage(message);
-    return true;
-  }
-
-  if (window.PrintChannel && typeof window.PrintChannel.postMessage === "function") {
-    window.PrintChannel.postMessage(message);
-    return true;
-  }
-
-  return false;
-}
-
-async function openPrinterModal() {
-  if (!ensureAdmin()) return;
-  show("printerModal");
-  renderPrinterModalContent();
-  sendFlutterBridgeCommand("refreshStatus");
-  sendFlutterBridgeCommand("scanPairedPrinters");
-}
-
-function renderPrinterModalContent() {
-  const wrap = $("printerModalContent");
-  if (!wrap) return;
-
-  const devicesHtml = printerBridgeState.devices.length
-    ? printerBridgeState.devices.map(dev => `
-        <div class="printer-device-item">
-          <div class="printer-device-meta">
-            <strong>${escapeHTML(dev.name || "Bluetooth Printer")}</strong>
-            <small>${escapeHTML(dev.mac || dev.macAdress || "")}</small>
-          </div>
-          <button
-            type="button"
-            class="gold-btn"
-            data-connect-printer-mac="${escapeHTML(dev.mac || dev.macAdress || "")}"
-            data-connect-printer-name="${escapeHTML(dev.name || "POSIFLOW PSF-KP206")}"
-          >
-            Connect
-          </button>
-        </div>
-      `).join("")
-    : `<p class="field-hint">Paired Bluetooth Printer দেখতে "Scan Paired" বাটন চাপুন অথবা Flutter App থেকে Printer Pair করুন।</p>`;
-
-  wrap.innerHTML = `
-    <div class="printer-status-box">
-      <div class="printer-status-row">
-        <strong>Printer Model:</strong>
-        <span>POSIFLOW PSF-KP206 (58mm)</span>
-      </div>
-      <div class="printer-status-row">
-        <strong>Connection Status:</strong>
-        <span class="status ${printerBridgeState.connected ? "paid" : "pending"}">
-          ${printerBridgeState.connected ? `Connected (${escapeHTML(printerBridgeState.printerName)})` : "Disconnected"}
-        </span>
-      </div>
-      <small class="field-hint">
-        Android WebView App-এর Bluetooth Bridge ব্যবহার করে সরাসরি 58mm Thermal Printer-এ প্রিন্ট হবে।
-      </small>
-    </div>
-
-    <div class="order-actions" style="margin-bottom: 14px;">
-      <button type="button" class="gold-btn" id="scanPairedPrintersBtn">
-        <i class="fa-brands fa-bluetooth"></i>
-        Scan Paired Printers
-      </button>
-
-      <button type="button" class="outline" id="testThermalPrinterBtn">
-        <i class="fa-solid fa-receipt"></i>
-        Test Print
-      </button>
-
-      ${
-        printerBridgeState.connected
-          ? `<button type="button" class="danger-btn" id="disconnectThermalPrinterBtn">
-               <i class="fa-solid fa-link-slash"></i>
-               Disconnect
-             </button>`
-          : ""
-      }
-    </div>
-
-    <div class="dashboard-panel">
-      <h3>Paired Bluetooth Devices</h3>
-      <div id="pairedPrintersList">${devicesHtml}</div>
-    </div>
-
-    <div class="dashboard-panel">
-      <h3>Printer Settings (58mm)</h3>
-      <p class="field-hint">
-        • Model: POSIFLOW PSF-KP206<br>
-        • Paper Roll: 58mm Thermal<br>
-        • Offline Sale Print: Kitchen Copy + Customer Copy (পরপর ২টি কপি)<br>
-        • Online Order Print: শুধু Customer Copy (১টি কপি)
-      </p>
-    </div>
-  `;
-
-  $("scanPairedPrintersBtn")?.addEventListener("click", () => {
-    const sent = sendFlutterBridgeCommand("scanPairedPrinters");
-    if (!sent) {
-      toast("Flutter WebView অ্যাপে খুলে Bluetooth Printer Connect করুন।");
-    } else {
-      toast("Paired Bluetooth Printer খোঁজা হচ্ছে...");
-    }
-  });
-
-  $("testThermalPrinterBtn")?.addEventListener("click", () => {
-    const sent = sendFlutterBridgeCommand("testPrint", {
-      printerModel: "POSIFLOW PSF-KP206",
-      paperWidth: "58mm"
-    });
-    if (!sent) {
-      toast("Test Print পাঠাতে Flutter WebView অ্যাপ ব্যবহার করুন।");
-    }
-  });
-
-  $("disconnectThermalPrinterBtn")?.addEventListener("click", () => {
-    sendFlutterBridgeCommand("disconnectPrinter");
-  });
-
-  wrap.querySelectorAll("[data-connect-printer-mac]").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const mac = btn.dataset.connectPrinterMac;
-      const name = btn.dataset.connectPrinterName;
-      const sent = sendFlutterBridgeCommand("connectPrinter", { mac, name });
-      if (!sent) {
-        toast("Flutter WebView অ্যাপে Printer Connect করুন।");
-      }
-    });
-  });
-}
-
-function buildThermalPrintPayload(order, items) {
-  const isOffline = order.sale_type === "offline";
-  const receiptNo = String(order.id || "").slice(0, 8).toUpperCase();
-  const formattedDateTime = dateTime(order.created_at);
-
-  const normalizedItems = (items || []).map(item => ({
-    name: String(item.item_name || item.name || ""),
-    quantity: Number(item.quantity || 1),
-    unitPrice: Number(item.unit_price ?? item.price ?? 0),
-    lineTotal: Number(item.line_total ?? (Number(item.unit_price ?? item.price ?? 0) * Number(item.quantity || 1)))
-  }));
-
-  const totalAmount = Number(
-    order.total_amount ?? normalizedItems.reduce((sum, i) => sum + i.lineTotal, 0)
-  );
-
-  // Offline sale prints TWO copies sequentially:
-  // 1) Kitchen Copy (NO prices or total)
-  // 2) Customer Copy (With logo, receipt ID, date/time, items, qty, individual price, total, payment method)
-  // Online order prints ONLY ONE Customer Copy.
-  if (isOffline) {
-    return {
-      type: "offline_dual_receipt",
-      copies: ["kitchen", "customer"],
-      paperWidth: "58mm",
-      printerModel: "POSIFLOW PSF-KP206",
-      kitchenCopy: {
-        cafeName: "PADMA CAFE",
-        copyTitle: "Kitchen Copy",
-        receiptNumber: receiptNo,
-        dateTime: formattedDateTime,
-        items: normalizedItems.map(i => ({
-          name: i.name,
-          quantity: i.quantity
-        }))
-      },
-      customerCopy: {
-        cafeName: "PADMA CAFE",
-        logoUrl: CAFE_LOGO_URL,
-        copyTitle: "Customer Copy",
-        receiptId: receiptNo,
-        dateTime: formattedDateTime,
-        paymentMethod: paymentMethodLabel(order),
-        items: normalizedItems,
-        totalAmount
-      }
-    };
-  }
-
-  return {
-    type: "online_single_receipt",
-    copies: ["customer"],
-    paperWidth: "58mm",
-    printerModel: "POSIFLOW PSF-KP206",
-    customerCopy: {
-      cafeName: "PADMA CAFE",
-      logoUrl: CAFE_LOGO_URL,
-      copyTitle: "Customer Copy",
-      receiptId: receiptNo,
-      dateTime: formattedDateTime,
-      customerName: order.customer_name || "কাস্টমার",
-      customerPhone: order.customer_phone || "",
-      customerAddress: order.customer_address || "",
-      paymentMethod: paymentMethodLabel(order),
-      paymentStatus: order.payment_status || "unpaid",
-      items: normalizedItems,
-      totalAmount
-    }
-  };
-}
-
-// ------------------------------------------------------
 // RECEIPT & PRINT
 // ------------------------------------------------------
 
@@ -2935,7 +2685,7 @@ function receiptHTML(order, items) {
     <div class="receipt-paper">
       <div class="receipt-header">
         <img
-          src="${CAFE_LOGO_URL}"
+          src="https://i.ibb.co/4nW7J6d0/IMG-20261121-WA0000.jpg"
           alt="Padma Cafe"
         >
         <h2>PADMA CAFE</h2>
@@ -2960,10 +2710,7 @@ function receiptHTML(order, items) {
         <p>তারিখ: ${dateTime(order.created_at)}</p>
         ${
           isOffline
-            ? `
-              <p>বিক্রির ধরন: অফলাইন</p>
-              <p>পেমেন্ট মাধ্যম: ${escapeHTML(paymentMethodLabel(order))}</p>
-            `
+            ? `<p>বিক্রির ধরন: অফলাইন</p>`
             : `
               <p>প্রাপক: ${escapeHTML(order.customer_name || "কাস্টমার")}</p>
               <p>ইমেইল: ${escapeHTML(order.customer_email || order.email || "—")}</p>
@@ -3016,22 +2763,6 @@ async function showReceipt(orderId) {
 $("printReceiptBtn").onclick = () => {
   if (!currentReceipt) {
     toast("প্রথমে একটি রসিদ খুলুন।");
-    return;
-  }
-
-  const payload = buildThermalPrintPayload(currentReceipt.order, currentReceipt.items);
-  const bridged = sendFlutterBridgeCommand("printReceipt", {
-    receiptData: payload,
-    html: $("receiptContent").innerHTML
-  });
-
-  if (bridged) {
-    setOfflineReceiptNotification(false);
-    toast(
-      currentReceipt.order.sale_type === "offline"
-        ? "Kitchen Copy ও Customer Copy প্রিন্টারে পাঠানো হয়েছে!"
-        : "Customer Copy প্রিন্টারে পাঠানো হয়েছে!"
-    );
     return;
   }
 
@@ -3161,80 +2892,47 @@ $("printReceiptBtn").onclick = () => {
 };
 
 // ------------------------------------------------------
-// OFFLINE SALE / POS (3-COL VERTICAL GRID + CASH / BANGLA QR)
+// OFFLINE SALE
 // ------------------------------------------------------
 
 function openOfflineSale() {
   if (!ensureAdmin()) return;
 
   offlineCart = {};
-  offlineSelectedCategory = "সব খাবার";
-  offlinePaymentMethod = "cod";
-  offlineQrActive = false;
 
-  renderOfflineSaleView();
-  show("offlineSaleModal");
-}
-
-function renderOfflineSaleView() {
-  const categoryChips = CATEGORIES.map(category => `
-    <button
-      type="button"
-      class="category-btn ${offlineSelectedCategory === category ? "active" : ""}"
-      data-offline-cat="${escapeHTML(category)}"
-    >
-      ${escapeHTML(category)}
-    </button>
-  `).join("");
+  const categoryOptions = CATEGORIES
+    .filter(category => category !== "সব খাবার")
+    .map(category => `
+      <option value="${escapeHTML(category)}">
+        ${escapeHTML(category)}
+      </option>
+    `).join("");
 
   $("offlineSaleContent").innerHTML = `
     <div class="offline-sale">
-      <p class="field-hint">খাবারের ছবি বা কার্ডে চাপ দিলেই তালিকায় যোগ হবে। কাস্টমারের নাম, ফোন বা ঠিকানা বাধ্যতামূলক নয়।</p>
+      <p class="field-hint">কাস্টমারের কোনো তথ্য লাগবে না। শুধু খাবার ও পরিমাণ দিন।</p>
 
-      <div class="menu-categories" id="offlineCategoryChips" style="margin-bottom: 14px;">
-        ${categoryChips}
-      </div>
+      <label for="offlineCategory">ক্যাটাগরি</label>
+      <select id="offlineCategory">
+        <option value="সব খাবার">সব খাবার</option>
+        ${categoryOptions}
+      </select>
 
-      <div class="offline-menu-scroll" id="offlineMenuScroll">
-        <div class="offline-pos-grid" id="offlineMenuList"></div>
-      </div>
+      <div id="offlineMenuList"></div>
 
       <div class="dashboard-panel">
-        <h3>নির্বাচিত খাবারের তালিকা</h3>
+        <h3>বিক্রির তালিকা</h3>
         <div id="offlineCartList"></div>
 
         <div class="total-line">
-          <strong>সর্বমোট</strong>
+          <strong>মোট</strong>
           <strong id="offlineTotal">${money(0)}</strong>
-        </div>
-
-        <label style="margin-top: 10px;">
-          পেমেন্ট মাধ্যম নির্বাচন করুন
-        </label>
-        <div class="offline-payment-options">
-          <button
-            type="button"
-            id="offlinePayCashBtn"
-            class="offline-pay-choice ${offlinePaymentMethod === "cod" ? "active" : ""}"
-          >
-            <i class="fa-solid fa-money-bill-wave"></i>
-            Cash Payment
-          </button>
-
-          <button
-            type="button"
-            id="offlinePayQrBtn"
-            class="offline-pay-choice ${offlinePaymentMethod === "online_qr" ? "active" : ""}"
-          >
-            <i class="fa-solid fa-qrcode"></i>
-            Online Payment (Bangla QR)
-          </button>
         </div>
       </div>
 
       <button class="gold-btn wide" id="saveOfflineSaleBtn" type="button">
-        <i class="fa-solid fa-check-double"></i>
-        ${offlinePaymentMethod === "online_qr" ? "Bangla QR দেখুন ও পেমেন্ট কনফার্ম করুন" : "Cash পেমেন্ট কনফার্ম ও রসিদ তৈরি"}
+        <i class="fa-solid fa-print"></i>
+        বিক্রি সংরক্ষণ ও রসিদ তৈরি
       </button>
     </div>
   `;
@@ -3242,103 +2940,60 @@ function renderOfflineSaleView() {
   renderOfflineMenu();
   renderOfflineCart();
 
-  $("offlineCategoryChips").onclick = event => {
-    const chip = event.target.closest("[data-offline-cat]");
-    if (!chip) return;
-    offlineSelectedCategory = chip.dataset.offlineCat;
-    renderOfflineSaleView();
-  };
+  $("offlineCategory").onchange = renderOfflineMenu;
 
   $("offlineMenuList").onclick = event => {
-    const card = event.target.closest("[data-offline-add]");
-    if (!card) return;
+    const button = event.target.closest("[data-offline-add]");
+    if (!button) return;
 
-    const id = card.dataset.offlineAdd;
+    const id = button.dataset.offlineAdd;
     offlineCart[id] = (offlineCart[id] || 0) + 1;
-    renderOfflineMenu();
     renderOfflineCart();
   };
 
   $("offlineCartList").onclick = event => {
-    const changeBtn = event.target.closest("[data-offline-change]");
-    const removeBtn = event.target.closest("[data-offline-remove]");
+    const button = event.target.closest("[data-offline-change]");
+    if (!button) return;
 
-    if (changeBtn) {
-      const id = changeBtn.dataset.offlineChange;
-      const diff = Number(changeBtn.dataset.diff);
+    const id = button.dataset.offlineChange;
+    const diff = Number(button.dataset.diff);
 
-      offlineCart[id] = Math.max(0, (offlineCart[id] || 0) + diff);
-      if (!offlineCart[id]) delete offlineCart[id];
+    offlineCart[id] = Math.max(0, (offlineCart[id] || 0) + diff);
+    if (!offlineCart[id]) delete offlineCart[id];
 
-      renderOfflineMenu();
-      renderOfflineCart();
-      return;
-    }
-
-    if (removeBtn) {
-      const id = removeBtn.dataset.offlineRemove;
-      delete offlineCart[id];
-      renderOfflineMenu();
-      renderOfflineCart();
-    }
+    renderOfflineCart();
   };
 
-  $("offlinePayCashBtn").onclick = () => {
-    offlinePaymentMethod = "cod";
-    renderOfflineSaleView();
-  };
+  $("saveOfflineSaleBtn").onclick = saveOfflineSale;
 
-  $("offlinePayQrBtn").onclick = () => {
-    offlinePaymentMethod = "online_qr";
-    renderOfflineSaleView();
-  };
-
-  $("saveOfflineSaleBtn").onclick = handleOfflinePrimaryAction;
+  show("offlineSaleModal");
 }
 
 function renderOfflineMenu() {
   const container = $("offlineMenuList");
   if (!container) return;
 
-  const items = offlineSelectedCategory === "সব খাবার"
+  const category = $("offlineCategory").value;
+  const items = category === "সব খাবার"
     ? MENU
-    : MENU.filter(item => item.category === offlineSelectedCategory);
+    : MENU.filter(item => item.category === category);
 
-  container.innerHTML = items.map(item => {
-    const qtyInCart = offlineCart[item.id] || 0;
-    return `
+  container.innerHTML = items.map(item => `
+    <div class="offline-line">
+      <div class="cart-line-info">
+        <strong>${escapeHTML(item.name)}</strong>
+        <small>${money(item.price)}</small>
+      </div>
+
       <button
+        class="add-cart-btn"
         type="button"
-        class="offline-pos-card-item ${qtyInCart > 0 ? "in-cart" : ""}"
         data-offline-add="${escapeHTML(item.id)}"
       >
-        <div class="offline-pos-thumb">
-          ${
-            item.image
-              ? `<img
-                  src="${escapeHTML(item.image)}"
-                  alt="${escapeHTML(item.name)}"
-                  loading="lazy"
-                  onerror="this.outerHTML='<div class=&quot;menu-card-placeholder&quot;><i class=&quot;fa-solid fa-utensils&quot;></i></div>'"
-                >`
-              : `<div class="menu-card-placeholder">
-                  <i class="fa-solid fa-utensils"></i>
-                </div>`
-          }
-          ${
-            qtyInCart > 0
-              ? `<span class="offline-qty-badge">${numberBN(qtyInCart)}</span>`
-              : ""
-          }
-        </div>
-
-        <div class="offline-pos-info">
-          <strong>${escapeHTML(item.name)}</strong>
-          <span>${money(item.price)}</span>
-        </div>
+        যোগ করুন
       </button>
-    `;
-  }).join("");
+    </div>
+  `).join("");
 }
 
 function offlineRows() {
@@ -3381,69 +3036,29 @@ function renderOfflineCart() {
               data-offline-change="${escapeHTML(item.id)}"
               data-diff="1"
             >+</button>
-
-            <button
-              type="button"
-              class="remove-item-btn"
-              data-offline-remove="${escapeHTML(item.id)}"
-              aria-label="বাদ দিন"
-            ><i class="fa-solid fa-trash"></i></button>
           </div>
 
           <b>${money(item.subtotal)}</b>
         </div>
       `).join("")
-    : `<p class="empty-state">খাবারের কার্ডে চাপ দিয়ে তালিকায় যোগ করুন।</p>`;
+    : `<p class="empty-state">এখনো কোনো খাবার যোগ করা হয়নি।</p>`;
 
-  const total = rows.reduce((sum, item) => sum + item.subtotal, 0);
-  $("offlineTotal").textContent = money(total);
-  if ($("saveOfflineSaleBtn")) {
-    $("saveOfflineSaleBtn").disabled = !rows.length;
-  }
+  $("offlineTotal").textContent = money(
+    rows.reduce((sum, item) => sum + item.subtotal, 0)
+  );
 }
 
-async function handleOfflinePrimaryAction() {
+async function saveOfflineSale() {
   if (!ensureAdmin()) return;
 
   const rows = offlineRows();
   if (!rows.length) {
-    toast("প্রথমে খাবার নির্বাচন করুন।");
+    toast("প্রথমে খাবার যোগ করুন।");
     return;
   }
 
-  if (offlinePaymentMethod === "online_qr") {
-    const total = rows.reduce((sum, item) => sum + item.subtotal, 0);
-    offlineQrActive = true;
-    $("qrExactAmount").textContent = money(total);
-    $("qrReferenceInput").required = false;
-    $("qrReferenceInput").value = "";
-    $("qrRefFieldWrap")?.classList.add("hidden");
-    $("banglaQrHintText").textContent =
-      "Sonali Bank Bangla QR স্ক্যান করে পেমেন্ট যাচাই করুন। Transaction ID প্রয়োজন নেই। পেমেন্ট যাচাই হলে নিচের বাটনে চাপুন।";
-    $("confirmQrPaidOrderBtn").innerHTML =
-      '<i class="fa-solid fa-check-circle"></i> পেমেন্ট কনফার্ম করুন';
-
-    hide("offlineSaleModal");
-    show("banglaQrModal");
-    await renderBanglaQrCode(total);
-    return;
-  }
-
-  await finalizeOfflineSale("cod");
-}
-
-async function finalizeOfflineSale(paymentMethodChoice) {
-  if (!ensureAdmin()) return;
-
-  const rows = offlineRows();
-  if (!rows.length) {
-    toast("প্রথমে খাবার নির্বাচন করুন।");
-    return;
-  }
-
-  const isQr = paymentMethodChoice === "online_qr";
-  const button = isQr ? $("confirmQrPaidOrderBtn") : $("saveOfflineSaleBtn");
-  setLoading(button, true, "সংরক্ষণ হচ্ছে...");
+  const button = $("saveOfflineSaleBtn");
+  setLoading(button, true, "বিক্রি সংরক্ষণ হচ্ছে...");
 
   try {
     const payload = rows.map(item => ({
@@ -3453,10 +3068,7 @@ async function finalizeOfflineSale(paymentMethodChoice) {
 
     const { data, error } = await db.rpc(
       "admin_create_offline_sale",
-      {
-        p_items: payload,
-        p_payment_method: isQr ? "online_qr" : "cod"
-      }
+      { p_items: payload }
     );
 
     if (error) throw error;
@@ -3464,8 +3076,6 @@ async function finalizeOfflineSale(paymentMethodChoice) {
     const saleId = typeof data === "string"
       ? data
       : data?.id || data?.sale_id || crypto.randomUUID();
-
-    const totalAmt = rows.reduce((sum, item) => sum + item.subtotal, 0);
 
     const sale = {
       id: saleId,
@@ -3475,9 +3085,9 @@ async function finalizeOfflineSale(paymentMethodChoice) {
       customer_address: "",
       status: "completed",
       sale_type: "offline",
-      payment_method: isQr ? "online_qr" : "cod",
+      payment_method: "cod",
       payment_status: "paid",
-      total_amount: totalAmt
+      total_amount: rows.reduce((sum, item) => sum + item.subtotal, 0)
     };
 
     const receiptItems = rows.map(item => ({
@@ -3492,13 +3102,10 @@ async function finalizeOfflineSale(paymentMethodChoice) {
     $("receiptContent").innerHTML = receiptHTML(sale, receiptItems);
 
     offlineCart = {};
-    offlineQrActive = false;
     hide("offlineSaleModal");
-    hide("banglaQrModal");
-    setOfflineReceiptNotification(true);
     show("receiptModal");
 
-    toast("অফলাইন বিক্রি সংরক্ষণ ও রসিদ তৈরি হয়েছে।");
+    toast("অফলাইন বিক্রি সংরক্ষণ হয়েছে এবং আজকের অফলাইন সামারিতে যুক্ত হয়েছে।");
 
     if ($("dashboardModal")?.classList.contains("show")) {
       await renderAdmin();
@@ -3686,7 +3293,7 @@ async function loadSalesReport(type) {
 
                   <small>
                     ${dateTime(order.created_at)}
-                    · ${order.sale_type === "offline" ? `অফলাইন (${order.payment_method === "online_qr" ? "QR" : "Cash"})` : "অনলাইন"}
+                    · ${order.sale_type === "offline" ? "অফলাইন" : "অনলাইন"}
                   </small>
                 </div>
 
@@ -3950,7 +3557,6 @@ window.addEventListener("scroll", () => {
   subscribeStoreStatus();
   updateHeaderAuthButtons();
   startOrderTimerTicker();
-  sendFlutterBridgeCommand("refreshStatus");
 
   try {
     const { data, error } = await db.auth.getSession();
