@@ -1757,26 +1757,37 @@ input:focus-visible {
 }
 
 /* =========================================
-   ADMIN HEADER ACTIONS - PRINTER & OFFLINE RECEIPT
+   PADMA CAFE - ADMIN HEADER ACTION BUTTONS
+   Printer & Offline Receipt
 ========================================= */
 
 .admin-header-action {
-  white-space: nowrap;
-  flex: 0 0 auto;
   min-height: 38px;
   padding: 7px 11px;
-  font-size: 12px;
-  line-height: 1.25;
-  border-color: var(--gold-dark);
+  border: 1px solid var(--gold-dark);
+  border-radius: 7px;
   background: rgba(214, 173, 85, 0.06);
   color: var(--gold-light);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.25;
+  flex: 0 0 auto;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
 .admin-header-action:hover {
   background: rgba(214, 173, 85, 0.16);
   border-color: var(--gold-light);
   color: #fff2cf;
-  transform: translateY(-1px);
+}
+
+.admin-header-action i {
+  font-size: 13px;
 }
 
 .admin-header-action:focus-visible {
@@ -1784,37 +1795,358 @@ input:focus-visible {
   outline-offset: 3px;
 }
 
-.admin-header-action i {
-  font-size: 13px;
-}
+/* ADMIN HEADER RESPONSIVE */
 
 @media (max-width: 900px) {
-  .header {
-    flex-wrap: wrap;
-  }
-
   .head-actions {
-    justify-content: flex-end;
+    justify-content: center;
   }
 }
 
 @media (max-width: 600px) {
   .head-actions {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    align-items: stretch;
-  }
-
-  .head-actions > button,
-  .head-actions > .store-switch-wrap,
-  .head-actions > .customer-store-badge {
-    min-width: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 7px;
   }
 
   .admin-header-action {
-    width: 100%;
     min-height: 36px;
-    padding: 7px 5px;
+    padding: 7px 9px;
     font-size: 11px;
+  }
+}
+
+/* =========================================
+   OFFLINE SALE - EXISTING MODAL IMPROVEMENTS
+========================================= */
+
+#offlineSaleModal .modal-card.dashboard {
+  width: min(100%, 920px);
+}
+
+#offlineSaleContent {
+  width: 100%;
+}
+
+.offline-sale {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+
+#offlineSaleContent > .offline-sale > label {
+  margin-top: 5px;
+}
+
+#offlineCategory {
+  width: 100%;
+}
+
+#offlineMenuList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  max-height: 390px;
+  overflow-y: auto;
+  padding: 5px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #101010;
+}
+
+#offlineMenuList .offline-line {
+  min-height: 58px;
+}
+
+#offlineMenuList .offline-line:last-child {
+  border-bottom: none;
+}
+
+#offlineCartList {
+  width: 100%;
+}
+
+#offlineCartList .offline-line {
+  flex-wrap: wrap;
+}
+
+#offlineSaleContent .dashboard-panel {
+  margin-top: 5px;
+}
+
+#saveOfflineSaleBtn {
+  min-height: 46px;
+}
+
+/* OFFLINE SALE SCROLLBAR */
+
+#offlineMenuList,
+#offlineSaleModal .modal-card {
+  scrollbar-width: thin;
+  scrollbar-color: var(--gold-dark) #111;
+}
+
+#offlineMenuList::-webkit-scrollbar,
+#offlineSaleModal .modal-card::-webkit-scrollbar {
+  width: 7px;
+}
+
+#offlineMenuList::-webkit-scrollbar-track,
+#offlineSaleModal .modal-card::-webkit-scrollbar-track {
+  background: #111;
+}
+
+#offlineMenuList::-webkit-scrollbar-thumb,
+#offlineSaleModal .modal-card::-webkit-scrollbar-thumb {
+  background: var(--gold-dark);
+  border-radius: 10px;
+}
+
+/* OFFLINE SALE MOBILE */
+
+@media (max-width: 600px) {
+  #offlineSaleModal {
+    padding: 8px;
+  }
+
+  #offlineSaleModal .modal-card.dashboard {
+    width: 100%;
+    max-height: 94vh;
+    padding: 24px 13px;
+  }
+
+  #offlineMenuList {
+    max-height: 320px;
+    padding: 4px 9px;
+  }
+
+  #offlineMenuList .offline-line {
+    gap: 8px;
+  }
+
+  #offlineCartList .offline-line {
+    gap: 8px;
+  }
+
+  #offlineSaleContent .total-line {
+    font-size: 17px;
+  }
+}
+
+/* =========================================
+   FUTURE OFFLINE FOOD CARD LAYOUT
+   Used when the JavaScript menu is updated
+========================================= */
+
+.offline-menu-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  width: 100%;
+  max-height: 440px;
+  overflow-y: auto;
+  padding: 4px;
+}
+
+.offline-menu-card {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: linear-gradient(145deg, #1c1c1c, #101010);
+  color: var(--cream);
+  text-align: left;
+  padding: 0;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.offline-menu-card:hover {
+  border-color: var(--gold);
+  transform: translateY(-2px);
+}
+
+.offline-menu-card img {
+  width: 100%;
+  height: 112px;
+  object-fit: cover;
+  background: #252525;
+}
+
+.offline-menu-card .offline-menu-info {
+  padding: 8px;
+}
+
+.offline-menu-card .offline-menu-name {
+  display: block;
+  color: var(--cream);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.offline-menu-card .offline-menu-price {
+  display: block;
+  color: var(--gold-light);
+  font-size: 14px;
+  font-weight: 700;
+  margin-top: 4px;
+}
+
+.offline-menu-card i,
+.offline-menu-card .plus-icon {
+  display: none !important;
+}
+
+@media (max-width: 600px) {
+  .offline-menu-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px;
+    max-height: 360px;
+  }
+
+  .offline-menu-card img {
+    height: 82px;
+  }
+
+  .offline-menu-card .offline-menu-info {
+    padding: 6px;
+  }
+
+  .offline-menu-card .offline-menu-name {
+    font-size: 11px;
+  }
+
+  .offline-menu-card .offline-menu-price {
+    font-size: 12px;
+  }
+}
+
+/* =========================================
+   PAYMENT SELECTION - OFFLINE SALE
+   Used by the updated JavaScript flow
+========================================= */
+
+.offline-payment-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 15px 0;
+}
+
+.offline-payment-option {
+  min-height: 75px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #171717;
+  color: var(--cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  text-align: center;
+  font-weight: 700;
+  transition: 0.2s ease;
+}
+
+.offline-payment-option:hover,
+.offline-payment-option.active {
+  border-color: var(--gold);
+  background: rgba(214, 173, 85, 0.12);
+  color: var(--gold-light);
+}
+
+.offline-payment-option i {
+  font-size: 20px;
+  color: var(--gold-light);
+}
+
+.offline-payment-confirm {
+  width: 100%;
+  min-height: 46px;
+  margin-top: 12px;
+}
+
+.offline-payment-back {
+  width: 100%;
+  margin-top: 9px;
+}
+
+/* OFFLINE QR PAYMENT */
+
+.offline-qr-payment {
+  padding: 18px;
+  margin: 12px 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #101010;
+  text-align: center;
+}
+
+.offline-qr-payment .qr-canvas-wrap {
+  margin: 12px auto;
+}
+
+.offline-qr-payment .offline-qr-amount {
+  display: block;
+  color: var(--gold-light);
+  font-size: 27px;
+  font-weight: 700;
+}
+
+/* KITCHEN COPY PRINT CONTENT */
+
+.kitchen-receipt {
+  width: 72mm;
+  max-width: 100%;
+  padding: 3mm;
+  margin: 0 auto;
+  background: #fff;
+  color: #111;
+  font-family: Arial, sans-serif;
+  font-size: 12px;
+}
+
+.kitchen-receipt h2,
+.kitchen-receipt h3,
+.kitchen-receipt p,
+.kitchen-receipt strong,
+.kitchen-receipt span {
+  color: #111;
+}
+
+.kitchen-receipt-header {
+  text-align: center;
+  border-bottom: 1px dashed #333;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+}
+
+.kitchen-receipt-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px dotted #999;
+}
+
+.kitchen-receipt-row strong {
+  font-weight: 700;
+}
+
+@media (max-width: 360px) {
+  .offline-menu-grid {
     gap: 5px;
+  }
+
+  .offline-menu-card img {
+    height: 72px;
+  }
+
+  .offline-menu-card .offline-menu-name {
+    font-size: 10px;
   }
 }
