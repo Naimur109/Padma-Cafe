@@ -24,46 +24,76 @@
 <body>
 
 <header class="header">
-  <a class="brand" href="#home">
-    <img src="https://i.ibb.co/4nW7J6d0/IMG-20261121-WA0000.jpg" alt="Padma Cafe Logo">
-    <span>
-      PADMA <b>CAFE</b>
-      <small>AUTHENTIC BENGALI TASTE</small>
-    </span>
-  </a>
+  <div class="header-top-row">
+    <a class="brand" href="#home">
+      <img src="https://i.ibb.co/4nW7J6d0/IMG-20261121-WA0000.jpg" alt="Padma Cafe Logo">
+      <span>
+        PADMA <b>CAFE</b>
+        <small>AUTHENTIC BENGALI TASTE</small>
+      </span>
+    </a>
+
+    <!-- Global Language Toggle Button (Top Right, Always Visible) -->
+    <button id="headerLangToggleBtn" class="outline lang-toggle-btn" type="button" data-lang-toggle>
+      <i class="fa-solid fa-language"></i>
+      <span class="lang-label">English</span>
+    </button>
+  </div>
 
   <nav id="mainNav">
-    <a href="#home">হোম</a>
-    <a href="#menuSection">মেনু</a>
+    <a href="#home" data-i18n="nav_home">হোম</a>
+    <a href="#menuSection" data-i18n="nav_menu">মেনু</a>
   </nav>
 
   <div class="head-actions">
     <!-- Admin Online/Offline Switch -->
     <div id="adminStoreSwitchWrap" class="store-switch-wrap hidden">
-      <button id="storeOnlineBtn" class="status-pill online-btn" type="button">অনলাইন</button>
-      <button id="storeOfflineBtn" class="status-pill offline-btn" type="button">অফলাইন</button>
+      <button id="storeOnlineBtn" class="status-pill online-btn" type="button" data-i18n="store_online">অনলাইন</button>
+      <button id="storeOfflineBtn" class="status-pill offline-btn" type="button" data-i18n="store_offline">অফলাইন</button>
     </div>
 
-    <!-- Customer Single Status Badge (only one visible at a time) -->
+    <!-- Customer Single Status Badge -->
     <span id="customerStoreBadge" class="customer-store-badge online">
       <i class="fa-solid fa-circle"></i>
-      <span id="customerStoreBadgeText">অনলাইন</span>
+      <span id="customerStoreBadgeText" data-i18n="store_online">অনলাইন</span>
     </span>
+
+    <!-- All Orders Button -->
+    <button id="allOrdersBtn" class="outline hidden" type="button">
+      <i class="fa-solid fa-list-check"></i>
+      <span data-i18n="all_orders">সকল অর্ডার</span>
+    </button>
+
+    <!-- Admin Only: Printer Button -->
+    <button id="adminPrinterBtn" class="outline admin-pos-btn hidden" type="button">
+      <i class="fa-solid fa-print"></i>
+      <span>Printer</span>
+    </button>
+
+    <!-- Admin Only: Offline & Online Order Buttons -->
+    <div id="adminOrderTypeGroup" class="admin-order-pair hidden">
+      <button id="adminOfflineReceiptBtn" class="outline admin-pos-btn" type="button">
+        <i class="fa-solid fa-receipt"></i>
+        <span data-i18n="offline_order">অফলাইন অর্ডার</span>
+        <span id="offlineReceiptDot" class="receipt-notif-dot hidden" aria-hidden="true"></span>
+      </button>
+
+      <button id="adminOnlineOrdersBtn" class="outline admin-pos-btn" type="button">
+        <i class="fa-solid fa-bag-shopping"></i>
+        <span data-i18n="online_order">অনলাইন অর্ডার</span>
+      </button>
+    </div>
 
     <!-- Unified Login / Register / User Profile Trigger -->
     <button id="authAccountBtn" class="outline user-btn" type="button">
       <img id="customerHeaderAvatar" class="header-avatar hidden" src="" alt="প্রোফাইল">
-      <span id="authAccountLabel">লগইন / রেজিস্টার</span>
+      <span id="authAccountLabel" data-i18n="login_register">লগইন / রেজিস্টার</span>
     </button>
 
-    <button id="allOrdersBtn" class="outline hidden" type="button">
-      <i class="fa-solid fa-list-check"></i>
-      সকল অর্ডার
-    </button>
-
+    <!-- Customer Cart Button (hidden for Admin) -->
     <button id="cartBtn" class="gold-btn" type="button">
       <i class="fa-solid fa-bag-shopping"></i>
-      অর্ডার তালিকা <span id="cartCount">০</span>
+      <span data-i18n="order_list">অর্ডার তালিকা</span> <span id="cartCount">০</span>
     </button>
   </div>
 </header>
@@ -72,10 +102,10 @@
   <section class="hero">
     <div class="hero-content">
       <p class="eyebrow">WELCOME TO PADMA CAFE</p>
-      <h1>স্বাদের প্রতিটি মুহূর্তে<br><em>বাংলার ঐতিহ্য</em></h1>
-      <p>ঘরোয়া স্বাদ, ভালোবাসা আর যত্নে তৈরি প্রতিটি খাবার।</p>
+      <h1 data-i18n-html="hero_title">স্বাদের প্রতিটি মুহূর্তে<br><em>বাংলার ঐতিহ্য</em></h1>
+      <p data-i18n="hero_subtitle">ঘরোয়া স্বাদ, ভালোবাসা আর যত্নে তৈরি প্রতিটি খাবার।</p>
       <div class="hero-actions">
-        <a id="heroOrderBtn" class="gold-btn" href="#menuSection">মেনু দেখুন</a>
+        <a id="heroOrderBtn" class="gold-btn" href="#menuSection" data-i18n="view_menu">মেনু দেখুন</a>
       </div>
     </div>
   </section>
@@ -83,8 +113,8 @@
   <section id="menuSection" class="section">
     <div class="section-head">
       <p class="eyebrow">OUR MENU</p>
-      <h2>আমাদের <em>মেনু</em></h2>
-      <p>আপনার পছন্দের খাবার বেছে নিন</p>
+      <h2 data-i18n-html="menu_heading">আমাদের <em>মেনু</em></h2>
+      <p data-i18n="menu_sub">আপনার পছন্দের খাবার বেছে নিন</p>
     </div>
 
     <div class="menu-toolbar">
@@ -92,6 +122,7 @@
         id="menuSearch"
         type="search"
         placeholder="খাবারের নাম বা ক্যাটাগরি দিয়ে খুঁজুন..."
+        data-i18n-placeholder="search_menu"
         aria-label="মেনু খুঁজুন"
       >
     </div>
@@ -103,7 +134,7 @@
 
 <footer class="footer">
   <p class="footer-brand">PADMA CAFE</p>
-  <small>বাংলার স্বাদ, হৃদয়ের কাছে</small>
+  <small data-i18n="footer_tagline">বাংলার স্বাদ, হৃদয়ের কাছে</small>
 
   <a class="facebook-link"
      href="https://www.facebook.com/share/18QXKsYN8H/?mibextid=wwXIfr"
@@ -113,7 +144,7 @@
     Facebook
   </a>
 
-  <p id="connectionStatus" class="connection-status online">অনলাইন</p>
+  <p id="connectionStatus" class="connection-status online" data-i18n="store_online">অনলাইন</p>
 
   <p class="copyright">
     © <span id="footerYear"></span> Padma Cafe. All rights reserved.
@@ -132,7 +163,7 @@
   <div class="side-drawer-panel">
     <button id="closeProfileSlideBtn" class="x" type="button">×</button>
     <p class="eyebrow">ACCOUNT PROFILE</p>
-    <h2>প্রোফাইল সেটিংস</h2>
+    <h2 data-i18n="profile_settings">প্রোফাইল সেটিংস</h2>
 
     <div class="profile-avatar-box">
       <img
@@ -142,10 +173,10 @@
       >
       <label class="outline upload-photo-btn">
         <i class="fa-solid fa-camera"></i>
-        ছবি নির্বাচন করুন
+        <span data-i18n="choose_photo">ছবি নির্বাচন করুন</span>
         <input id="profilePhotoInput" type="file" accept="image/*" class="hidden">
       </label>
-      <small class="field-hint">অথবা নিচে সরাসরি ইমেজের লিংক দিন:</small>
+      <small class="field-hint" data-i18n="or_image_url">অথবা নিচে সরাসরি ইমেজের লিংক দিন:</small>
       <input
         id="profilePhotoUrlInput"
         type="url"
@@ -155,18 +186,18 @@
 
     <form id="profileSlideForm">
       <label>
-        আপনার নাম
+        <span data-i18n="your_name">আপনার নাম</span>
         <input id="profileNameInput" type="text" required placeholder="আপনার নাম লিখুন">
       </label>
 
       <button id="saveProfileSlideBtn" class="gold-btn wide" type="submit">
         <i class="fa-solid fa-floppy-disk"></i>
-        সেভ করুন
+        <span data-i18n="save">সেভ করুন</span>
       </button>
 
       <button id="slideLogoutBtn" class="danger-btn wide" type="button">
         <i class="fa-solid fa-right-from-bracket"></i>
-        লগআউট
+        <span data-i18n="logout">লগআউট</span>
       </button>
     </form>
   </div>
@@ -178,20 +209,20 @@
     <button id="closeCartBtn" class="x" data-close="cartModal" type="button">×</button>
 
     <p class="eyebrow">YOUR ORDER LIST</p>
-    <h2>আপনার অর্ডার তালিকা</h2>
+    <h2 data-i18n="your_order_list">আপনার অর্ডার তালিকা</h2>
 
     <div id="cartLines"></div>
 
     <div class="total-line">
-      <b>সর্বমোট</b>
+      <b data-i18n="grand_total">সর্বমোট</b>
       <b id="cartTotal">৳০</b>
     </div>
 
-    <button id="checkoutBtn" class="gold-btn wide" type="button">
+    <button id="checkoutBtn" class="gold-btn wide" type="button" data-i18n="place_order">
       অর্ডার করুন
     </button>
 
-    <button id="continueShoppingBtn" class="outline wide" type="button">
+    <button id="continueShoppingBtn" class="outline wide" type="button" data-i18n="more_food">
       আরও খাবার দেখুন
     </button>
   </div>
@@ -203,53 +234,38 @@
     <button id="closeCheckoutDetailsBtn" class="x" data-close="checkoutDetailsModal" type="button">×</button>
 
     <p class="eyebrow">DELIVERY INFORMATION</p>
-    <h2>ডেলিভারির তথ্য দিন</h2>
-    <p class="field-hint" style="margin-bottom: 14px;">
+    <h2 data-i18n="delivery_info_title">ডেলিভারির তথ্য দিন</h2>
+    <p class="field-hint" style="margin-bottom: 14px;" data-i18n="delivery_info_hint">
       নিজের বর্তমান ঠিকানা অথবা বন্ধু/অন্য কারও নাম, মোবাইল নম্বর ও ঠিকানা দিতে পারেন। এতে আপনার মূল প্রোফাইল তথ্য অপরিবর্তিত থাকবে।
     </p>
 
     <form id="checkoutDetailsForm">
       <label>
-        প্রাপকের নাম
-        <input
-          id="deliveryNameInput"
-          type="text"
-          required
-          placeholder="যার কাছে খাবার যাবে তার নাম"
-        >
+        <span data-i18n="recipient_name">প্রাপকের নাম</span>
+        <input id="deliveryNameInput" type="text" required placeholder="যার কাছে খাবার যাবে তার নাম">
       </label>
 
       <label>
-        মোবাইল নম্বর
-        <input
-          id="deliveryPhoneInput"
-          type="tel"
-          required
-          placeholder="01XXXXXXXXX"
-        >
+        <span data-i18n="mobile_number">মোবাইল নম্বর</span>
+        <input id="deliveryPhoneInput" type="tel" required placeholder="01XXXXXXXXX">
       </label>
 
       <label>
-        ডেলিভারি ঠিকানা
-        <textarea
-          id="deliveryAddressInput"
-          rows="3"
-          required
-          placeholder="বিস্তারিত ঠিকানা লিখুন"
-        ></textarea>
+        <span data-i18n="delivery_address">ডেলিভারি ঠিকানা</span>
+        <textarea id="deliveryAddressInput" rows="3" required placeholder="বিস্তারিত ঠিকানা লিখুন"></textarea>
       </label>
 
       <div class="total-line">
-        <b>সর্বমোট বিল</b>
+        <b data-i18n="total_bill">সর্বমোট বিল</b>
         <b id="checkoutDetailsTotal">৳০</b>
       </div>
 
       <button id="checkoutNextBtn" class="gold-btn wide" type="submit">
-        পরবর্তী <i class="fa-solid fa-arrow-right"></i>
+        <span data-i18n="next">পরবর্তী</span> <i class="fa-solid fa-arrow-right"></i>
       </button>
 
       <button id="backToCartBtn" class="outline wide" type="button">
-        <i class="fa-solid fa-arrow-left"></i> পেছনে যান
+        <i class="fa-solid fa-arrow-left"></i> <span data-i18n="go_back">পেছনে যান</span>
       </button>
     </form>
   </div>
@@ -261,30 +277,30 @@
     <button id="closePaymentMethodBtn" class="x" data-close="paymentMethodModal" type="button">×</button>
 
     <p class="eyebrow">PAYMENT METHOD</p>
-    <h2>পেমেন্ট মাধ্যম নির্বাচন করুন</h2>
+    <h2 data-i18n="choose_payment">পেমেন্ট মাধ্যম নির্বাচন করুন</h2>
 
     <div class="dashboard-panel" style="margin-bottom: 14px;">
       <p><strong>প্রাপক:</strong> <span id="summaryRecipientName">—</span></p>
       <p><strong>ফোন:</strong> <span id="summaryRecipientPhone">—</span></p>
       <p><strong>ঠিকানা:</strong> <span id="summaryRecipientAddress">—</span></p>
       <div class="total-line" style="padding-bottom: 4px; margin-top: 8px;">
-        <b>পরিশোধযোগ্য টাকা</b>
+        <b data-i18n="payable_amount">পরিশোধযোগ্য টাকা</b>
         <b id="paymentMethodTotal">৳০</b>
       </div>
     </div>
 
     <button id="selectCodBtn" class="gold-btn wide" type="button">
       <i class="fa-solid fa-money-bill-wave"></i>
-      ক্যাশ অন ডেলিভারি
+      <span data-i18n="cod_label">ক্যাশ অন ডেলিভারি</span>
     </button>
 
     <button id="selectOnlinePayBtn" class="gold-btn wide" type="button">
       <i class="fa-solid fa-qrcode"></i>
-      অনলাইন পেমেন্ট (Bangla QR)
+      <span data-i18n="online_qr_label">অনলাইন পেমেন্ট (Bangla QR)</span>
     </button>
 
     <button id="paymentMethodBackBtn" class="outline wide" type="button">
-      <i class="fa-solid fa-arrow-left"></i> পেছনে যান
+      <i class="fa-solid fa-arrow-left"></i> <span data-i18n="go_back">পেছনে যান</span>
     </button>
   </div>
 </div>
@@ -334,20 +350,15 @@
 
       <p class="qr-amount-label">অটো-নির্ধারিত পেমেন্ট অ্যামাউন্ট</p>
       <strong id="qrExactAmount" class="qr-exact-amount">৳০</strong>
-      <small class="field-hint">
+      <small id="banglaQrHintText" class="field-hint">
         QR কোডটি স্ক্যান করলে আপনার পেমেন্ট অ্যাপে স্বয়ংক্রিয়ভাবে এই টাকা বসে যাবে; আলাদা করে টাকা লিখতে হবে না। পেমেন্ট শেষে Transaction ID দিয়ে ভেরিফিকেশনের জন্য পাঠান।
       </small>
     </div>
 
     <form id="banglaQrConfirmForm" style="margin-top: 12px;">
-      <label>
+      <label id="qrRefFieldWrap">
         ট্রানজেকশন আইডি / রেফারেন্স
-        <input
-          id="qrReferenceInput"
-          type="text"
-          required
-          placeholder="পেমেন্ট অ্যাপের Transaction ID লিখুন"
-        >
+        <input id="qrReferenceInput" type="text" required placeholder="পেমেন্ট অ্যাপের Transaction ID লিখুন">
       </label>
 
       <button id="confirmQrPaidOrderBtn" class="gold-btn wide" type="submit">
@@ -362,83 +373,73 @@
   </div>
 </div>
 
-<!-- UNIFIED AUTH MODAL -->
+<!-- UNIFIED AUTH MODAL (WITH LANGUAGE TOGGLE) -->
 <div id="authModal" class="modal">
   <div class="modal-card">
     <button id="closeAuthBtn" class="x" data-close="authModal" type="button">×</button>
 
-    <p class="eyebrow" id="authRoleLabel">ACCOUNT ACCESS</p>
-    <h2 id="authTitle">লগইন করুন</h2>
+    <div class="modal-header-row">
+      <div>
+        <p class="eyebrow" id="authRoleLabel">PADMA CAFE ACCOUNT</p>
+        <h2 id="authTitle">লগইন করুন</h2>
+      </div>
+      <button id="authLangToggleBtn" class="outline lang-toggle-btn modal-lang-btn" type="button" data-lang-toggle>
+        <i class="fa-solid fa-language"></i>
+        <span class="lang-label">English</span>
+      </button>
+    </div>
 
     <form id="authForm">
       <label id="nameWrap" class="hidden">
-        আপনার নাম
-        <input id="authName" type="text"
-               autocomplete="name"
-               placeholder="আপনার সম্পূর্ণ নাম">
+        <span data-i18n="your_name">আপনার নাম</span>
+        <input id="authName" type="text" autocomplete="name" placeholder="আপনার সম্পূর্ণ নাম">
       </label>
 
       <label>
-        ইমেইল / Gmail
-        <input id="authEmail" type="email" required
-               autocomplete="email"
-               placeholder="example@gmail.com">
+        <span data-i18n="email_gmail">ইমেইল / Gmail</span>
+        <input id="authEmail" type="email" required autocomplete="email" placeholder="example@gmail.com">
       </label>
 
       <label id="phoneWrap" class="hidden">
-        মোবাইল নম্বর
-        <input id="authPhone" type="tel"
-               autocomplete="tel"
-               placeholder="মোবাইল নম্বর">
-        <small class="field-hint">
+        <span data-i18n="mobile_number">মোবাইল নম্বর</span>
+        <input id="authPhone" type="tel" autocomplete="tel" placeholder="মোবাইল নম্বর">
+        <small class="field-hint" data-i18n="country_code_hint">
           দেশের পতাকা ও কান্ট্রি কোড নির্বাচন করুন।
         </small>
       </label>
 
       <label id="addressWrap" class="hidden">
-        আপনার ঠিকানা
-        <textarea id="authAddress" rows="2"
-                  autocomplete="street-address"
-                  placeholder="সম্পূর্ণ ঠিকানা লিখুন"></textarea>
+        <span data-i18n="your_address">আপনার ঠিকানা</span>
+        <textarea id="authAddress" rows="2" autocomplete="street-address" placeholder="সম্পূর্ণ ঠিকানা লিখুন"></textarea>
       </label>
 
       <label>
-        পাসওয়ার্ড
+        <span data-i18n="password">পাসওয়ার্ড</span>
         <div class="password-field">
-          <input id="authPassword" type="password"
-                 minlength="6" required
-                 autocomplete="current-password"
-                 placeholder="পাসওয়ার্ড লিখুন">
-          <button type="button" class="password-toggle"
-                  data-toggle-password="authPassword"
-                  aria-label="পাসওয়ার্ড দেখুন">
+          <input id="authPassword" type="password" minlength="6" required autocomplete="current-password" placeholder="পাসওয়ার্ড লিখুন">
+          <button type="button" class="password-toggle" data-toggle-password="authPassword" aria-label="পাসওয়ার্ড দেখুন">
             <i class="fa-solid fa-eye"></i>
           </button>
         </div>
       </label>
 
       <label id="confirmPasswordWrap" class="hidden">
-        পাসওয়ার্ড নিশ্চিত করুন
+        <span data-i18n="confirm_password">পাসওয়ার্ড নিশ্চিত করুন</span>
         <div class="password-field">
-          <input id="authConfirmPassword" type="password"
-                 minlength="6"
-                 autocomplete="new-password"
-                 placeholder="আবার পাসওয়ার্ড লিখুন">
-          <button type="button" class="password-toggle"
-                  data-toggle-password="authConfirmPassword"
-                  aria-label="পাসওয়ার্ড দেখুন">
+          <input id="authConfirmPassword" type="password" minlength="6" autocomplete="new-password" placeholder="আবার পাসওয়ার্ড লিখুন">
+          <button type="button" class="password-toggle" data-toggle-password="authConfirmPassword" aria-label="পাসওয়ার্ড দেখুন">
             <i class="fa-solid fa-eye"></i>
           </button>
         </div>
       </label>
 
       <div id="forgotPasswordWrap" class="forgot-wrap">
-        <button id="forgotPasswordBtn" type="button" class="text-btn">
+        <button id="forgotPasswordBtn" type="button" class="text-btn" data-i18n="forgot_password">
           পাসওয়ার্ড ভুলে গেছেন?
         </button>
       </div>
 
-      <button id="authSubmitBtn" class="gold-btn wide" type="submit">
+      <button id="authSubmitBtn" class="gold-btn wide" type="submit" data-i18n="login_btn">
         লগইন করুন
       </button>
     </form>
@@ -469,17 +470,7 @@
     <form id="otpVerifyForm">
       <label>
         ভেরিফিকেশন কোড (৬ সংখ্যা)
-        <input
-          id="otpCodeInput"
-          type="text"
-          inputmode="numeric"
-          pattern="[0-9]{6}"
-          maxlength="6"
-          required
-          autocomplete="one-time-code"
-          placeholder="১২৩৪৫৬"
-          class="otp-input"
-        >
+        <input id="otpCodeInput" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required autocomplete="one-time-code" placeholder="১২৩৪৫৬" class="otp-input">
       </label>
 
       <button id="verifyOtpBtn" class="gold-btn wide" type="submit">
@@ -506,9 +497,7 @@
         নতুন পাসওয়ার্ড
         <div class="password-field">
           <input id="newPassword" type="password" minlength="6" required>
-          <button type="button" class="password-toggle"
-                  data-toggle-password="newPassword"
-                  aria-label="পাসওয়ার্ড দেখুন">
+          <button type="button" class="password-toggle" data-toggle-password="newPassword" aria-label="পাসওয়ার্ড দেখুন">
             <i class="fa-solid fa-eye"></i>
           </button>
         </div>
@@ -517,11 +506,8 @@
       <label>
         পাসওয়ার্ড নিশ্চিত করুন
         <div class="password-field">
-          <input id="confirmNewPassword" type="password"
-                 minlength="6" required>
-          <button type="button" class="password-toggle"
-                  data-toggle-password="confirmNewPassword"
-                  aria-label="পাসওয়ার্ড দেখুন">
+          <input id="confirmNewPassword" type="password" minlength="6" required>
+          <button type="button" class="password-toggle" data-toggle-password="confirmNewPassword" aria-label="পাসওয়ার্ড দেখুন">
             <i class="fa-solid fa-eye"></i>
           </button>
         </div>
@@ -548,7 +534,7 @@
       <div class="dash-top-actions">
         <button id="refreshDashboardBtn" class="outline" type="button">
           <i class="fa-solid fa-rotate"></i>
-          রিফ্রেশ
+          <span data-i18n="refresh">রিফ্রেশ</span>
         </button>
       </div>
     </div>
@@ -578,20 +564,32 @@
 
     <button id="printReceiptBtn" class="gold-btn wide no-print" type="button">
       <i class="fa-solid fa-print"></i>
-      রসিদ প্রিন্ট করুন
+      <span data-i18n="print_receipt">রসিদ প্রিন্ট করুন</span>
     </button>
   </div>
 </div>
 
-<!-- OFFLINE SALE MODAL -->
+<!-- OFFLINE SALE / POS MODAL -->
 <div id="offlineSaleModal" class="modal">
-  <div class="modal-card dashboard">
+  <div class="modal-card dashboard offline-pos-card">
     <button id="closeOfflineSaleBtn" class="x" data-close="offlineSaleModal" type="button">×</button>
 
-    <p class="eyebrow">PADMA CAFE ADMIN</p>
-    <h2>নতুন অফলাইন বিক্রি</h2>
+    <p class="eyebrow">PADMA CAFE ADMIN POS</p>
+    <h2 data-i18n="offline_order">অফলাইন অর্ডার</h2>
 
     <div id="offlineSaleContent"></div>
+  </div>
+</div>
+
+<!-- ADMIN BLUETOOTH PRINTER MODAL -->
+<div id="printerModal" class="modal">
+  <div class="modal-card">
+    <button id="closePrinterModalBtn" class="x" data-close="printerModal" type="button">×</button>
+
+    <p class="eyebrow">BLUETOOTH THERMAL PRINTER</p>
+    <h2>POSIFLOW PSF-KP206 (58mm)</h2>
+
+    <div id="printerModalContent"></div>
   </div>
 </div>
 
@@ -601,13 +599,13 @@
     <button id="closeReportBtn" class="x" data-close="salesReportModal" type="button">×</button>
 
     <p class="eyebrow">BUSINESS REPORT</p>
-    <h2>বিক্রির রিপোর্ট</h2>
+    <h2 data-i18n="sales_report">বিক্রির রিপোর্ট</h2>
 
     <div id="salesReportContent"></div>
 
     <button id="printSalesReport" class="gold-btn wide no-print" type="button">
       <i class="fa-solid fa-print"></i>
-      রিপোর্ট প্রিন্ট করুন
+      <span data-i18n="print_report">রিপোর্ট প্রিন্ট করুন</span>
     </button>
   </div>
 </div>
