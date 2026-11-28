@@ -100,13 +100,13 @@ a {
 }
 
 /* =========================================================
-   HEADER / NAVBAR & 3-COLUMN ACTION LAYOUT
+   HEADER / NAVBAR & 93067.jpg 2-COLUMN ACTION LAYOUT
    ========================================================= */
 .navbar {
   position: sticky;
   top: 0;
   z-index: 90;
-  background: rgba(11, 9, 7, 0.92);
+  background: rgba(11, 9, 7, 0.94);
   backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--border);
 }
@@ -114,12 +114,18 @@ a {
 .nav-inner {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 12px 18px;
+  padding: 12px 16px;
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.header-top-row {
+  display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  width: 100%;
 }
 
 .brand {
@@ -161,11 +167,13 @@ a {
 .nav-links {
   display: flex;
   align-items: center;
-  gap: 20px;
+  justify-content: center;
+  gap: 26px;
+  padding-top: 2px;
 }
 
 .nav-links a {
-  font-size: 0.95rem;
+  font-size: 0.98rem;
   font-weight: 600;
   color: var(--text-muted);
   padding: 4px 2px;
@@ -178,19 +186,19 @@ a {
   border-bottom-color: var(--gold);
 }
 
-/* 3-Column Header Action Grid */
+/* 2-Column 6-Button Grid (93067.jpg অনুযায়ী) */
 .nav-actions {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: stretch;
-  gap: 8px;
+  gap: 10px;
   width: 100%;
 }
 
 @media (min-width: 768px) {
   .nav-actions {
-    width: auto;
-    min-width: 440px;
+    max-width: 680px;
+    margin: 0 auto;
   }
 }
 
@@ -198,23 +206,32 @@ a {
 .nav-actions > .store-switch-wrap,
 .nav-actions > .customer-store-badge {
   position: relative;
-  min-height: 40px;
-  padding: 8px 10px;
+  min-height: 44px;
+  padding: 8px 12px;
   border-radius: var(--radius-sm);
-  font-size: 0.86rem;
+  font-size: 0.9rem;
   font-weight: 600;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 8px;
   white-space: nowrap;
   overflow: visible;
 }
 
-/* Language Toggle */
+/* Language Toggle (Top-Right) */
 .lang-btn {
+  min-height: 40px;
+  padding: 7px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 0.88rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
   background: var(--surface-2);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-strong);
   color: var(--gold-bright);
 }
 
@@ -223,20 +240,20 @@ a {
   background: var(--gold-dim);
 }
 
-/* Store Open/Close Switch (Admin) */
+/* Store Open/Close Switch (Admin Only) */
 .store-switch-wrap {
-  padding: 2px !important;
+  padding: 3px !important;
   background: var(--surface-2);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-strong);
   display: grid !important;
   grid-template-columns: 1fr 1fr;
-  gap: 2px;
+  gap: 3px;
 }
 
 .store-switch-btn {
   height: 100%;
   border-radius: 6px;
-  font-size: 0.8rem;
+  font-size: 0.84rem;
   font-weight: 700;
   padding: 4px 6px;
   color: var(--text-muted);
@@ -256,7 +273,7 @@ a {
 .customer-store-badge {
   background: var(--surface-2);
   border: 1px solid var(--border);
-  font-size: 0.84rem;
+  font-size: 0.86rem;
   font-weight: 700;
 }
 
@@ -290,8 +307,8 @@ a {
 }
 
 .header-avatar {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   object-fit: cover;
   border: 1px solid var(--gold);
@@ -362,7 +379,7 @@ a {
 
 .outline {
   background: var(--surface-2);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-strong);
   color: var(--text);
   padding: 10px 14px;
   border-radius: var(--radius-sm);
@@ -445,7 +462,7 @@ a {
 }
 
 /* =========================================================
-   HERO SECTION
+   HERO SECTION (আসল সন্ধ্যাবেলার ক্যাফের ছবি)
    ========================================================= */
 .hero {
   position: relative;
@@ -465,8 +482,8 @@ a {
   inset: 0;
   background: linear-gradient(
     180deg,
-    rgba(11, 9, 7, 0.72) 0%,
-    rgba(11, 9, 7, 0.84) 65%,
+    rgba(11, 9, 7, 0.65) 0%,
+    rgba(11, 9, 7, 0.78) 65%,
     var(--bg) 100%
   );
 }
@@ -524,7 +541,7 @@ a {
 }
 
 /* =========================================================
-   MENU SECTION, DISCOUNT & OFFER COUNTDOWN
+   MENU SECTION, DISCOUNT, OFFER COUNTDOWN & OUT OF STOCK
    ========================================================= */
 .menu-section {
   max-width: 1280px;
@@ -629,13 +646,54 @@ a {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition);
+  transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition), background var(--transition);
 }
 
 .menu-card:hover {
   transform: translateY(-4px);
   border-color: var(--border-strong);
   box-shadow: var(--shadow);
+}
+
+/* আউট অফ স্টক (Out of Stock) খাবার: স্পষ্ট লাল রঙ ও কাটা দাগ */
+.menu-card.out-of-stock {
+  border: 1.5px solid #ff3b30 !important;
+  background: rgba(217, 72, 72, 0.14) !important;
+}
+
+.menu-card.out-of-stock .menu-card-media img {
+  filter: grayscale(40%) brightness(0.8);
+}
+
+.menu-card.out-of-stock h3,
+.menu-card.out-of-stock .menu-price,
+.menu-card.out-of-stock .menu-category-label {
+  color: #ff5252 !important;
+  text-decoration: line-through !important;
+  text-decoration-thickness: 2px !important;
+  text-decoration-color: #ff3b30 !important;
+}
+
+.menu-out-of-stock-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #d92d20;
+  color: #ffffff;
+  font-size: 0.76rem;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 999px;
+  box-shadow: 0 4px 12px rgba(217, 45, 32, 0.55);
+  z-index: 2;
+}
+
+.menu-card.out-of-stock .add-cart-btn {
+  background: rgba(217, 72, 72, 0.22) !important;
+  border-color: rgba(255, 82, 82, 0.55) !important;
+  color: #ff8a80 !important;
+  text-decoration: line-through;
+  cursor: not-allowed;
 }
 
 .menu-card-media {
@@ -765,6 +823,12 @@ a {
   border-color: var(--gold);
 }
 
+.admin-card-btn-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
 .menu-card-bottom {
   margin-top: auto;
   padding-top: 6px;
@@ -789,7 +853,7 @@ a {
   gap: 6px;
 }
 
-.add-cart-btn:hover {
+.add-cart-btn:hover:not(:disabled) {
   background: linear-gradient(135deg, var(--gold), var(--gold-bright));
   color: #161109;
 }
@@ -1644,6 +1708,19 @@ textarea:focus {
   box-shadow: 0 0 0 1px var(--gold);
 }
 
+.offline-pos-card-item.out-of-stock {
+  border-color: #ff3b30;
+  background: rgba(217, 72, 72, 0.16);
+  opacity: 0.65;
+  pointer-events: none;
+}
+
+.offline-pos-card-item.out-of-stock strong,
+.offline-pos-card-item.out-of-stock span {
+  color: #ff5252;
+  text-decoration: line-through;
+}
+
 .offline-pos-thumb {
   position: relative;
   height: 76px;
@@ -1757,7 +1834,7 @@ textarea:focus {
   font-size: 0.78rem;
 }
 
-/* Sales Report */
+/* Sales Report & Active Gold Tab Highlight */
 .report-filters {
   margin-bottom: 12px;
 }
@@ -1767,6 +1844,14 @@ textarea:focus {
   flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 16px;
+}
+
+.report-actions .report-tab-btn.active {
+  background: linear-gradient(135deg, var(--gold), var(--gold-bright)) !important;
+  color: #161109 !important;
+  border-color: transparent !important;
+  font-weight: 700 !important;
+  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.32);
 }
 
 .report-summary {
@@ -1801,7 +1886,7 @@ textarea:focus {
   color: var(--text-soft);
 }
 
-/* Receipt Paper & Bengali Numeral "১" Clarity */
+/* Receipt Paper & 2 Print Buttons */
 .receipt-modal-box {
   background: #f5f2eb;
   color: #14110d;
@@ -1815,6 +1900,23 @@ textarea:focus {
   background: #e5dfd3;
   color: #14110d;
   border-color: rgba(20, 17, 13, 0.2);
+}
+
+.receipt-print-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.receipt-print-buttons.single-btn-mode {
+  grid-template-columns: 1fr;
+}
+
+.receipt-print-buttons .outline {
+  background: #221b14;
+  color: #f7f1e5;
+  border-color: #221b14;
 }
 
 .receipt-paper {
@@ -1957,6 +2059,14 @@ textarea:focus {
   .toast,
   .connection-status,
   .back-to-top {
+    display: none !important;
+  }
+
+  body.print-only-customer .kitchen-copy-block {
+    display: none !important;
+  }
+
+  body.print-only-kitchen .customer-copy-block {
     display: none !important;
   }
 
