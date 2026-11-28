@@ -1757,8 +1757,8 @@ input:focus-visible {
 }
 
 /* =========================================
-   PADMA CAFE - ADMIN HEADER ACTION BUTTONS
-   Printer & Offline Receipt
+   ADMIN HEADER ACTIONS
+   PRINTER & OFFLINE RECEIPT
 ========================================= */
 
 .admin-header-action {
@@ -1820,7 +1820,7 @@ input:focus-visible {
 }
 
 /* =========================================
-   OFFLINE SALE - EXISTING MODAL IMPROVEMENTS
+   OFFLINE SALE MODAL
 ========================================= */
 
 #offlineSaleModal .modal-card.dashboard {
@@ -1937,8 +1937,8 @@ input:focus-visible {
 }
 
 /* =========================================
-   FUTURE OFFLINE FOOD CARD LAYOUT
-   Used when the JavaScript menu is updated
+   OFFLINE FOOD CARD LAYOUT
+   Three cards per row
 ========================================= */
 
 .offline-menu-grid {
@@ -2000,33 +2000,8 @@ input:focus-visible {
   display: none !important;
 }
 
-@media (max-width: 600px) {
-  .offline-menu-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 7px;
-    max-height: 360px;
-  }
-
-  .offline-menu-card img {
-    height: 82px;
-  }
-
-  .offline-menu-card .offline-menu-info {
-    padding: 6px;
-  }
-
-  .offline-menu-card .offline-menu-name {
-    font-size: 11px;
-  }
-
-  .offline-menu-card .offline-menu-price {
-    font-size: 12px;
-  }
-}
-
 /* =========================================
-   PAYMENT SELECTION - OFFLINE SALE
-   Used by the updated JavaScript flow
+   OFFLINE PAYMENT OPTIONS
 ========================================= */
 
 .offline-payment-options {
@@ -2097,7 +2072,9 @@ input:focus-visible {
   font-weight: 700;
 }
 
-/* KITCHEN COPY PRINT CONTENT */
+/* =========================================
+   KITCHEN RECEIPT COPY
+========================================= */
 
 .kitchen-receipt {
   width: 72mm;
@@ -2133,8 +2110,73 @@ input:focus-visible {
   border-bottom: 1px dotted #999;
 }
 
-.kitchen-receipt-row strong {
-  font-weight: 700;
+/* RESPONSIVE OFFLINE MENU */
+
+@media (max-width: 600px) {
+  .offline-menu-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px;
+    max-height: 360px;
+  }
+
+  .offline-menu-card img {
+    height: 82px;
+  }
+
+  .offline-menu-card .offline-menu-info {
+    padding: 6px;
+  }
+
+  .offline-menu-card .offline-menu-name {
+    font-size: 11px;
+  }
+
+  .offline-menu-card .offline-menu-price {
+    font-size: 12px;
+  }
+
+  .offline-payment-options {
+    gap: 8px;
+  }
+
+  .offline-payment-option {
+    min-height: 65px;
+    padding: 9px;
+    font-size: 12px;
+  }
+
+  #offlineSaleModal {
+    padding: 8px;
+  }
+
+  #offlineSaleModal .modal-card.dashboard {
+    width: 100%;
+    max-height: 94vh;
+    padding: 24px 13px;
+  }
+
+  #offlineMenuList {
+    max-height: 320px;
+    padding: 4px 9px;
+  }
+
+  #offlineMenuList .offline-line {
+    gap: 8px;
+  }
+
+  #offlineCartList .offline-line {
+    gap: 8px;
+  }
+
+  #offlineSaleContent .total-line {
+    font-size: 17px;
+  }
+
+  .admin-header-action {
+    min-height: 36px;
+    padding: 7px 9px;
+    font-size: 11px;
+  }
 }
 
 @media (max-width: 360px) {
