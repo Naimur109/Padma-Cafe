@@ -266,7 +266,6 @@ const dhakaDate = date => {
   return `${values.year}-${values.month}-${values.day}`;
 };
 
-// Bangladesh time is UTC+6.
 function dhakaDayRange(dateString) {
   const [year, month, day] = dateString.split("-").map(Number);
 
@@ -362,6 +361,287 @@ function showError(error) {
 }
 
 // ------------------------------------------------------
+// MENU DATA & OFFER DISCOUNT / TIMER ENGINE
+// ------------------------------------------------------
+
+const DEFAULT_MENU = [
+  { id: "hot_coffee", name: "হট কফি", category: "পদ্মা স্পেশাল", price: 50, discount_percent: 0, offer_ends_at: null, image: "https://i.ibb.co/8LXCtYvL/2-CA2-CB11-2-A5-C-4381-BA5-F-75545-BC1-A432.png" },
+  { id: "malai_cha", name: "মালাই চা", category: "পদ্মা স্পেশাল", price: 40, discount_percent: 0, offer_ends_at: null, image: "https://i.ibb.co/VcLK5nYV/file-00000000e9a88208aa7be40259922c1c.png" },
+  { id: "dudh_cha", name: "দুধ চা", category: "পদ্মা স্পেশাল", price: 30, discount_percent: 0, offer_ends_at: null, image: "https://i.ibb.co/bRNDZZ3K/file-000000005ccc820889393bb309440d71.png" },
+  { id: "pora_roti_10", name: "পোড়া রুটি", category: "পদ্মা স্পেশাল", price: 10, discount_percent: 0, offer_ends_at: null, image: "https://i.ibb.co/Df9P5mS3/file-000000000830820897010f7871918eb4.png" },
+  { id: "pora_roti_15", name: "পোড়া রুটি", category: "পদ্মা স্পেশাল", price: 15, discount_percent: 0, offer_ends_at: null, image: "https://i.ibb.co/99X1SkxX/file-000000008dbc8208b998a942475980d9.png" },
+  { id: "malai_cha_roti", name: "মালাই চা + পোড়া রুটি", category: "পদ্মা স্পেশাল", price: 50, discount_percent: 0, offer_ends_at: null, image: "https://i.ibb.co/5gVjYxnd/2-F219-EBE-0-E4-F-4-A8-E-AD8-D-93-F03-EC9-FF7-B.png" },
+  { id: "chotpoti", name: "চটপটি", category: "পদ্মা স্পেশাল", price: 40, discount_percent: 0, offer_ends_at: null, image: "https://i.ibb.co/q3XbrDhz/file-0000000004648211b58070faa54dd03d.png" },
+  { id: "chotpoti_egg", name: "চটপটি (ডিম)", category: "পদ্মা স্পেশাল", price: 60, discount_percent: 0, offer_ends_at: null, image: "https://i.ibb.co/V01TCgLQ/file-000000003354820899f2e4c773b57782.png" },
+  { id: "fuchka", name: "ফুচকা", category: "পদ্মা স্পেশাল", price: 50, discount_percent: 0, offer_ends_at: null, image: "https://i.ibb.co/5h7kHJ6n/file-0000000017748208bf7b9981383311f1.png" },
+  { id: "doi_fuchka", name: "দই ফুচকা", category: "পদ্মা স্পেশাল", price: 90, discount_percent: 0, offer_ends_at: null, image: "https://i.ibb.co/jvk38nz1/1389-A25-D-894-C-4-A34-8-EE5-F309-F4234-A0-B.png" },
+  { id: "doi_chira", name: "দই চিড়া", category: "পদ্মা স্পেশাল", price: 80, discount_percent: 0, offer_ends_at: null, image: "https://i.ibb.co/WN4FLbWy/D91-BB4-A4-D5-CC-468-E-8420-A78-D02702-D04.png" },
+  { id: "chicken_tikka_burger", name: "চিকেন টিক্কা বার্গার", category: "বার্গার", price: 80, discount_percent: 0, offer_ends_at: null, image: "https://i.ibb.co/W4DqWBZ6/EE2-B31-AA-4-DF9-44-BD-ADD8-5573-CB16-F6-CC.png" },
+  { id: "beef_burger", name: "বিফ বার্গার", category: "বার্গার", price: 130, discount_percent: 0, offer_ends_at: null, image: "https://i.ibb.co/FkHC1P73/4-FCDE463-3752-4-D94-AF80-38949321-EB08.png" },
+  { id: "kolija_singara", name: "কলিজা সিঙ্গারা", category: "স্টাটার", price: 25, discount_percent: 0, offer_ends_at: null, image: "https://i.ibb.co/n81jGdmZ/624327-CB-CAF9-4595-ADC8-29-AED104761-F.png" },
+  { id: "french_fries", name: "ফ্রেন্স ফ্রাই", category: "স্টাটার", price: 50, discount_percent: 0, offer_ends_at: null, image: "https://i.ibb.co/qYwytJ2H/0-FC2562-A-E630-4056-8679-94-C3244-F4693.png" },
+  { id: "chicken_spring_roll", name: "চিকেন স্প্রিং রোল", category: "স্টাটার", price: 80, discount_percent: 0, offer_ends_at: null, image: "https://i.ibb.co/LXFwxr8B/5-D1-E5792-4978-4-C91-A3-BF-B77-F1-AD40-E1-E.png" },
+  { id: "chicken_momos", name: "চিকেন মমস", category: "স্টাটার", price: 100, discount_percent: 0, offer_ends_at: null, image: "https://i.ibb.co/d47K3SHR/7458-C286-F52-D-4091-800-B-00-F5-F50-B38-A2.png" },
+  { id: "chicken_fry_3pcs", name: "চিকেন ফ্রাই (৩ পিস)", category: "স্টাটার", price: 120, discount_percent: 0, offer_ends_at: null, image: "https://i.ibb.co/twkB2HdJ/5-F87576-A-63-DE-4-B7-B-939-A-77-FBA368-D63-B.png" },
+  { id: "cold_coffee", name: "কোল্ড কফি", category: "শেক", price: 80, discount_percent: 0, offer_ends_at: null, image: "https://i.ibb.co/9HMwr8JZ/8-D88-E5-DA-53-BD-486-A-9-F4-E-57-E1-CE6029-FD.png" },
+  { id: "chocolate_shake", name: "চকলেট শেক", category: "শেক", price: 90, discount_percent: 0, offer_ends_at: null, image: "https://i.ibb.co/DHL1JrGq/7-AB0-CD26-2-A65-4-A62-8626-F57-EEEF367-BC.png" },
+  { id: "vanilla_shake", name: "ভ্যানিলা শেক", category: "শেক", price: 99, discount_percent: 0, offer_ends_at: null, image: "https://i.ibb.co/Q3sRqntj/DFE6-D029-F56-E-43-AD-8021-7793-C5-DD9-FBB.png" },
+  { id: "oreo_shake", name: "অরিও শেক", category: "শেক", price: 110, discount_percent: 0, offer_ends_at: null, image: "https://i.ibb.co/CsvJJYxk/3418542-C-F907-4-F9-E-8-C5-E-33-C948-D56-DBC.png" },
+  { id: "kitkat_shake", name: "কিটক্যাট শেক", category: "শেক", price: 110, discount_percent: 0, offer_ends_at: null, image: "https://i.ibb.co/5XXwtkkd/96-EE5-C94-0335-4697-B189-AD25573-A1452.png" },
+  { id: "butterscotch_shake", name: "বাটারস্কচ শেক (Padma Special)", category: "শেক", price: 110, discount_percent: 0, offer_ends_at: null, image: "https://i.ibb.co/Q7C1KMrG/6-DBE446-F-C5-F0-40-CD-988-D-399-DD37-CFCC8.png" },
+  { id: "water", name: "পানি", category: "সফট ড্রিঙ্কস", price: 20, discount_percent: 0, offer_ends_at: null, image: "https://i.ibb.co/1hGL88J/78-BAED40-1575-4-DC9-AC0-A-0-DE09893-FC46.png" },
+  { id: "mojo", name: "মজো", category: "সফট ড্রিঙ্কস", price: 20, discount_percent: 0, offer_ends_at: null, image: "https://i.ibb.co/tPcx817T/D763-AE66-BB05-4-D47-87-C0-BB6-AC2-C1-E0-AA.png" },
+  { id: "combo_hash_khichuri_regular", name: "হাঁস+খিচুড়ি (রেগুলার)", category: "কম্বো প্যাকেজ", price: 230, discount_percent: 0, offer_ends_at: null, image: "https://i.ibb.co/zhwSK12Z/7543-F983-42-F6-4-A40-AC24-7905-E953-E10-B.png" },
+  { id: "combo_hash_khichuri_special", name: "হাঁস+খিচুড়ি (স্পেশাল)", category: "কম্বো প্যাকেজ", price: 270, discount_percent: 0, offer_ends_at: null, image: "https://i.ibb.co/prf7qKPk/34-C78-C43-2008-4279-BD93-FAD7-C5300544.png" }
+];
+
+let MENU = DEFAULT_MENU.map(item => ({ ...item }));
+
+const CATEGORIES = [
+  "সব খাবার",
+  "কম্বো প্যাকেজ",
+  "পদ্মা স্পেশাল",
+  "বার্গার",
+  "স্টাটার",
+  "শেক",
+  "সফট ড্রিঙ্কস"
+];
+
+let selectedCategory = "সব খাবার";
+
+function isOfferActive(item) {
+  const disc = Number(item.discount_percent || 0);
+  if (disc <= 0) return false;
+  if (!item.offer_ends_at) return true;
+  return new Date(item.offer_ends_at).getTime() > Date.now();
+}
+
+function activeDiscountPercent(item) {
+  return isOfferActive(item) ? Number(item.discount_percent || 0) : 0;
+}
+
+function effectiveItemPrice(item) {
+  const base = Number(item.price || 0);
+  const disc = activeDiscountPercent(item);
+  if (disc <= 0) return base;
+  return Math.round((base * (100 - disc)) / 100);
+}
+
+function formatOfferCountdown(offerEndsAt) {
+  if (!offerEndsAt) return "";
+  const diffSec = Math.max(0, Math.floor((new Date(offerEndsAt).getTime() - Date.now()) / 1000));
+  if (diffSec <= 0) return currentLang === "en" ? "Offer ended" : "অফার শেষ";
+
+  const days = Math.floor(diffSec / 86400);
+  const hours = Math.floor((diffSec % 86400) / 3600);
+  const mins = Math.floor((diffSec % 3600) / 60);
+  const secs = diffSec % 60;
+
+  const hh = String(hours).padStart(2, "0");
+  const mm = String(mins).padStart(2, "0");
+  const ss = String(secs).padStart(2, "0");
+
+  if (days > 0) {
+    return currentLang === "en"
+      ? `${days}d ${hh} : ${mm} : ${ss}`
+      : `${numberFmt(days)} দিন ${hh} : ${mm} : ${ss}`;
+  }
+  return `${hh} : ${mm} : ${ss}`;
+}
+
+function offerRemainingHoursInputValue(item) {
+  if (!isOfferActive(item) || !item.offer_ends_at) return "";
+  const remHours = (new Date(item.offer_ends_at).getTime() - Date.now()) / (1000 * 3600);
+  if (remHours <= 0) return "";
+  return Number(remHours.toFixed(1));
+}
+
+async function fetchLiveMenuItems() {
+  try {
+    const { data, error } = await db
+      .from("menu_items")
+      .select("id, name, category, price, discount_percent, offer_ends_at, sort_order")
+      .order("sort_order", { ascending: true });
+
+    if (!error && Array.isArray(data) && data.length) {
+      const dbMap = new Map(data.map(row => [row.id, row]));
+      MENU = DEFAULT_MENU.map(base => {
+        const row = dbMap.get(base.id);
+        if (!row) return { ...base };
+        return {
+          ...base,
+          name: row.name || base.name,
+          category: row.category || base.category,
+          price: Number(row.price ?? base.price),
+          discount_percent: Number(row.discount_percent ?? 0),
+          offer_ends_at: row.offer_ends_at || null
+        };
+      });
+      renderMenu();
+      if ($("offlineSaleModal")?.classList.contains("show")) {
+        renderOfflineMenu();
+        renderOfflineCart();
+      }
+      renderCart();
+    }
+  } catch (_) {}
+}
+
+function subscribeMenuItemsRealtime() {
+  db.channel("padma-menu-items")
+    .on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "menu_items" },
+      async () => {
+        await fetchLiveMenuItems();
+      }
+    )
+    .subscribe();
+}
+
+// ------------------------------------------------------
+// GLOBAL STATE
+// ------------------------------------------------------
+
+let user = null;
+let profile = null;
+let cart = {};
+let checkoutDeliveryDraft = {
+  recipient_name: "",
+  recipient_phone: "",
+  recipient_address: ""
+};
+let authMode = "login";
+let pendingOtpEmail = "";
+let phoneInput = null;
+let liveChannel = null;
+let storeChannel = null;
+let currentReceipt = null;
+let audioCtx = null;
+let reportDate = dhakaDate(new Date());
+let reportType = "daily";
+let offlineCart = {};
+let offlineSelectedCategory = "সব খাবার";
+let offlinePaymentMethod = "cod";
+let offlineQrActive = false;
+let hasUnprintedOfflineReceipt = false;
+let hasActiveOnlineOrders = false;
+let dashboardTabFilter = "all"; // "all" (summary + expense/profit + completed online/offline list) | "online" (active online orders only)
+let completedOrdersSubTab = "online"; // "online" | "offline" inside "all" dashboard
+let printerBridgeState = {
+  connected: false,
+  printerName: "POSIFLOW PSF-KP206",
+  paperWidth: "58mm",
+  devices: []
+};
+let orderTimerInterval = null;
+let storeOnline = true;
+let draftPhotoDataUrl = "";
+let profileCacheById = {};
+let previousOrderSnapshot = {};
+
+// ------------------------------------------------------
+// MODAL & DRAWER CLOSE EVENTS
+// ------------------------------------------------------
+
+document.querySelectorAll("[data-close]").forEach(button => {
+  button.addEventListener("click", () => {
+    hide(button.dataset.close);
+  });
+});
+
+document.querySelectorAll(".modal").forEach(modal => {
+  modal.addEventListener("click", event => {
+    if (event.target === modal) hide(modal.id);
+  });
+});
+
+function openProfileSlide() {
+  if (!user || !profile) return;
+
+  draftPhotoDataUrl = "";
+  const currentAvatar = profile.avatar_url || CAFE_LOGO_URL;
+  $("profileSlidePreview").src = currentAvatar;
+  $("profilePhotoUrlInput").value = profile.avatar_url || "";
+  $("profileNameInput").value = profile.full_name || "";
+
+  $("profileSlideDrawer").classList.add("show");
+  $("profileSlideDrawer").setAttribute("aria-hidden", "false");
+  document.body.classList.add("modal-open");
+}
+
+function closeProfileSlide() {
+  $("profileSlideDrawer")?.classList.remove("show");
+  $("profileSlideDrawer")?.setAttribute("aria-hidden", "true");
+  if (!document.querySelector(".modal.show")) {
+    document.body.classList.remove("modal-open");
+  }
+}
+
+$("closeProfileSlideBtn")?.addEventListener("click", closeProfileSlide);
+$("profileSlideBackdrop")?.addEventListener("click", closeProfileSlide);
+
+document.addEventListener("keydown", event => {
+  if (event.key !== "Escape") return;
+
+  if ($("profileSlideDrawer")?.classList.contains("show")) {
+    closeProfileSlide();
+    return;
+  }
+
+  document.querySelectorAll(".modal.show").forEach(modal => {
+    modal.classList.remove("show");
+  });
+
+  document.body.classList.remove("modal-open");
+});
+
+// ------------------------------------------------------
+// NOTIFICATION DOTS (OFFLINE & ONLINE ORDER) & HEADER STATE
+// ------------------------------------------------------
+
+function setOfflineReceiptNotification(active) {
+  hasUnprintedOfflineReceipt = Boolean(active);
+  const dot = $("offlineReceiptDot");
+  if (dot) {
+    dot.classList.toggle("hidden", !hasUnprintedOfflineReceipt);
+  }
+}
+
+function setOnlineOrderNotification(active) {
+  hasActiveOnlineOrders = Boolean(active);
+  const dot = $("onlineOrderDot");
+  if (dot) {
+    dot.classList.toggle("hidden", !hasActiveOnlineOrders);
+  }
+}
+
+async function refreshActiveOnlineOrderDot() {
+  if (!user || !profile || profile.role !== "admin") {
+    setOnlineOrderNotification(false);
+    return;
+  }
+
+  try {
+    const { data, error } = await db
+      .from("orders")
+      .select("id, status, sale_type")
+      .neq("sale_type", "offline")
+      .not("status", "in", "(completed,cancelled)");
+
+    if (!error && Array.isArray(data)) {
+      setOnlineOrderNotification(data.length > 0);
+    }
+  } catch (_) {}
+}
+
+function updatePrinterHeaderBadge() {
+  const btn = $("adminPrinterBtn");
+  if (!btn) return;
+  btn.classList.toggle("connected", Boolean(printerBridgeState.connected));
+}
+
+// ------------------------------------------------------
 // APPLY LANGUAGE ACROSS ENTIRE UI
 // ------------------------------------------------------
 
@@ -409,7 +689,9 @@ function applyLanguageUI() {
     if ($("dashTitle")) {
       $("dashTitle").textContent =
         profile.role === "admin"
-          ? (currentLang === "en" ? "Admin Dashboard" : "অ্যাডমিন ড্যাশবোর্ড")
+          ? (dashboardTabFilter === "online"
+              ? t("online_order")
+              : t("all_orders"))
           : (currentLang === "en" ? "My Orders" : "আমার অর্ডার");
     }
     if (!profile.full_name && $("authAccountLabel")) {
@@ -574,334 +856,6 @@ async function renderBanglaQrCode(amount) {
 }
 
 // ------------------------------------------------------
-// MENU
-// ------------------------------------------------------
-
-const MENU = [
-  {
-    id: "hot_coffee",
-    name: "হট কফি",
-    category: "পদ্মা স্পেশাল",
-    price: 50,
-    image: "https://i.ibb.co/8LXCtYvL/2-CA2-CB11-2-A5-C-4381-BA5-F-75545-BC1-A432.png"
-  },
-  {
-    id: "malai_cha",
-    name: "মালাই চা",
-    category: "পদ্মা স্পেশাল",
-    price: 40,
-    image: "https://i.ibb.co/VcLK5nYV/file-00000000e9a88208aa7be40259922c1c.png"
-  },
-  {
-    id: "dudh_cha",
-    name: "দুধ চা",
-    category: "পদ্মা স্পেশাল",
-    price: 30,
-    image: "https://i.ibb.co/bRNDZZ3K/file-000000005ccc820889393bb309440d71.png"
-  },
-  {
-    id: "pora_roti_10",
-    name: "পোড়া রুটি",
-    category: "পদ্মা স্পেশাল",
-    price: 10,
-    image: "https://i.ibb.co/Df9P5mS3/file-000000000830820897010f7871918eb4.png"
-  },
-  {
-    id: "pora_roti_15",
-    name: "পোড়া রুটি",
-    category: "পদ্মা স্পেশাল",
-    price: 15,
-    image: "https://i.ibb.co/99X1SkxX/file-000000008dbc8208b998a942475980d9.png"
-  },
-  {
-    id: "malai_cha_roti",
-    name: "মালাই চা + পোড়া রুটি",
-    category: "পদ্মা স্পেশাল",
-    price: 50,
-    image: "https://i.ibb.co/5gVjYxnd/2-F219-EBE-0-E4-F-4-A8-E-AD8-D-93-F03-EC9-FF7-B.png"
-  },
-  {
-    id: "chotpoti",
-    name: "চটপটি",
-    category: "পদ্মা স্পেশাল",
-    price: 40,
-    image: "https://i.ibb.co/q3XbrDhz/file-0000000004648211b58070faa54dd03d.png"
-  },
-  {
-    id: "chotpoti_egg",
-    name: "চটপটি (ডিম)",
-    category: "পদ্মা স্পেশাল",
-    price: 60,
-    image: "https://i.ibb.co/V01TCgLQ/file-000000003354820899f2e4c773b57782.png"
-  },
-  {
-    id: "fuchka",
-    name: "ফুচকা",
-    category: "পদ্মা স্পেশাল",
-    price: 50,
-    image: "https://i.ibb.co/5h7kHJ6n/file-0000000017748208bf7b9981383311f1.png"
-  },
-  {
-    id: "doi_fuchka",
-    name: "দই ফুচকা",
-    category: "পদ্মা স্পেশাল",
-    price: 90,
-    image: "https://i.ibb.co/jvk38nz1/1389-A25-D-894-C-4-A34-8-EE5-F309-F4234-A0-B.png"
-  },
-  {
-    id: "doi_chira",
-    name: "দই চিড়া",
-    category: "পদ্মা স্পেশাল",
-    price: 80,
-    image: "https://i.ibb.co/WN4FLbWy/D91-BB4-A4-D5-CC-468-E-8420-A78-D02702-D04.png"
-  },
-  {
-    id: "chicken_tikka_burger",
-    name: "চিকেন টিক্কা বার্গার",
-    category: "বার্গার",
-    price: 80,
-    image: "https://i.ibb.co/W4DqWBZ6/EE2-B31-AA-4-DF9-44-BD-ADD8-5573-CB16-F6-CC.png"
-  },
-  {
-    id: "beef_burger",
-    name: "বিফ বার্গার",
-    category: "বার্গার",
-    price: 130,
-    image: "https://i.ibb.co/FkHC1P73/4-FCDE463-3752-4-D94-AF80-38949321-EB08.png"
-  },
-  {
-    id: "kolija_singara",
-    name: "কলিজা সিঙ্গারা",
-    category: "স্টাটার",
-    price: 25,
-    image: "https://i.ibb.co/n81jGdmZ/624327-CB-CAF9-4595-ADC8-29-AED104761-F.png"
-  },
-  {
-    id: "french_fries",
-    name: "ফ্রেন্স ফ্রাই",
-    category: "স্টাটার",
-    price: 50,
-    image: "https://i.ibb.co/qYwytJ2H/0-FC2562-A-E630-4056-8679-94-C3244-F4693.png"
-  },
-  {
-    id: "chicken_spring_roll",
-    name: "চিকেন স্প্রিং রোল",
-    category: "স্টাটার",
-    price: 80,
-    image: "https://i.ibb.co/LXFwxr8B/5-D1-E5792-4978-4-C91-A3-BF-B77-F1-AD40-E1-E.png"
-  },
-  {
-    id: "chicken_momos",
-    name: "চিকেন মমস",
-    category: "স্টাটার",
-    price: 100,
-    image: "https://i.ibb.co/d47K3SHR/7458-C286-F52-D-4091-800-B-00-F5-F50-B38-A2.png"
-  },
-  {
-    id: "chicken_fry_3pcs",
-    name: "চিকেন ফ্রাই (৩ পিস)",
-    category: "স্টাটার",
-    price: 120,
-    image: "https://i.ibb.co/twkB2HdJ/5-F87576-A-63-DE-4-B7-B-939-A-77-FBA368-D63-B.png"
-  },
-  {
-    id: "cold_coffee",
-    name: "কোল্ড কফি",
-    category: "শেক",
-    price: 80,
-    image: "https://i.ibb.co/9HMwr8JZ/8-D88-E5-DA-53-BD-486-A-9-F4-E-57-E1-CE6029-FD.png"
-  },
-  {
-    id: "chocolate_shake",
-    name: "চকলেট শেক",
-    category: "শেক",
-    price: 90,
-    image: "https://i.ibb.co/DHL1JrGq/7-AB0-CD26-2-A65-4-A62-8626-F57-EEEF367-BC.png"
-  },
-  {
-    id: "vanilla_shake",
-    name: "ভ্যানিলা শেক",
-    category: "শেক",
-    price: 99,
-    image: "https://i.ibb.co/Q3sRqntj/DFE6-D029-F56-E-43-AD-8021-7793-C5-DD9-FBB.png"
-  },
-  {
-    id: "oreo_shake",
-    name: "অরিও শেক",
-    category: "শেক",
-    price: 110,
-    image: "https://i.ibb.co/CsvJJYxk/3418542-C-F907-4-F9-E-8-C5-E-33-C948-D56-DBC.png"
-  },
-  {
-    id: "kitkat_shake",
-    name: "কিটক্যাট শেক",
-    category: "শেক",
-    price: 110,
-    image: "https://i.ibb.co/5XXwtkkd/96-EE5-C94-0335-4697-B189-AD25573-A1452.png"
-  },
-  {
-    id: "butterscotch_shake",
-    name: "বাটারস্কচ শেক (Padma Special)",
-    category: "শেক",
-    price: 110,
-    image: "https://i.ibb.co/Q7C1KMrG/6-DBE446-F-C5-F0-40-CD-988-D-399-DD37-CFCC8.png"
-  },
-  {
-    id: "water",
-    name: "পানি",
-    category: "সফট ড্রিঙ্কস",
-    price: 20,
-    image: "https://i.ibb.co/1hGL88J/78-BAED40-1575-4-DC9-AC0-A-0-DE09893-FC46.png"
-  },
-  {
-    id: "mojo",
-    name: "মজো",
-    category: "সফট ড্রিঙ্কস",
-    price: 20,
-    image: "https://i.ibb.co/tPcx817T/D763-AE66-BB05-4-D47-87-C0-BB6-AC2-C1-E0-AA.png"
-  },
-  {
-    id: "combo_hash_khichuri_regular",
-    name: "হাঁস+খিচুড়ি (রেগুলার)",
-    category: "কম্বো প্যাকেজ",
-    price: 230,
-    image: "https://i.ibb.co/zhwSK12Z/7543-F983-42-F6-4-A40-AC24-7905-E953-E10-B.png"
-  },
-  {
-    id: "combo_hash_khichuri_special",
-    name: "হাঁস+খিচুড়ি (স্পেশাল)",
-    category: "কম্বো প্যাকেজ",
-    price: 270,
-    image: "https://i.ibb.co/prf7qKPk/34-C78-C43-2008-4279-BD93-FAD7-C5300544.png"
-  }
-];
-
-const CATEGORIES = [
-  "সব খাবার",
-  "কম্বো প্যাকেজ",
-  "পদ্মা স্পেশাল",
-  "বার্গার",
-  "স্টাটার",
-  "শেক",
-  "সফট ড্রিঙ্কস"
-];
-
-let selectedCategory = "সব খাবার";
-
-// ------------------------------------------------------
-// GLOBAL STATE
-// ------------------------------------------------------
-
-let user = null;
-let profile = null;
-let cart = {};
-let checkoutDeliveryDraft = {
-  recipient_name: "",
-  recipient_phone: "",
-  recipient_address: ""
-};
-let authMode = "login";
-let pendingOtpEmail = "";
-let phoneInput = null;
-let liveChannel = null;
-let storeChannel = null;
-let currentReceipt = null;
-let audioCtx = null;
-let reportDate = dhakaDate(new Date());
-let reportType = "daily";
-let offlineCart = {};
-let offlineSelectedCategory = "সব খাবার";
-let offlinePaymentMethod = "cod";
-let offlineQrActive = false;
-let hasUnprintedOfflineReceipt = false;
-let dashboardTabFilter = "all"; // "all" | "online"
-let printerBridgeState = {
-  connected: false,
-  printerName: "POSIFLOW PSF-KP206",
-  paperWidth: "58mm",
-  devices: []
-};
-let orderTimerInterval = null;
-let storeOnline = true;
-let draftPhotoDataUrl = "";
-let profileCacheById = {};
-let previousOrderSnapshot = {};
-
-// ------------------------------------------------------
-// MODAL & DRAWER CLOSE EVENTS
-// ------------------------------------------------------
-
-document.querySelectorAll("[data-close]").forEach(button => {
-  button.addEventListener("click", () => {
-    hide(button.dataset.close);
-  });
-});
-
-document.querySelectorAll(".modal").forEach(modal => {
-  modal.addEventListener("click", event => {
-    if (event.target === modal) hide(modal.id);
-  });
-});
-
-function openProfileSlide() {
-  if (!user || !profile) return;
-
-  draftPhotoDataUrl = "";
-  const currentAvatar = profile.avatar_url || CAFE_LOGO_URL;
-  $("profileSlidePreview").src = currentAvatar;
-  $("profilePhotoUrlInput").value = profile.avatar_url || "";
-  $("profileNameInput").value = profile.full_name || "";
-
-  $("profileSlideDrawer").classList.add("show");
-  $("profileSlideDrawer").setAttribute("aria-hidden", "false");
-  document.body.classList.add("modal-open");
-}
-
-function closeProfileSlide() {
-  $("profileSlideDrawer")?.classList.remove("show");
-  $("profileSlideDrawer")?.setAttribute("aria-hidden", "true");
-  if (!document.querySelector(".modal.show")) {
-    document.body.classList.remove("modal-open");
-  }
-}
-
-$("closeProfileSlideBtn")?.addEventListener("click", closeProfileSlide);
-$("profileSlideBackdrop")?.addEventListener("click", closeProfileSlide);
-
-document.addEventListener("keydown", event => {
-  if (event.key !== "Escape") return;
-
-  if ($("profileSlideDrawer")?.classList.contains("show")) {
-    closeProfileSlide();
-    return;
-  }
-
-  document.querySelectorAll(".modal.show").forEach(modal => {
-    modal.classList.remove("show");
-  });
-
-  document.body.classList.remove("modal-open");
-});
-
-// ------------------------------------------------------
-// RECEIPT NOTIFICATION DOT & HEADER VISIBILITY
-// ------------------------------------------------------
-
-function setOfflineReceiptNotification(active) {
-  hasUnprintedOfflineReceipt = Boolean(active);
-  const dot = $("offlineReceiptDot");
-  if (dot) {
-    dot.classList.toggle("hidden", !hasUnprintedOfflineReceipt);
-  }
-}
-
-function updatePrinterHeaderBadge() {
-  const btn = $("adminPrinterBtn");
-  if (!btn) return;
-  btn.classList.toggle("connected", Boolean(printerBridgeState.connected));
-}
-
-// ------------------------------------------------------
 // STORE ONLINE / OFFLINE STATUS SYNC
 // ------------------------------------------------------
 
@@ -1020,7 +974,8 @@ function updateHeaderAuthButtons() {
   const accAvatar = $("customerHeaderAvatar");
   const allOrdersBtn = $("allOrdersBtn");
   const printerBtn = $("adminPrinterBtn");
-  const orderPair = $("adminOrderTypeGroup");
+  const offlineBtn = $("adminOfflineReceiptBtn");
+  const onlineBtn = $("adminOnlineOrdersBtn");
   const cartBtn = $("cartBtn");
 
   if (!user || !profile) {
@@ -1029,10 +984,13 @@ function updateHeaderAuthButtons() {
     accAvatar.src = "";
     allOrdersBtn.classList.add("hidden");
     printerBtn?.classList.add("hidden");
-    orderPair?.classList.add("hidden");
+    offlineBtn?.classList.add("hidden");
+    onlineBtn?.classList.add("hidden");
     cartBtn?.classList.remove("hidden");
     setOfflineReceiptNotification(false);
+    setOnlineOrderNotification(false);
     applyStoreStatusUI();
+    renderMenu();
     return;
   }
 
@@ -1048,15 +1006,18 @@ function updateHeaderAuthButtons() {
 
   allOrdersBtn.classList.remove("hidden");
   printerBtn?.classList.toggle("hidden", !isAdmin);
-  orderPair?.classList.toggle("hidden", !isAdmin);
+  offlineBtn?.classList.toggle("hidden", !isAdmin);
+  onlineBtn?.classList.toggle("hidden", !isAdmin);
   cartBtn?.classList.toggle("hidden", isAdmin);
 
   if (!isAdmin) {
     setOfflineReceiptNotification(false);
+    setOnlineOrderNotification(false);
   }
 
   updatePrinterHeaderBadge();
   applyStoreStatusUI();
+  renderMenu();
 }
 
 $("authAccountBtn").onclick = () => {
@@ -1170,7 +1131,7 @@ $("slideLogoutBtn")?.addEventListener("click", async () => {
 });
 
 // ------------------------------------------------------
-// MENU DISPLAY & SEARCH
+// MENU DISPLAY, SEARCH & ADMIN INLINE PRICE/DISCOUNT/TIMER
 // ------------------------------------------------------
 
 function renderCategories() {
@@ -1189,20 +1150,65 @@ function renderCategories() {
 }
 
 function menuCardHTML(item) {
+  const isAdmin = Boolean(user && profile && profile.role === "admin");
+  const hasOffer = isOfferActive(item);
+  const discPct = activeDiscountPercent(item);
+  const finalPrice = effectiveItemPrice(item);
+  const basePrice = Number(item.price || 0);
+
+  const timerHtml = hasOffer && item.offer_ends_at
+    ? `<div class="offer-timer-pill">
+         <i class="fa-regular fa-clock"></i>
+         <span data-offer-countdown="${escapeHTML(item.id)}" data-offer-end="${escapeHTML(item.offer_ends_at)}">${escapeHTML(formatOfferCountdown(item.offer_ends_at))}</span>
+       </div>`
+    : "";
+
+  const adminEditorHtml = isAdmin
+    ? `
+      <div class="admin-price-editor">
+        <div class="admin-price-inputs">
+          <label>
+            <span>${currentLang === "en" ? "Price (৳)" : "দাম (৳)"}</span>
+            <input type="number" min="0" step="1" id="edit-price-${escapeHTML(item.id)}" value="${escapeHTML(basePrice)}">
+          </label>
+          <label>
+            <span>${currentLang === "en" ? "Off (%)" : "ছাড় (%)"}</span>
+            <input type="number" min="0" max="95" step="1" id="edit-disc-${escapeHTML(item.id)}" value="${escapeHTML(Number(item.discount_percent || 0))}">
+          </label>
+          <label>
+            <span>${currentLang === "en" ? "Hours" : "ঘণ্টা"}</span>
+            <input type="number" min="0" max="720" step="0.5" id="edit-hrs-${escapeHTML(item.id)}" value="${escapeHTML(offerRemainingHoursInputValue(item))}" placeholder="0">
+          </label>
+        </div>
+        <button type="button" class="gold-btn small-btn wide" data-save-menu-item="${escapeHTML(item.id)}">
+          <i class="fa-solid fa-check"></i>
+          ${escapeHTML(t("update_btn"))}
+        </button>
+      </div>
+    `
+    : "";
+
   return `
     <article class="menu-card">
-      ${
-        item.image
-          ? `<img
-              src="${escapeHTML(item.image)}"
-              alt="${escapeHTML(itemNameText(item))}"
-              loading="lazy"
-              onerror="this.outerHTML='<div class=&quot;menu-card-placeholder&quot;><i class=&quot;fa-solid fa-utensils&quot;></i></div>'"
-            >`
-          : `<div class="menu-card-placeholder">
-              <i class="fa-solid fa-utensils"></i>
-            </div>`
-      }
+      <div class="menu-card-media">
+        ${
+          item.image
+            ? `<img
+                src="${escapeHTML(item.image)}"
+                alt="${escapeHTML(itemNameText(item))}"
+                loading="lazy"
+                onerror="this.outerHTML='<div class=&quot;menu-card-placeholder&quot;><i class=&quot;fa-solid fa-utensils&quot;></i></div>'"
+              >`
+            : `<div class="menu-card-placeholder">
+                <i class="fa-solid fa-utensils"></i>
+              </div>`
+        }
+        ${
+          hasOffer
+            ? `<span class="menu-discount-badge">-${numberFmt(discPct)}%</span>`
+            : ""
+        }
+      </div>
 
       <div class="menu-card-body">
         <span class="menu-category-label">
@@ -1211,9 +1217,19 @@ function menuCardHTML(item) {
 
         <h3>${escapeHTML(itemNameText(item))}</h3>
 
-        <div class="menu-card-bottom">
-          <span class="menu-price">${money(item.price)}</span>
+        <div class="menu-price-block">
+          <span class="menu-price">${money(finalPrice)}</span>
+          ${
+            hasOffer
+              ? `<span class="menu-old-price">${money(basePrice)}</span>`
+              : ""
+          }
+        </div>
 
+        ${timerHtml}
+        ${adminEditorHtml}
+
+        <div class="menu-card-bottom">
           <button
             class="add-cart-btn"
             type="button"
@@ -1243,7 +1259,7 @@ function renderMenu() {
 
     return (
       item.name.toLowerCase().includes(query) ||
-      itemCategoryText(item.name).toLowerCase().includes(query) ||
+      itemNameText(item).toLowerCase().includes(query) ||
       item.category.toLowerCase().includes(query) ||
       itemCategoryText(item.category).toLowerCase().includes(query)
     );
@@ -1265,7 +1281,73 @@ $("menuCategories")?.addEventListener("click", event => {
 
 $("menuSearch")?.addEventListener("input", renderMenu);
 
-$("menuGrid")?.addEventListener("click", event => {
+$("menuGrid")?.addEventListener("click", async event => {
+  const saveBtn = event.target.closest("[data-save-menu-item]");
+  if (saveBtn) {
+    if (!ensureAdmin()) return;
+    const itemId = saveBtn.dataset.saveMenuItem;
+    const priceInput = $(`edit-price-${itemId}`);
+    const discInput = $(`edit-disc-${itemId}`);
+    const hrsInput = $(`edit-hrs-${itemId}`);
+
+    const newPrice = Number(priceInput?.value);
+    const newDisc = Math.max(0, Math.min(95, Number(discInput?.value || 0)));
+    const newHours = Number(hrsInput?.value || 0);
+
+    if (!Number.isFinite(newPrice) || newPrice < 0) {
+      toast("সঠিক দাম লিখুন।");
+      return;
+    }
+
+    setLoading(saveBtn, true, "...");
+    try {
+      const offerEndIso =
+        newDisc > 0 && newHours > 0
+          ? new Date(Date.now() + newHours * 3600 * 1000).toISOString()
+          : null;
+
+      const { error } = await db.rpc("admin_update_menu_item", {
+        p_item_id: itemId,
+        p_price: newPrice,
+        p_discount_percent: newDisc,
+        p_offer_hours: newDisc > 0 && newHours > 0 ? newHours : null
+      });
+
+      if (error) {
+        const { error: directErr } = await db
+          .from("menu_items")
+          .update({
+            price: newPrice,
+            discount_percent: newDisc,
+            offer_ends_at: offerEndIso,
+            updated_at: new Date().toISOString()
+          })
+          .eq("id", itemId);
+        if (directErr) throw directErr;
+      }
+
+      const target = MENU.find(m => m.id === itemId);
+      if (target) {
+        target.price = newPrice;
+        target.discount_percent = newDisc;
+        target.offer_ends_at = offerEndIso;
+      }
+
+      renderMenu();
+      if ($("offlineSaleModal")?.classList.contains("show")) {
+        renderOfflineMenu();
+        renderOfflineCart();
+      }
+      renderCart();
+      toast(currentLang === "en" ? "Menu price & offer updated!" : "খাবারের দাম ও অফার আপডেট হয়েছে!");
+    } catch (err) {
+      showError(err);
+    } finally {
+      setLoading(saveBtn, false);
+    }
+    return;
+  }
+
   const button = event.target.closest("[data-add]");
   if (!button) return;
 
@@ -1300,10 +1382,12 @@ function cartRows() {
       const item = MENU.find(product => product.id === id);
       if (!item || qty < 1) return null;
 
+      const unitPrice = effectiveItemPrice(item);
       return {
         ...item,
+        unitPrice,
         qty,
-        subtotal: item.price * qty
+        subtotal: unitPrice * qty
       };
     })
     .filter(Boolean);
@@ -1325,7 +1409,7 @@ function renderCart() {
         <div class="cart-line">
           <div class="cart-line-info">
             <strong>${escapeHTML(itemNameText(item))}</strong>
-            <small>${money(item.price)} × ${numberFmt(item.qty)}</small>
+            <small>${money(item.unitPrice)} × ${numberFmt(item.qty)}</small>
             <b>${money(item.subtotal)}</b>
           </div>
 
@@ -1697,6 +1781,7 @@ async function loadProfile() {
   }
 
   updateHeaderAuthButtons();
+  await refreshActiveOnlineOrderDot();
 }
 
 async function resolveCustomerEmail(order) {
@@ -1973,7 +2058,7 @@ async function submitCustomerOrder({
     const receiptItems = rows.map(item => ({
       item_name: item.name,
       quantity: item.qty,
-      unit_price: item.price,
+      unit_price: item.unitPrice,
       line_total: item.subtotal,
       item_status: "active"
     }));
@@ -2177,6 +2262,10 @@ function startOrderTimerTicker() {
       }
     });
 
+    document.querySelectorAll("[data-offer-countdown]").forEach(el => {
+      el.textContent = formatOfferCountdown(el.dataset.offerEnd);
+    });
+
     document.querySelectorAll(".delivery-tracking").forEach(panel => {
       const progress = calculateDeliveryProgress(
         panel.dataset.start,
@@ -2279,7 +2368,9 @@ async function openDashboard() {
 
     $("dashTitle").textContent =
       profile.role === "admin"
-        ? (currentLang === "en" ? "Admin Dashboard" : "অ্যাডমিন ড্যাশবোর্ড")
+        ? (dashboardTabFilter === "online"
+            ? t("online_order")
+            : t("all_orders"))
         : (currentLang === "en" ? "My Orders" : "আমার অর্ডার");
 
     show("dashboardModal");
@@ -2429,12 +2520,22 @@ async function renderCustomer() {
 }
 
 // ------------------------------------------------------
-// ADMIN DASHBOARD (ALL ORDERS + ONLINE ORDERS + EXPENSE/PROFIT)
+// ADMIN DASHBOARD:
+// - "online": ONLY active/ongoing online orders (clears when completed/cancelled)
+// - "all": Admin Controls (no extra Printer button) + Today's Summary + Expense/Profit + Completed Online/Offline Orders Tabs
 // ------------------------------------------------------
 
 async function renderAdmin() {
   const container = $("dashboardContent");
-  container.innerHTML = `<p class="loading">${currentLang === "en" ? "Loading dashboard..." : "অ্যাডমিন ড্যাশবোর্ড লোড হচ্ছে..."}</p>`;
+  container.innerHTML = `<p class="loading">${currentLang === "en" ? "Loading..." : "লোড হচ্ছে..."}</p>`;
+
+  const isOnlineActiveView = dashboardTabFilter === "online";
+
+  if ($("dashTitle")) {
+    $("dashTitle").textContent = isOnlineActiveView
+      ? t("online_order")
+      : t("all_orders");
+  }
 
   const todayStr = dhakaDate(new Date());
   const dayRange = dhakaDayRange(todayStr);
@@ -2446,13 +2547,211 @@ async function renderAdmin() {
       .from("orders")
       .select("*")
       .order("created_at", { ascending: false })
-      .limit(300),
-    fetchTodayExpenseAmount(todayStr)
+      .limit(400),
+    isOnlineActiveView ? Promise.resolve(0) : fetchTodayExpenseAmount(todayStr)
   ]);
 
   if (ordersRes.error) throw ordersRes.error;
 
   const allOrders = ordersRes.data || [];
+  const activeOnlineOrders = allOrders.filter(
+    o => o.sale_type !== "offline" && !["completed", "cancelled"].includes(o.status)
+  );
+
+  setOnlineOrderNotification(activeOnlineOrders.length > 0);
+
+  if (isOnlineActiveView) {
+    let onlineCardsHtml = "";
+    for (const order of activeOnlineOrders) {
+      const items = await fetchItems(order.id);
+      const emailDisplay = await resolveCustomerEmail(order);
+      const showVerifyPaidBtn =
+        order.payment_method === "online_qr" &&
+        order.payment_status !== "paid";
+
+      onlineCardsHtml += `
+        <article class="order-card">
+          <h3>
+            ${currentLang === "en" ? "Order" : "অর্ডার"} #${escapeHTML(order.id.slice(0, 8))}
+            · ${escapeHTML(order.customer_name || "কাস্টমার")}
+          </h3>
+
+          <div class="order-badges">
+            <span class="status ${escapeHTML(order.status)}">
+              ${statusLabel(order.status)}
+            </span>
+            ${paymentBadgeHTML(order)}
+          </div>
+
+          <p>
+            পেমেন্ট মাধ্যম: ${escapeHTML(paymentMethodLabel(order))}<br>
+            ${order.payment_reference ? `Transaction ID: <strong>${escapeHTML(order.payment_reference)}</strong><br>` : ""}
+            ইমেইল: ${escapeHTML(emailDisplay)}<br>
+            ফোন: ${escapeHTML(order.customer_phone || "—")}<br>
+            ঠিকানা: ${escapeHTML(order.customer_address || "—")}<br>
+            সময়: ${dateTime(order.created_at)}
+          </p>
+
+          <div>
+            ${items.map(item => `
+              <div class="cart-line">
+                <div class="cart-line-info">
+                  <strong>${escapeHTML(item.item_name)}</strong>
+                  <small>
+                    ${numberFmt(item.quantity)} × ${money(item.unit_price)}
+                    ${item.item_status === "unavailable" ? " · পাওয়া যাচ্ছে না" : ""}
+                  </small>
+                </div>
+
+                <div>
+                  <b>${money(item.line_total)}</b>
+
+                  ${
+                    order.status === "pending" &&
+                    item.item_status === "active"
+                      ? `<button
+                           class="outline"
+                           type="button"
+                           data-unavailable="${escapeHTML(item.id)}"
+                         >স্টক নেই</button>`
+                      : ""
+                  }
+                </div>
+              </div>
+            `).join("")}
+          </div>
+
+          <div class="total-line">
+            <b>মোট</b>
+            <b>${money(order.total_amount)}</b>
+          </div>
+
+          ${
+            order.approval_status === "awaiting_customer"
+              ? `<p class="status waiting">কাস্টমারের অনুমতির অপেক্ষায়</p>`
+              : ""
+          }
+
+          ${
+            ["confirmed", "preparing"].includes(order.status)
+              ? timerMarkup(
+                  "খাবার তৈরির বাকি সময়",
+                  order.preparation_ends_at,
+                  `prep-admin-${order.id}`
+                )
+              : ""
+          }
+
+          ${deliveryTrackingMarkup(order, "admin")}
+
+          <div class="order-actions">
+            ${
+              showVerifyPaidBtn
+                ? `<button class="gold-btn verify-paid-btn"
+                     type="button"
+                     data-verify-paid="${escapeHTML(order.id)}">
+                     <i class="fa-solid fa-circle-check"></i>
+                     পেমেন্ট ভেরিফাই (PAID)
+                   </button>`
+                : ""
+            }
+
+            ${
+              order.status === "pending"
+                ? `
+                  <div class="preparation-timer">
+                    <label for="prep-min-${escapeHTML(order.id)}">খাবার তৈরির সময় (মিনিট)</label>
+                    <div class="timer-controls">
+                      <button type="button"
+                        data-minute-adjust="prep-min-${escapeHTML(order.id)}"
+                        data-diff="-1">−</button>
+
+                      <input id="prep-min-${escapeHTML(order.id)}"
+                        type="number" min="1" max="180" value="15">
+
+                      <button type="button"
+                        data-minute-adjust="prep-min-${escapeHTML(order.id)}"
+                        data-diff="1">+</button>
+                    </div>
+                  </div>
+
+                  <button class="gold-btn"
+                    data-order-status="${escapeHTML(order.id)}"
+                    data-status="confirmed">
+                    <i class="fa-solid fa-check"></i>
+                    অর্ডার কনফার্ম ও কাউন্টডাউন শুরু
+                  </button>
+
+                  <button class="danger-btn"
+                    data-order-status="${escapeHTML(order.id)}"
+                    data-status="cancelled">
+                    বাতিল
+                  </button>
+                `
+                : ""
+            }
+
+            ${
+              ["confirmed", "preparing"].includes(order.status)
+                ? `
+                  <div class="preparation-timer">
+                    <label for="delivery-min-${escapeHTML(order.id)}">
+                      ডেলিভারির আনুমানিক সময় (মিনিট)
+                    </label>
+
+                    <div class="timer-controls">
+                      <button type="button"
+                        data-minute-adjust="delivery-min-${escapeHTML(order.id)}"
+                        data-diff="-1">−</button>
+
+                      <input id="delivery-min-${escapeHTML(order.id)}"
+                        type="number" min="1" max="180" value="15">
+
+                      <button type="button"
+                        data-minute-adjust="delivery-min-${escapeHTML(order.id)}"
+                        data-diff="1">+</button>
+                    </div>
+                  </div>
+
+                  <button class="gold-btn delivery-btn"
+                    data-order-status="${escapeHTML(order.id)}"
+                    data-status="out_for_delivery">
+                    <i class="fa-solid fa-motorcycle"></i>
+                    খাবার তৈরি হয়েছে — ডেলিভারি শুরু
+                  </button>
+                `
+                : ""
+            }
+
+            ${
+              order.status === "out_for_delivery"
+                ? `<button class="gold-btn complete-delivery-btn"
+                     data-order-status="${escapeHTML(order.id)}"
+                     data-status="completed">
+                     <i class="fa-solid fa-check-double"></i>
+                     ডেলিভারি সম্পন্ন
+                   </button>`
+                : ""
+            }
+
+            <button class="outline" data-receipt="${escapeHTML(order.id)}">
+              রসিদ
+            </button>
+          </div>
+        </article>
+      `;
+    }
+
+    container.innerHTML = activeOnlineOrders.length
+      ? `<div id="adminOrders">${onlineCardsHtml}</div>`
+      : `<div class="empty-state">
+           <i class="fa-solid fa-inbox"></i>
+           <p>${currentLang === "en" ? "No active online orders running." : "কোনো অনলাইন অর্ডার চলছে না।"}</p>
+         </div>`;
+    startOrderTimerTicker();
+    return;
+  }
+
   const todayOrders = allOrders.filter(o => {
     const t = new Date(o.created_at).getTime();
     return t >= startMs && t < endMs;
@@ -2460,10 +2759,6 @@ async function renderAdmin() {
 
   const todayOnlineOrders = todayOrders.filter(o => o.sale_type !== "offline");
   const todayOfflineOrders = todayOrders.filter(o => o.sale_type === "offline");
-
-  const todayPendingCount = todayOnlineOrders.filter(
-    o => o.status === "pending"
-  ).length;
 
   const todayCompletedOnlineSale = todayOnlineOrders
     .filter(o => o.status === "completed")
@@ -2476,36 +2771,82 @@ async function renderAdmin() {
   const todayTotalSale = todayCompletedOnlineSale + todayCompletedOfflineSale;
   const todayNetProfit = todayTotalSale - Number(savedExpense || 0);
 
+  const todayPendingCount = todayOnlineOrders.filter(
+    o => o.status === "pending"
+  ).length;
+
   const todayCancelledCount = todayOrders.filter(
     o => o.status === "cancelled"
   ).length;
 
-  const visibleOrders =
-    dashboardTabFilter === "online" ? todayOnlineOrders : todayOrders;
+  const completedOnlineList = allOrders.filter(
+    o => o.sale_type !== "offline" && o.status === "completed"
+  );
+  const completedOfflineList = allOrders.filter(
+    o => o.sale_type === "offline" && o.status === "completed"
+  );
+
+  const selectedCompletedOrders = completedOrdersSubTab === "offline"
+    ? completedOfflineList
+    : completedOnlineList;
+
+  let completedCardsHtml = "";
+  for (const order of selectedCompletedOrders) {
+    const items = await fetchItems(order.id);
+    completedCardsHtml += `
+      <article class="order-card">
+        <h3>
+          ${order.sale_type === "offline" ? "অফলাইন অর্ডার" : "অনলাইন অর্ডার"} #${escapeHTML(order.id.slice(0, 8))}
+          · ${escapeHTML(order.customer_name || (order.sale_type === "offline" ? "অফলাইন বিক্রি" : "কাস্টমার"))}
+        </h3>
+
+        <div class="order-badges">
+          <span class="status completed">${statusLabel("completed")}</span>
+          ${paymentBadgeHTML(order)}
+        </div>
+
+        <p>
+          ${order.sale_type === "offline" ? "" : `ফোন: ${escapeHTML(order.customer_phone || "—")}<br>ঠিকানা: ${escapeHTML(order.customer_address || "—")}<br>`}
+          পেমেন্ট মাধ্যম: ${escapeHTML(paymentMethodLabel(order))}<br>
+          ${order.payment_reference ? `Transaction ID: <strong>${escapeHTML(order.payment_reference)}</strong><br>` : ""}
+          সময়: ${dateTime(order.created_at)}
+        </p>
+
+        <div>
+          ${items.map(item => `
+            <div class="cart-line">
+              <div class="cart-line-info">
+                <strong>${escapeHTML(item.item_name)}</strong>
+                <small>${numberFmt(item.quantity)} × ${money(item.unit_price)}</small>
+              </div>
+              <b>${money(item.line_total)}</b>
+            </div>
+          `).join("")}
+        </div>
+
+        <div class="total-line">
+          <b>মোট</b>
+          <b>${money(order.total_amount)}</b>
+        </div>
+
+        <div class="order-actions">
+          <button class="outline" data-receipt="${escapeHTML(order.id)}">
+            <i class="fa-solid fa-receipt"></i>
+            রসিদ
+          </button>
+        </div>
+      </article>
+    `;
+  }
 
   container.innerHTML = `
     <div class="dashboard-panel">
       <h3>${currentLang === "en" ? "Admin Controls" : "অ্যাডমিন কন্ট্রোল"}</h3>
 
       <div class="order-actions">
-        <button id="dashFilterAllBtn" class="${dashboardTabFilter === "all" ? "gold-btn" : "outline"}" type="button">
-          <i class="fa-solid fa-list-check"></i>
-          ${escapeHTML(t("all_orders"))} (${numberFmt(todayOrders.length)})
-        </button>
-
-        <button id="dashFilterOnlineBtn" class="${dashboardTabFilter === "online" ? "gold-btn" : "outline"}" type="button">
-          <i class="fa-solid fa-bag-shopping"></i>
-          ${escapeHTML(t("online_order"))} (${numberFmt(todayOnlineOrders.length)})
-        </button>
-
         <button id="openOfflineSale" class="outline" type="button">
           <i class="fa-solid fa-receipt"></i>
           ${escapeHTML(t("offline_order"))}
-        </button>
-
-        <button id="openPrinterModalDash" class="outline" type="button">
-          <i class="fa-solid fa-print"></i>
-          Printer
         </button>
 
         <button id="openSalesReport" class="outline" type="button">
@@ -2581,29 +2922,53 @@ async function renderAdmin() {
       </div>
     </div>
 
-    <div id="adminOrders">
-      ${visibleOrders.length ? "" : `<p class="empty-state">${currentLang === "en" ? "No orders found for today." : "আজকের কোনো অর্ডার পাওয়া যায়নি।"}</p>`}
+    <div class="completed-filter-bar">
+      <button
+        type="button"
+        id="showCompletedOnlineBtn"
+        class="${completedOrdersSubTab === "online" ? "gold-btn" : "outline"}"
+      >
+        <i class="fa-solid fa-bag-shopping"></i>
+        ${escapeHTML(t("online_order"))} (${numberFmt(completedOnlineList.length)})
+      </button>
+
+      <button
+        type="button"
+        id="showCompletedOfflineBtn"
+        class="${completedOrdersSubTab === "offline" ? "gold-btn" : "outline"}"
+      >
+        <i class="fa-solid fa-receipt"></i>
+        ${escapeHTML(t("offline_order"))} (${numberFmt(completedOfflineList.length)})
+      </button>
+    </div>
+
+    <div id="completedOrdersListWrap">
+      ${
+        completedCardsHtml ||
+        `<p class="empty-state">${
+          completedOrdersSubTab === "offline"
+            ? (currentLang === "en" ? "No completed offline orders yet." : "এখনো কোনো অফলাইন অর্ডার সম্পন্ন হয়নি।")
+            : (currentLang === "en" ? "No completed online orders yet." : "এখনো কোনো অনলাইন অর্ডার সম্পন্ন হয়নি।")
+        }</p>`
+      }
     </div>
   `;
-
-  $("dashFilterAllBtn").onclick = async () => {
-    dashboardTabFilter = "all";
-    await renderAdmin();
-  };
-
-  $("dashFilterOnlineBtn").onclick = async () => {
-    dashboardTabFilter = "online";
-    await renderAdmin();
-  };
 
   $("openOfflineSale").onclick = () => {
     setOfflineReceiptNotification(false);
     openOfflineSale();
   };
-  $("openPrinterModalDash").onclick = async () => {
-    await openPrinterModal();
-  };
   $("openSalesReport").onclick = openSalesReport;
+
+  $("showCompletedOnlineBtn").onclick = async () => {
+    completedOrdersSubTab = "online";
+    await renderAdmin();
+  };
+
+  $("showCompletedOfflineBtn").onclick = async () => {
+    completedOrdersSubTab = "offline";
+    await renderAdmin();
+  };
 
   $("updateTodayExpenseBtn").onclick = async () => {
     const expVal = Math.max(0, Number($("todayExpenseInput")?.value || 0));
@@ -2622,195 +2987,6 @@ async function renderAdmin() {
       setLoading(btn, false);
     }
   };
-
-  let output = "";
-
-  for (const order of visibleOrders) {
-    const isOffline = order.sale_type === "offline";
-    const items = await fetchItems(order.id);
-    const emailDisplay = isOffline ? "—" : await resolveCustomerEmail(order);
-    const showVerifyPaidBtn =
-      !isOffline &&
-      order.payment_method === "online_qr" &&
-      order.payment_status !== "paid";
-
-    output += `
-      <article class="order-card">
-        <h3>
-          ${isOffline ? escapeHTML(t("offline_order")) : (currentLang === "en" ? "Order" : "অর্ডার")} #${escapeHTML(order.id.slice(0, 8))}
-          · ${escapeHTML(order.customer_name || (isOffline ? t("offline_order") : "কাস্টমার"))}
-        </h3>
-
-        <div class="order-badges">
-          <span class="status ${escapeHTML(order.status)}">
-            ${statusLabel(order.status)}
-          </span>
-          ${paymentBadgeHTML(order)}
-        </div>
-
-        <p>
-          পেমেন্ট মাধ্যম: ${escapeHTML(paymentMethodLabel(order))}<br>
-          ${order.payment_reference ? `Transaction ID: <strong>${escapeHTML(order.payment_reference)}</strong><br>` : ""}
-          ${!isOffline ? `ইমেইল: ${escapeHTML(emailDisplay)}<br>` : ""}
-          ${!isOffline ? `ফোন: ${escapeHTML(order.customer_phone || "—")}<br>` : ""}
-          ${!isOffline ? `ঠিকানা: ${escapeHTML(order.customer_address || "—")}<br>` : ""}
-          সময়: ${dateTime(order.created_at)}
-        </p>
-
-        <div>
-          ${items.map(item => `
-            <div class="cart-line">
-              <div class="cart-line-info">
-                <strong>${escapeHTML(item.item_name)}</strong>
-                <small>
-                  ${numberFmt(item.quantity)} × ${money(item.unit_price)}
-                  ${item.item_status === "unavailable" ? " · পাওয়া যাচ্ছে না" : ""}
-                </small>
-              </div>
-
-              <div>
-                <b>${money(item.line_total)}</b>
-
-                ${
-                  !isOffline &&
-                  order.status === "pending" &&
-                  item.item_status === "active"
-                    ? `<button
-                         class="outline"
-                         type="button"
-                         data-unavailable="${escapeHTML(item.id)}"
-                       >স্টক নেই</button>`
-                    : ""
-                }
-              </div>
-            </div>
-          `).join("")}
-        </div>
-
-        <div class="total-line">
-          <b>মোট</b>
-          <b>${money(order.total_amount)}</b>
-        </div>
-
-        ${
-          !isOffline &&
-          order.approval_status === "awaiting_customer"
-            ? `<p class="status waiting">কাস্টমারের অনুমতির অপেক্ষায়</p>`
-            : ""
-        }
-
-        ${
-          !isOffline && ["confirmed", "preparing"].includes(order.status)
-            ? timerMarkup(
-                "খাবার তৈরির বাকি সময়",
-                order.preparation_ends_at,
-                `prep-admin-${order.id}`
-              )
-            : ""
-        }
-
-        ${!isOffline ? deliveryTrackingMarkup(order, "admin") : ""}
-
-        <div class="order-actions">
-          ${
-            showVerifyPaidBtn
-              ? `<button class="gold-btn verify-paid-btn"
-                   type="button"
-                   data-verify-paid="${escapeHTML(order.id)}">
-                   <i class="fa-solid fa-circle-check"></i>
-                   পেমেন্ট ভেরিফাই (PAID)
-                 </button>`
-              : ""
-          }
-
-          ${
-            !isOffline && order.status === "pending"
-              ? `
-                <div class="preparation-timer">
-                  <label for="prep-min-${escapeHTML(order.id)}">খাবার তৈরির সময় (মিনিট)</label>
-                  <div class="timer-controls">
-                    <button type="button"
-                      data-minute-adjust="prep-min-${escapeHTML(order.id)}"
-                      data-diff="-1">−</button>
-
-                    <input id="prep-min-${escapeHTML(order.id)}"
-                      type="number" min="1" max="180" value="15">
-
-                    <button type="button"
-                      data-minute-adjust="prep-min-${escapeHTML(order.id)}"
-                      data-diff="1">+</button>
-                  </div>
-                </div>
-
-                <button class="gold-btn"
-                  data-order-status="${escapeHTML(order.id)}"
-                  data-status="confirmed">
-                  <i class="fa-solid fa-check"></i>
-                  অর্ডার কনফার্ম ও কাউন্টডাউন শুরু
-                </button>
-
-                <button class="danger-btn"
-                  data-order-status="${escapeHTML(order.id)}"
-                  data-status="cancelled">
-                  বাতিল
-                </button>
-              `
-              : ""
-          }
-
-          ${
-            !isOffline && ["confirmed", "preparing"].includes(order.status)
-              ? `
-                <div class="preparation-timer">
-                  <label for="delivery-min-${escapeHTML(order.id)}">
-                    ডেলিভারির আনুমানিক সময় (মিনিট)
-                  </label>
-
-                  <div class="timer-controls">
-                    <button type="button"
-                      data-minute-adjust="delivery-min-${escapeHTML(order.id)}"
-                      data-diff="-1">−</button>
-
-                    <input id="delivery-min-${escapeHTML(order.id)}"
-                      type="number" min="1" max="180" value="15">
-
-                    <button type="button"
-                      data-minute-adjust="delivery-min-${escapeHTML(order.id)}"
-                      data-diff="1">+</button>
-                  </div>
-                </div>
-
-                <button class="gold-btn delivery-btn"
-                  data-order-status="${escapeHTML(order.id)}"
-                  data-status="out_for_delivery">
-                  <i class="fa-solid fa-motorcycle"></i>
-                  খাবার তৈরি হয়েছে — ডেলিভারি শুরু
-                </button>
-              `
-              : ""
-          }
-
-          ${
-            !isOffline && order.status === "out_for_delivery"
-              ? `<button class="gold-btn complete-delivery-btn"
-                   data-order-status="${escapeHTML(order.id)}"
-                   data-status="completed">
-                   <i class="fa-solid fa-check-double"></i>
-                   ডেলিভারি সম্পন্ন
-                 </button>`
-              : ""
-          }
-
-          <button class="outline" data-receipt="${escapeHTML(order.id)}">
-            রসিদ
-          </button>
-        </div>
-      </article>
-    `;
-  }
-
-  $("adminOrders").innerHTML = output;
-  startOrderTimerTicker();
 }
 
 // ------------------------------------------------------
@@ -2883,6 +3059,7 @@ async function adminVerifyPaymentPaid(orderId) {
   if (error) throw error;
 
   toast("পেমেন্ট ভেরিফাই (PAID) সম্পন্ন হয়েছে।");
+  await refreshActiveOnlineOrderDot();
   await renderDashboard();
 }
 
@@ -2925,10 +3102,11 @@ async function adminStatus(orderId, status) {
     status === "out_for_delivery"
       ? `ডেলিভারি শুরু হয়েছে (${numberFmt(deliveryMinutes)} মিনিট)। বাইকটি ঠিকানার দিকে এগোচ্ছে।`
       : status === "completed"
-        ? "ডেলিভারি সম্পন্ন হয়েছে।"
+        ? "ডেলিভারি সম্পন্ন হয়েছে ও সকল অর্ডারে আপডেট হয়েছে।"
         : "অর্ডারের অবস্থা আপডেট হয়েছে।"
   );
 
+  await refreshActiveOnlineOrderDot();
   await renderDashboard();
 }
 
@@ -3195,7 +3373,7 @@ function renderPrinterModalContent() {
       <p class="field-hint">
         • Model: POSIFLOW PSF-KP206<br>
         • Paper Roll: 58mm Thermal<br>
-        • Offline & Online Orders: Kitchen Copy + Customer Copy (পরপর ২টি কপি)
+        • Admin Receipts: Customer Copy + Kitchen Copy
       </p>
     </div>
   `;
@@ -3235,7 +3413,7 @@ function renderPrinterModalContent() {
   });
 }
 
-function buildThermalPrintPayload(order, items) {
+function buildThermalPrintPayload(order, items, includeKitchenCopy = true) {
   const receiptNo = String(order.id || "").slice(0, 8).toUpperCase();
   const formattedDateTime = dateTime(order.created_at);
 
@@ -3250,14 +3428,12 @@ function buildThermalPrintPayload(order, items) {
     order.total_amount ?? normalizedItems.reduce((sum, i) => sum + i.lineTotal, 0)
   );
 
-  // Both Offline and Online orders generate Kitchen Copy (no prices/total)
-  // followed by Customer Copy (with details, prices, total & payment method).
   return {
-    type: order.sale_type === "offline" ? "offline_dual_receipt" : "online_dual_receipt",
-    copies: ["kitchen", "customer"],
+    type: order.sale_type === "offline" ? "offline_receipt" : "online_receipt",
+    copies: includeKitchenCopy ? ["customer", "kitchen"] : ["customer"],
     paperWidth: "58mm",
     printerModel: "POSIFLOW PSF-KP206",
-    kitchenCopy: {
+    kitchenCopy: includeKitchenCopy ? {
       cafeName: "PADMA CAFE",
       copyTitle: "Kitchen Copy",
       receiptNumber: receiptNo,
@@ -3266,7 +3442,7 @@ function buildThermalPrintPayload(order, items) {
         name: i.name,
         quantity: i.quantity
       }))
-    },
+    } : null,
     customerCopy: {
       cafeName: "PADMA CAFE",
       logoUrl: CAFE_LOGO_URL,
@@ -3285,7 +3461,7 @@ function buildThermalPrintPayload(order, items) {
 }
 
 // ------------------------------------------------------
-// RECEIPT & PRINT (CUSTOMER COPY + KITCHEN COPY FOR BOTH ONLINE & OFFLINE)
+// RECEIPT & PRINT (KITCHEN COPY ONLY FOR ADMIN)
 // ------------------------------------------------------
 
 async function getOrderForReceipt(orderId) {
@@ -3307,6 +3483,7 @@ async function getOrderForReceipt(orderId) {
 }
 
 function receiptHTML(order, items) {
+  const isAdminViewer = Boolean(profile && profile.role === "admin");
   const isOffline = order.sale_type === "offline";
   const isOnlinePaid = !isOffline && order.payment_status === "paid";
   const isOnlinePendingVerify =
@@ -3407,6 +3584,10 @@ function receiptHTML(order, items) {
     </div>
   `;
 
+  if (!isAdminViewer) {
+    return customerCopyHtml;
+  }
+
   const kitchenCopyHtml = `
     <div class="receipt-paper kitchen-copy-block">
       <div class="receipt-header">
@@ -3448,7 +3629,8 @@ $("printReceiptBtn").onclick = () => {
     return;
   }
 
-  const payload = buildThermalPrintPayload(currentReceipt.order, currentReceipt.items);
+  const isAdminViewer = Boolean(profile && profile.role === "admin");
+  const payload = buildThermalPrintPayload(currentReceipt.order, currentReceipt.items, isAdminViewer);
   const bridged = sendFlutterBridgeCommand("printReceipt", {
     receiptData: payload,
     html: $("receiptContent").innerHTML
@@ -3456,7 +3638,7 @@ $("printReceiptBtn").onclick = () => {
 
   if (bridged) {
     setOfflineReceiptNotification(false);
-    toast("Kitchen Copy ও Customer Copy প্রিন্টারে পাঠানো হয়েছে!");
+    toast(isAdminViewer ? "Customer Copy ও Kitchen Copy প্রিন্টারে পাঠানো হয়েছে!" : "রসিদ প্রিন্টারে পাঠানো হয়েছে!");
     return;
   }
 
@@ -3464,7 +3646,7 @@ $("printReceiptBtn").onclick = () => {
   const printWindow = window.open("", "_blank", "width=450,height=700");
 
   if (!printWindow) {
-    toast("পপ-আপ অনুমতি দিন, তারপর আবার চেষ্টা করুন।");
+    window.print();
     return;
   }
 
@@ -3481,7 +3663,7 @@ $("printReceiptBtn").onclick = () => {
           padding: 8px;
           color: #111;
           background: #fff;
-          font-family: Arial, sans-serif;
+          font-family: "Hind Siliguri", Arial, sans-serif;
         }
         .receipt-paper {
           width: 100%;
@@ -3600,7 +3782,7 @@ $("printReceiptBtn").onclick = () => {
 };
 
 // ------------------------------------------------------
-// OFFLINE SALE / POS (3-COL VERTICAL GRID + CASH / BANGLA QR)
+// OFFLINE SALE / POS (3-COL VERTICAL GRID + LIVE MENU PRICE/DISCOUNT)
 // ------------------------------------------------------
 
 function openOfflineSale() {
@@ -3745,6 +3927,7 @@ function renderOfflineMenu() {
 
   container.innerHTML = items.map(item => {
     const qtyInCart = offlineCart[item.id] || 0;
+    const unitPrice = effectiveItemPrice(item);
     return `
       <button
         type="button"
@@ -3773,7 +3956,7 @@ function renderOfflineMenu() {
 
         <div class="offline-pos-info">
           <strong>${escapeHTML(itemNameText(item))}</strong>
-          <span>${money(item.price)}</span>
+          <span>${money(unitPrice)}</span>
         </div>
       </button>
     `;
@@ -3786,10 +3969,12 @@ function offlineRows() {
       const item = MENU.find(product => product.id === id);
       if (!item || qty < 1) return null;
 
+      const unitPrice = effectiveItemPrice(item);
       return {
         ...item,
+        unitPrice,
         qty,
-        subtotal: item.price * qty
+        subtotal: unitPrice * qty
       };
     })
     .filter(Boolean);
@@ -3803,7 +3988,7 @@ function renderOfflineCart() {
         <div class="offline-line">
           <div class="cart-line-info">
             <strong>${escapeHTML(itemNameText(item))}</strong>
-            <small>${money(item.price)} × ${numberFmt(item.qty)}</small>
+            <small>${money(item.unitPrice)} × ${numberFmt(item.qty)}</small>
           </div>
 
           <div class="quantity-controls">
@@ -3922,7 +4107,7 @@ async function finalizeOfflineSale(paymentMethodChoice) {
     const receiptItems = rows.map(item => ({
       item_name: item.name,
       quantity: item.qty,
-      unit_price: item.price,
+      unit_price: item.unitPrice,
       line_total: item.subtotal,
       item_status: "active"
     }));
@@ -4151,7 +4336,7 @@ $("printSalesReport").onclick = () => {
 
   const printWindow = window.open("", "_blank", "width=700,height=800");
   if (!printWindow) {
-    toast("পপ-আপ অনুমতি দিন, তারপর আবার চেষ্টা করুন।");
+    window.print();
     return;
   }
 
@@ -4163,7 +4348,7 @@ $("printSalesReport").onclick = () => {
       <title>Padma Cafe Sales Report</title>
       <style>
         body {
-          font-family: Arial, sans-serif;
+          font-family: "Hind Siliguri", Arial, sans-serif;
           padding: 24px;
           color: #111;
         }
@@ -4243,6 +4428,8 @@ function subscribeLive() {
         };
 
         if (profile.role === "admin" && order.sale_type !== "offline") {
+          await refreshActiveOnlineOrderDot();
+
           if (payload.eventType === "INSERT") {
             playAdminLoudAlert();
             toast(
@@ -4304,6 +4491,7 @@ function subscribeLive() {
 
 $("refreshDashboardBtn")?.addEventListener("click", async () => {
   try {
+    await refreshActiveOnlineOrderDot();
     await renderDashboard();
     toast("ড্যাশবোর্ড আপডেট হয়েছে।");
   } catch (error) {
@@ -4381,6 +4569,8 @@ window.addEventListener("scroll", () => {
   }
 
   initializePhoneInput();
+  await fetchLiveMenuItems();
+  subscribeMenuItemsRealtime();
   await fetchStoreStatus();
   subscribeStoreStatus();
   updateHeaderAuthButtons();
