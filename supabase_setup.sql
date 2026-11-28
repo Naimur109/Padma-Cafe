@@ -10,6 +10,8 @@ drop function if exists public.place_customer_order(jsonb);
 drop function if exists public.place_customer_order(
   jsonb, text, text, text, text, text, text
 );
+drop function if exists public.admin_create_offline_sale(jsonb);
+drop function if exists public.admin_create_offline_sale(jsonb, text);
 
 -- ---------------------------------------------------------
 -- 1. ADD NEW ORDER & PROFILE COLUMNS, STORE SETTINGS & POLICIES
@@ -54,6 +56,22 @@ using (true);
 drop policy if exists "Admins can update store settings" on public.store_settings;
 create policy "Admins can update store settings"
 on public.store_settings
+for all
+using (public.is_admin())
+with check (public.is_admin());
+
+-- Daily Expenses Table for Admin Dashboard Expense & Profit Tracking
+create table if not exists public.daily_expenses (
+  expense_date date primary key,
+  expense_amount numeric(12,2) not null default 0,
+  updated_at timestamptz not null default now()
+);
+
+alter table public.daily_expenses enable row level security;
+
+drop policy if exists "Admins can manage daily expenses" on public.daily_expenses;
+create policy "Admins can manage daily expenses"
+on public.daily_expenses
 for all
 using (public.is_admin())
 with check (public.is_admin());
@@ -477,11 +495,12 @@ end;
 $$;
 
 -- ---------------------------------------------------------
--- 6. OFFLINE SALE
+-- 6. OFFLINE SALE (CASH = cod, ONLINE QR = online_qr, PAID)
 -- ---------------------------------------------------------
 
 create or replace function public.admin_create_offline_sale(
-  p_items jsonb
+  p_items jsonb,
+  p_payment_method text default 'cod'
 )
 returns uuid
 language plpgsql
@@ -496,6 +515,7 @@ declare
   v_qty integer;
   v_name text;
   v_price numeric(12,2);
+  v_pay_method text;
 
   v_prices jsonb := '[
     {"id":"hot_coffee","name":"হট কফি","price":50},
@@ -537,6 +557,11 @@ begin
     raise exception 'বিক্রির জন্য খাবার যোগ করুন';
   end if;
 
+  v_pay_method := case
+    when p_payment_method in ('cod', 'online_qr') then p_payment_method
+    else 'cod'
+  end;
+
   insert into public.orders (
     customer_id,
     customer_name,
@@ -561,7 +586,7 @@ begin
     'completed',
     'not_required',
     'offline',
-    'cod',
+    v_pay_method,
     'paid',
     now()
   )
@@ -637,7 +662,7 @@ grant execute on function public.customer_respond_to_order_change(
   uuid, boolean
 ) to authenticated;
 
-grant execute on function public.admin_create_offline_sale(jsonb)
+grant execute on function public.admin_create_offline_sale(jsonb, text)
   to authenticated;
 
 commit;
